@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d865b2460ee547fc958db8da544be66c, type: 3}
+  m_Name: AssetGraphGuiResourcesConfig
+  m_EditorClassIdentifier: 
+  AssetGraphWindow: {fileID: 2800000, guid: 9d6beecfb0c514c9782641af7bdbe9ba, type: 3}
+  ConfigGraphIcon: {fileID: 2800000, guid: b48a2f13c40b045f9b2205828dbd7fc4, type: 3}
+  ConnectionPoint: {fileID: 2800000, guid: 0bf674c3f0a4e42228c87053bedac19e, type: 3}
+  d_AssetGraphWindow: {fileID: 2800000, guid: 20dd03585482b4892a07d6dd5adb3ecc, type: 3}
+  InputBG: {fileID: 2800000, guid: a1db7ee549d5147d4b42adf1b7396354, type: 3}
+  OutputBG: {fileID: 2800000, guid: 7576b8f317a11494eae65b2335689272, type: 3}
+  NodeSkin: {fileID: 11400000, guid: 75ce4a2b9ce8e45f9bcb12d38ed95952, type: 2}
+  NodesGraphics:
+  - node: {fileID: 2800000, guid: 7e74ddcb4e22c4cfc94b454f0aeb1573, type: 3}
+    node2x: {fileID: 2800000, guid: a5b60c4c9c31a48de997f40e86fce8dd, type: 3}
+    OnNode: {fileID: 2800000, guid: 907baae0102874dd49e7f5b2c9dbd168, type: 3}
+    OnNode2x: {fileID: 2800000, guid: 403f9a7a077a74263bab6b89198eaf4c, type: 3}
+  - node: {fileID: 2800000, guid: 4dff96b374bd7441c8ad7f91fc6a3591, type: 3}
+    node2x: {fileID: 2800000, guid: 4b51c3dc205df425bb581cfc489b2380, type: 3}
+    OnNode: {fileID: 2800000, guid: f8dd2517b608b4a7ea9098574b4e6969, type: 3}
+    OnNode2x: {fileID: 2800000, guid: 4edd7b9c0708c41c394a7eccef5710f3, type: 3}
+  - node: {fileID: 2800000, guid: 7136d73e8820d4135bcd6720bf5f3721, type: 3}
+    node2x: {fileID: 2800000, guid: 9464586463c434f4a9ca322dc0df1350, type: 3}
+    OnNode: {fileID: 2800000, guid: 5b4de33f65ec448ec9085f9c0bf149db, type: 3}
+    OnNode2x: {fileID: 2800000, guid: e68d922aabe4948a2af68d46db95d4a9, type: 3}
+  - node: {fileID: 2800000, guid: ed27888e1684140fe8f6cb05957e5b6b, type: 3}
+    node2x: {fileID: 2800000, guid: 5fa5a4d85cee44cc3a050e131b9b6098, type: 3}
+    OnNode: {fileID: 2800000, guid: 67b4de080f56845a09dfdbf9742a16e5, type: 3}
+    OnNode2x: {fileID: 2800000, guid: 03eaacf3cb3e642a3a137ead7d9debba, type: 3}
+  - node: {fileID: 2800000, guid: e85ee2947fe44422d90dab56e1efdd91, type: 3}
+    node2x: {fileID: 2800000, guid: 026474f5e29544af185a526bd1aebdf6, type: 3}
+    OnNode: {fileID: 2800000, guid: c99f06ff0dde241d1a363bbd8ef932a2, type: 3}
+    OnNode2x: {fileID: 2800000, guid: 1cc4426cea05e4d9a92364da039f01b7, type: 3}
+  - node: {fileID: 2800000, guid: 89baa4f52fa38496e8d0d6808762034f, type: 3}
+    node2x: {fileID: 2800000, guid: b8034c807692d4dc8975b8b0df202123, type: 3}
+    OnNode: {fileID: 2800000, guid: 3ab1bcbb000bd41018384e565c288604, type: 3}
+    OnNode2x: {fileID: 2800000, guid: fa2529bf9209243c48e658c607b0c8f2, type: 3}
+  - node: {fileID: 2800000, guid: 406e7a664cf5b47b8bea6929347c3122, type: 3}
+    node2x: {fileID: 2800000, guid: 009ae346a3f1b42eb864a151c39805d3, type: 3}
+    OnNode: {fileID: 2800000, guid: 8e6f1bb79354d4d14a965de286d966d5, type: 3}
+    OnNode2x: {fileID: 2800000, guid: 928b290746aa740428fdb3021b136b4c, type: 3}
+  - node: {fileID: 2800000, guid: d5367ed2f72994b55af0964b29a5134a, type: 3}
+    node2x: {fileID: 2800000, guid: afc3569f912a446bc839b0acf18ac47c, type: 3}
+    OnNode: {fileID: 2800000, guid: bfe3797fca69b44589c23dbbdb59ee52, type: 3}
+    OnNode2x: {fileID: 2800000, guid: 8f7ecdf2556ad4d3a820aba90522fab4, type: 3}
+  - node: {fileID: 2800000, guid: 519a7d8c957b74d4796e109c00242ce0, type: 3}
+    node2x: {fileID: 2800000, guid: 78ce924c1536e4fb88d91fff535a384b, type: 3}
+    OnNode: {fileID: 2800000, guid: 76f42306b205543bf8fd126dd531dd99, type: 3}
+    OnNode2x: {fileID: 2800000, guid: cb8c96287a087455ab5f02f76f764c10, type: 3}
+  NODE_BASE_WIDTH: 120
+  NODE_BASE_HEIGHT: 40
+  NODE_WIDTH_MARGIN: 48
+  NODE_TITLE_HEIGHT_MARGIN: 8
+  CONNECTION_ARROW_WIDTH: 12
+  CONNECTION_ARROW_HEIGHT: 15
+  INPUT_POINT_WIDTH: 21
+  INPUT_POINT_HEIGHT: 29
+  OUTPUT_POINT_WIDTH: 10
+  OUTPUT_POINT_HEIGHT: 23
+  FILTER_OUTPUT_SPAN: 32
+  CONNECTION_POINT_MARK_SIZE: 16
+  CONNECTION_CURVE_LENGTH: 20
+  TOOLBAR_HEIGHT: 20
+  TOOLBAR_GRAPHNAMEMENU_WIDTH: 150
+  TOOLBAR_GRAPHNAMEMENU_CHAR_LENGTH: 20
+  COLOR_ENABLED: {r: 0.43, g: 0.65, b: 1, a: 1}
+  COLOR_CONNECTED: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  COLOR_NOT_CONNECTED: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  COLOR_CAN_CONNECT: {r: 1, g: 1, b: 1, a: 1}
+  COLOR_CAN_NOT_CONNECT: {r: 0.33, g: 0.33, b: 0.33, a: 1}
