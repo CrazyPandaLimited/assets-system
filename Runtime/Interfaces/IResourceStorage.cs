@@ -6,7 +6,6 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 {
     public interface IResourceStorage
     {
-        
         /// <summary>
         /// Add new loader
         /// </summary>

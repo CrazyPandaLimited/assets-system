@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public class WebRequestBundlesLoader : BaseLoader<WebRequestBundleWorker>, IBundlesLoader
+    public class WebRequestBundlesLoader : BaseLoader<WebRequestBundleWorker, AssetBundle>, IBundlesLoader
 #if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM_DEBUG_TOOLS
         , ILoaderDebugger
 #endif
@@ -17,25 +17,12 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         public AssetBundleManifest Manifest { get; protected set; }
         public IAntiCacheUrlResolver AntiCacheUrlResolver { get; protected set; }
 
-        #endregion
+		#endregion
 
-#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM_DEBUG_TOOLS
-        public List<ICacheDebugger> DebugCaches
-        {
-            get
-            {
-                if (_bundlesMemoryCache is ICacheDebugger) return new List<ICacheDebugger>(1) {(ICacheDebugger) _bundlesMemoryCache};
+		#region Private Fields
 
-                return new List<ICacheDebugger>(0);
-            }
-        }
-#endif
-
-        #region Private Fields
-
-        private readonly ICache<AssetBundle> _bundlesMemoryCache;
-        private readonly string _serverUrl;
-        private readonly WebRequestSettings _webRequestSettings;
+		public virtual string ServerUrl { get; set; }
+		private readonly WebRequestSettings _webRequestSettings;
 
         #endregion
 
@@ -46,9 +33,9 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             AssetBundleManifest manifest = null, IAntiCacheUrlResolver antiCacheUrlResolver = null) : base(supportMask, coroutineManager)
         {
             Manifest = manifest ?? new AssetBundleManifest();
-            _bundlesMemoryCache = new BundlesMemoryCache();
+            _memoryCache = new BundlesMemoryCache(_resourceStorage);
             AntiCacheUrlResolver = antiCacheUrlResolver;
-            _serverUrl = serverUrl;
+			ServerUrl = serverUrl;
             _webRequestSettings = webRequestSettings;
         }
 
@@ -58,8 +45,8 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         {
             Manifest = manifest ?? new AssetBundleManifest();
             AntiCacheUrlResolver = antiCacheUrlResolver;
-            _bundlesMemoryCache = bundlesMemoryCacheOverride;
-            _serverUrl = serverUrl;
+            _memoryCache = bundlesMemoryCacheOverride;
+			ServerUrl = serverUrl;
             _webRequestSettings = webRequestSettings;
         }
 
@@ -82,122 +69,13 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             throw new ResourceSystemException("Cannot load WebRequest synchronously");
         }
 
-        public override bool IsCached(string uri)
+        public override void DestroyResource(string uri, object resource)
         {
-            return _bundlesMemoryCache.Contains(uri);
-        }
-
-        public override List<object> ReleaseAllFromCache(bool destroy = true)
-        {
-            List<object> result =new List<object>();
-            
-            var resForRelease = _bundlesMemoryCache.ReleaseAllResources();
-            if (resForRelease == null || resForRelease.Count == 0)
+            var loader = _resourceStorage.GetResourceLoader<UnityResourceFromBundleLoader>();
+            if (!loader.HasWorkersDependentOnAssetBundle(uri))
             {
-                return result;
+                ((AssetBundle)resource).Unload(false);
             }
-            
-            foreach (var bundle in resForRelease)
-            {
-                if (bundle == null)
-                {
-                    continue;
-                }
-                if (destroy)
-                {
-                    DestroyResource(bundle);
-                    continue;
-                }
-                result.Add(bundle);
-            }
-            return result;
-        }
-
-        public override object ReleaseFromCache(object owner, string uri,bool destroy = true)
-        {
-            var bundle =  _bundlesMemoryCache.ReleaseResource(owner, uri);
-            if (destroy)
-            {
-                if (bundle == null)
-                {
-                    return null;
-                }
-                DestroyResource(bundle);
-                return null;
-            }
-
-            return bundle;
-        }
-
-        public override object ForceReleaseFromCache(string uri,bool destroy = true)
-        {
-            var bundle = _bundlesMemoryCache.ForceReleaseResource(uri);
-            if (destroy)
-            {
-                if (bundle == null)
-                {
-                    return null;
-                }
-                DestroyResource(bundle);
-                return null;
-            }
-
-            return bundle;
-        }
-
-        public override List<object> ReleaseAllOwnerResourcesFromCache(object owner,bool destroy = true)
-        {
-            List<object> result =new List<object>();
-            var ownerResources = _bundlesMemoryCache.GetOwnerResourcesNames(owner);
-            var resForRelease = _bundlesMemoryCache.ReleaseResources(owner, ownerResources);
-            if (resForRelease == null || resForRelease.Count == 0)
-            {
-                return result;
-            }
-            
-            foreach (var bundle in resForRelease)
-            {
-                if (bundle == null)
-                {
-                    continue;
-                }
-                if (destroy)
-                {   
-                    DestroyResource(bundle);
-                    continue;
-                }
-                result.Add(bundle);
-            }
-            return result;
-        }
-
-        public override List<object> RemoveUnusedFromCache(bool destroy = true)
-        {
-            List<object> result =new List<object>();
-            var resForRelease = _bundlesMemoryCache.ForceReleaseResources(_bundlesMemoryCache.GetUnusedResourceNames());
-            if (resForRelease == null || resForRelease.Count == 0)
-            {
-                return result;
-            }
-            foreach (var bundle in resForRelease)
-            {
-                if (bundle == null)
-                {
-                    continue;
-                }
-                if (destroy)
-                {
-                    DestroyResource(bundle);
-                    continue;
-                }
-                result.Add(bundle);
-            }
-            return result;
-        }
-
-        public override void DestroyResource(object resource)
-        {
-            ((AssetBundle)resource).Unload(false);
         }
 
         #endregion
@@ -206,7 +84,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 
         protected override TResource GetCachedResource<TResource>(object owner, string uri)
         {   
-            return _bundlesMemoryCache.Get(owner, uri) as TResource;
+            return _memoryCache.Get(owner, uri) as TResource;
         }
 
         protected override void ValidateInputData<TResource>(string uri)
@@ -221,15 +99,16 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 
         protected override WebRequestBundleWorker CreateWorker<TResource>(string uri)
         {
+            Debug.Log("uri="+uri);
             var resourceName = UrlHelper.GetResourceName(uri);
             var bundleInfo = Manifest.BundleInfos[resourceName];
-            return new WebRequestBundleWorker(_serverUrl, uri, bundleInfo, HandleLoadingComplete<TResource>,_coroutineManager, AntiCacheUrlResolver, _webRequestSettings);
+            return new WebRequestBundleWorker(ServerUrl, uri, bundleInfo, HandleLoadingComplete<TResource>,_coroutineManager, AntiCacheUrlResolver, _webRequestSettings);
         }
 
         protected override TResource GetResourceFromWorker<TResource>(WebRequestBundleWorker worker)
         {
             var loadedBundle = worker.AssetBundle;
-            _bundlesMemoryCache.Add(null, worker.Uri, loadedBundle);
+            _memoryCache.Add(null, worker.Uri, loadedBundle);
             return loadedBundle as TResource;
         }
 

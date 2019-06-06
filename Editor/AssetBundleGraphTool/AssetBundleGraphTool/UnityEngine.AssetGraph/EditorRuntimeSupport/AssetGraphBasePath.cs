@@ -82,6 +82,14 @@ namespace UnityEngine.AssetGraph
         {
             get { return System.IO.Path.Combine(CachePath, "TemporalSettingFiles"); }
         }
+
+        public static void CreateTemporalSettingsFilePathIfNotExists()
+        {
+            if (!Directory.Exists(TemporalSettingFilePath))
+            {
+                Directory.CreateDirectory(TemporalSettingFilePath);
+            }
+        }
     }
 #endif
 }

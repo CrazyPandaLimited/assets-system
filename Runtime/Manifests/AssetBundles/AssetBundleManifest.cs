@@ -65,7 +65,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
                 throw new BundleManifestInfoDuplicationException("Try to add double Asset Info for " + assetInfo.Key);
             }
 
-            Restored();
+            Reindex();
         }
 
 
@@ -138,7 +138,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         /// <summary>
         /// Restoreds this instance.
         /// </summary>
-        public void Restored()
+        public void Reindex()
         {
             _infoIndex.Clear();
             foreach (var bundleInfo in BundleInfos.Values)
@@ -166,6 +166,10 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 
         public bool IsResourceExistInBundles(string assetName)
         {
+            if (_infoIndex == null || _infoIndex.Count == 0)
+            {
+                Reindex();
+            }
             return GetBundleByAssetName(assetName) != null;
         }
 

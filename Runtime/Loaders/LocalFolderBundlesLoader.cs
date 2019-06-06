@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public class LocalFolderBundlesLoader : BaseLoader<LocalFolderBundleWorker>, IBundlesLoader
+    public class LocalFolderBundlesLoader : BaseLoader<LocalFolderBundleWorker, AssetBundle>, IBundlesLoader
 #if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM_DEBUG_TOOLS
         , ILoaderDebugger
 #endif
@@ -18,20 +18,8 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 
         #endregion
 
-#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM_DEBUG_TOOLS
-        public List<ICacheDebugger> DebugCaches
-        {
-            get
-            {
-                if (_bundlesMemoryCache is ICacheDebugger) return new List<ICacheDebugger>(1) {(ICacheDebugger) _bundlesMemoryCache};
-                return new List<ICacheDebugger>(0);
-            }
-        }
-#endif
-
         #region Private Fields
-
-        private readonly ICache<AssetBundle> _bundlesMemoryCache;
+        
         private readonly string _localFolder;
 
         #endregion
@@ -42,7 +30,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             AssetBundleManifest manifest = null) : base(supportsMask, coroutineManager)
         {
             Manifest = manifest ?? new AssetBundleManifest();
-            _bundlesMemoryCache = new BundlesMemoryCache();
+            _memoryCache = new BundlesMemoryCache(_resourceStorage);
             _localFolder = localFolder;
             SupportsMask = supportsMask;
             _coroutineManager = coroutineManager;
@@ -53,7 +41,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             AssetBundleManifest manifest = null) : base(supportsMask, coroutineManager)
         {
             Manifest = manifest ?? new AssetBundleManifest();
-            _bundlesMemoryCache = bundlesMemoryCacheOverride;
+            _memoryCache = bundlesMemoryCacheOverride;
             _localFolder = localFolder;
         }
 
@@ -76,108 +64,13 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             throw new InvalidOperationException("Cannot load WebRequest synchronously");
         }
 
-        public override bool IsCached(string uri)
+        public override void DestroyResource(string uri, object resource)
         {
-            return _bundlesMemoryCache.Contains(uri);
-        }
-
-        public override List<object> ReleaseAllFromCache( bool destroy = true)
-        {
-            List<object> result = new List<object>();
-            var resForRelease = _bundlesMemoryCache.ReleaseAllResources();
-            if (resForRelease == null || resForRelease.Count == 0)
+            var loader = _resourceStorage.GetResourceLoader<UnityResourceFromBundleLoader>();
+            if (!loader.HasWorkersDependentOnAssetBundle(uri))
             {
-                return result;
+                ((AssetBundle)resource).Unload(false);
             }
-
-            foreach (var bundle in resForRelease)
-            {
-                if (destroy)
-                {
-                    DestroyResource(bundle);
-                    continue;
-                }
-                result.Add(bundle);
-            }
-
-            return result;
-        }
-
-        public override object ReleaseFromCache(object owner, string uri, bool destroy = true)
-        {
-            var releasedBundle = _bundlesMemoryCache.ReleaseResource(owner, uri);
-
-            if (releasedBundle != null && destroy)
-            {
-                DestroyResource(releasedBundle);
-                return null;
-            }
-
-            return releasedBundle;
-        }
-
-        public override object ForceReleaseFromCache(string uri, bool destroy = true)
-        {
-            var releasedBundle = _bundlesMemoryCache.ForceReleaseResource(uri);
-
-            if (releasedBundle != null && destroy)
-            {
-                DestroyResource(releasedBundle);
-                return null;
-            }
-
-            return releasedBundle;
-        }
-
-        public override List<object> ReleaseAllOwnerResourcesFromCache(object owner, bool destroy = true)
-        {
-            List<object> result = new List<object>();
-            var ownerResources = _bundlesMemoryCache.GetOwnerResourcesNames(owner);
-            var resForRelease = _bundlesMemoryCache.ReleaseResources(owner, ownerResources);
-            if (resForRelease == null || resForRelease.Count == 0)
-            {
-                return result;
-            }
-
-            foreach (var bundle in resForRelease)
-            {
-                if (destroy)
-                {
-                    DestroyResource(bundle);
-                    continue;
-                }
-
-                result.Add(bundle);
-            }
-
-            return result;
-        }
-
-        public override List<object> RemoveUnusedFromCache(bool destroy = true)
-        {
-            List<object> result = new List<object>();
-            var resForRelease = _bundlesMemoryCache.ForceReleaseResources(_bundlesMemoryCache.GetUnusedResourceNames());
-            if (resForRelease == null || resForRelease.Count == 0)
-            {
-                return result;
-            }
-
-            foreach (var bundle in resForRelease)
-            {
-                if (destroy)
-                {
-                    DestroyResource(bundle);
-                    continue;
-                }
-                result.Add(bundle);
-            }
-
-            return result;
-        }
-
-        public override void DestroyResource(object resource)
-        {
-            ((AssetBundle) resource).Unload(false);
         }
 
         #endregion
@@ -186,7 +79,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 
         protected override TResource GetCachedResource<TResource>(object owner, string uri)
         {
-            return _bundlesMemoryCache.Get(owner, uri) as TResource;
+            return _memoryCache.Get(owner, uri) as TResource;
         }
 
         protected override void ValidateInputData<TResource>(string uri)
@@ -210,7 +103,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         protected override TResource GetResourceFromWorker<TResource>(LocalFolderBundleWorker worker)
         {
             var loadedBundle = worker.AssetBundle;
-            _bundlesMemoryCache.Add(null, worker.Uri, loadedBundle);
+            _memoryCache.Add(null, worker.Uri, loadedBundle);
             return loadedBundle as TResource;
         }
 

@@ -1,4 +1,5 @@
 ﻿#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM
+using System.Collections;
 using System.Collections.Generic;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
@@ -23,6 +24,22 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         #endregion
 
         #region Public Members
+
+        public IEnumerable<IResourceWorker> GetAllWorkersInWaitingSate()
+        {
+            foreach (var w in _workersInWaitingState)
+            {
+                yield return w;
+            }
+        }
+
+        public IEnumerable<IResourceWorker> GetAllWorkersInProcessSate()
+        {            
+            foreach (var w in _workersInProcessState)
+            {
+                yield return w;
+            }
+        }
 
         public T GetExistResourceWorker<T>(string uri) where T : IResourceWorker
         {

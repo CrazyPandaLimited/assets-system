@@ -5,7 +5,7 @@ using CrazyPanda.UnityCore.CoroutineSystem;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public class WebRequestLoader : AbstractMemoryCachedLoader<WebRequestWorker>
+    public class WebRequestLoader : AbstractMemoryCachedLoader<WebRequestWorker, object>
     {
         private readonly List<IResourceDataCreator> _resourceDataCreators = new List<IResourceDataCreator>();
         private readonly WebRequestSettings _webRequestSettings;
@@ -42,7 +42,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             throw new InvalidOperationException("Cannot load WebRequest synchronously");
         }
 
-        public override void DestroyResource(object resource)
+        public override void DestroyResource(string uri, object resource)
         {
             foreach (var resourceDataCreator in _resourceDataCreators)
             {

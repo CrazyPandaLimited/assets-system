@@ -29,13 +29,12 @@ namespace UnityEngine.AssetGraph {
                     s_database.m_dictionary = new Dictionary<string, AssetReference> ();
 					s_database.m_version = DB_VERSION;
 
-                    var DBDir = AssetGraphBasePath.TemporalSettingFilePath;
-                    var dbDirFullPath = Model.Settings.Path.LocalEditorPathToFullPath(DBDir);                    
-					if (!Directory.Exists(dbDirFullPath)) {
-						Directory.CreateDirectory(dbDirFullPath);
+                    var DBDir = AssetGraphBasePath.TemporalSettingFilePath;                   
+					if (!Directory.Exists(DBDir)) {
+						Directory.CreateDirectory(DBDir);
 					}
-
-                    AssetDatabase.CreateAsset(s_database, Model.Settings.Path.ASSETS_PATH+Model.Settings.Path.DatabasePath);
+                    
+                    AssetDatabase.CreateAsset(s_database, Model.Settings.Path.DatabasePath);
 				}
 			}
 

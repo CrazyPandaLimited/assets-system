@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public class UnityResourceFromBundleLoader : AbstractMemoryCachedLoader<UnityResourceFromBundleWorker>
+    public class UnityResourceFromBundleLoader : AbstractMemoryCachedLoader<UnityResourceFromBundleWorker, object>
     {
         #region Constructors
 
@@ -124,7 +124,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             throw new ResourceSystemException("Not found correct bundles loader!!!");
         }
 
-        public override void DestroyResource(object resource)
+        public override void DestroyResource(string uri, object resource)
         {
 #if !UNITY_EDITOR
             var unityObject = resource as UnityEngine.Object;
@@ -171,6 +171,22 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             }
 
             return worker;
+        }
+
+        public bool HasWorkersDependentOnAssetBundle(string bundleUri)
+        {
+            foreach (var w in _workersQueue.GetAllWorkersInWaitingSate())
+            {
+                var worker = w as UnityResourceFromBundleWorker;
+                if (worker != null && worker.IsDependentOnAssetBundle(bundleUri)) return true;
+            }
+
+            foreach (var w in _workersQueue.GetAllWorkersInProcessSate())
+            {
+                var worker = w as UnityResourceFromBundleWorker;
+                if (worker != null && worker.IsDependentOnAssetBundle(bundleUri)) return true;
+            }
+            return false;
         }
 
         protected override TResource GetResourceFromWorker<TResource>(UnityResourceFromBundleWorker worker)

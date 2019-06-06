@@ -9,7 +9,7 @@ using UnityEditor;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public class UnityResourceFromBundleLoaderEditorLocal : AbstractMemoryCachedLoader<UnityResourceFromBundleWorkerEditorLocal>
+    public class UnityResourceFromBundleLoaderEditorLocal : AbstractMemoryCachedLoader<UnityResourceFromBundleWorkerEditorLocal, object>
     {
         #region Constructors
 
@@ -64,8 +64,9 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return asset;
         }
 
-        public override void DestroyResource(object resource)
+        public override void DestroyResource(string uri, object resource)
         {
+
         }
 
         #endregion

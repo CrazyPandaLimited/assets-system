@@ -129,7 +129,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             }
 
             CallInternalException(new LoaderNotRegisteredException("Loader type not found type:" + typeof(T)));
-            return default;
+            return default(T);
         }
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
                 CallInternalException(e);
             }
 
-            return default;
+            return default(T);
         }
 
         /// <summary>
@@ -379,7 +379,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             try
             {
                 ValidateOwner(owner);
-                _workersQueue.CancelAllRequests(owner);
+                //_workersQueue.CancelAllRequests(owner);
                 for (var i = 0; i < _loaders.Count; i++)
                 {
                     _loaders[i].ReleaseAllOwnerResourcesFromCache(owner, destroy);
@@ -402,7 +402,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             {
                 foreach (var loader in _loaders)
                 {
-                    loader.RemoveUnusedFromCache(destroyResources);
+                    loader.ReleaseUnusedFromCache(destroyResources);
                 }
 
                 if (forceCollect)

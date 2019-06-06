@@ -15,4 +15,4 @@ MonoBehaviour:
   _editorWindowGridSize: 15
   _defaultVerboseLog: 1
   _clearAssetLogOnBuild: 0
-  _cachesRootPath: Assets/TestAssetGraphSystem/AssetGraphCaches
+  _cachesRootPath: Assets/AssetsGraphCache

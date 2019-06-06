@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public class FakeBundlesLoader : BaseLoader<LocalFolderBundleWorker>
+    public class FakeBundlesLoader : BaseLoader<LocalFolderBundleWorker, object>
     {
         #region Constructors
 
@@ -35,32 +35,32 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return true;
         }
 
-        public override List<object> ReleaseAllFromCache(bool destroy = true)
+        public override Dictionary<string, object> ReleaseAllFromCache(bool destroy = true)
         {
-            return new List<object>();
+            return new Dictionary<string, object>();
         }
 
-        public override object ReleaseFromCache(object owner, string uri,bool destroy = true)
-        {
-            return null;
-        }
-
-        public override object ForceReleaseFromCache(string uri,bool destroy = true)
+        public override Dictionary<string, object> ReleaseFromCache(object owner, string uri,bool destroy = true)
         {
             return null;
         }
 
-        public override List<object> ReleaseAllOwnerResourcesFromCache(object owner,bool destroy = true)
+        public override Dictionary<string, object> ForceReleaseFromCache(string uri,bool destroy = true)
         {
-            return new List<object>();
+            return null;
         }
 
-        public override List<object> RemoveUnusedFromCache(bool destroy = true)
+        public override Dictionary<string, object> ReleaseAllOwnerResourcesFromCache(object owner,bool destroy = true)
         {
-            return new List<object>();
+            return new Dictionary<string, object>();
         }
 
-        public override void DestroyResource(object resource)
+        public override Dictionary<string, object> ReleaseUnusedFromCache(bool destroy = true)
+        {
+            return new Dictionary<string, object>();
+        }
+
+        public override void DestroyResource(string key, object resource)
         {
             
         }

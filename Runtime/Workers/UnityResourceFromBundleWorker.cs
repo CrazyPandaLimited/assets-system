@@ -61,6 +61,16 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 
         #region Public Members
 
+        public bool IsDependentOnAssetBundle(string bundleUri)
+        {
+            if (string.IsNullOrEmpty(bundleUri)) return false;
+            foreach (var lo in _loadingOperationForDependentBundles)
+            {
+                if (lo.Uri == bundleUri) return true;
+            }
+            return _loadingOperationForMainBundle.Uri == bundleUri;
+        }
+
         public void RegisterMainDependency<T>(ILoadingOperation<T> dependendentLoader) where T : class
         {
             _loadingOperationForMainBundle = (ILoadingOperation<AssetBundle>) dependendentLoader;
@@ -150,6 +160,8 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             {
                 loadingOperationForDependentBundle.CancelLoading();
             }
+
+            //TODO: make cancel loading
         }
 
         #endregion

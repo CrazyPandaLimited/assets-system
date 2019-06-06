@@ -902,7 +902,9 @@ namespace UnityEngine.AssetGraph
             }
 
             try {
-                AssetDatabase.SaveAssets ();
+				AssetGraphBasePath.CreateTemporalSettingsFilePathIfNotExists();				
+
+				AssetDatabase.SaveAssets ();
                 AssetBundleBuildMap.GetBuildMap ().Clear ();
 
                 if (UserPreference.Preferences._clearAssetLogOnBuild) {

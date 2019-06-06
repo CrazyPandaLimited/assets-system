@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public class UnityResourceFolderLoader : AbstractMemoryCachedLoader<UnityResourceFolderWorker>
+    public class UnityResourceFolderLoader : AbstractMemoryCachedLoader<UnityResourceFolderWorker, object>
     {
         #region Constructors
 
@@ -50,7 +50,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return resource;
         }
 
-        public override void DestroyResource(object resource)
+        public override void DestroyResource(string uri, object resource)
         {
 #if !UNITY_EDITOR
             var unityObject = resource as Object;

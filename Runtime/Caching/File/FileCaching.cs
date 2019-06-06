@@ -7,13 +7,12 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using CrazyPanda.UnityCore.Serialization;
+using System.Threading.Tasks;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public partial class FileCaching : ICache<byte[]>
+    public class FileCaching : ICache<byte[]>
     {
-        #region Private Fields
-
         private CacheInfo _cacheInfo;
         private UnityJsonSerializer _jsonSerializer;
         private FileLocksManager _fileLocksManager;
@@ -21,18 +20,10 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         private string _cachingDirectory;
         private string _cacheInfoPath;
 
-        #endregion
-
-        #region Properties
-
         public IEnumerable<string> CachedKeys
         {
             get { return _cacheInfo.Files.Select(f => f.Key); }
         }
-
-        #endregion
-
-        #region Constructors
 
         /// <summary>
         /// Use different directories for different FileCachings
@@ -59,11 +50,6 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
                 _cacheInfo = new CacheInfo();
             }
         }
-
-        #endregion
-
-
-        #region Public Members
 
         public bool Contains(string key)
         {
@@ -116,19 +102,97 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return bytes;
         }
 
-#if !CRAZYPANDA_UNITYCORE_RESOURCESYSTEM_NET_4_6
         public IEnumerator AddAsync(object owner, string key, byte[] resource)
         {
-#warning FileCaching set async not implemented
-            throw new NotImplementedException();
+            _fileLocksManager.AddWriteLock(key);
+
+            var t = Task.Run(() => { InternalSave(key, resource); });
+
+            while (!t.IsCompleted)
+            {
+                yield return null;
+            }
+
+            _fileLocksManager.RemoveWriteLock(key);
+
+            if (t.IsFaulted)
+            {
+                throw new FileCachingException("Exception in asyncronyous save task", t.Exception);
+            }
+
+            AddKeyAndSaveMetaFile(key, resource);
         }
 
         public ICacheGettingOperation<byte[]> GetAsync(object owner, string key)
         {
-#warning FileCaching get async not implemented
-            throw new NotImplementedException();
+            return new FileCacheCacheLoadingOperation(this, key);
         }
-#endif
+
+        private class FileCacheCacheLoadingOperation : ICacheGettingOperation<byte[]>
+        {
+            private FileCaching _fileCaching;
+            
+            public string ResourceName { get; private set; }
+            public byte[] Result { get; private set; }
+            public bool IsCompleted { get; private set; }
+
+            public FileCacheCacheLoadingOperation(FileCaching fileCaching, string resourceName)
+            {
+                _fileCaching = fileCaching;
+                ResourceName = resourceName;
+            }
+
+
+            public IEnumerator StartProcess()
+            {
+                _fileCaching._fileLocksManager.AddReadLock(ResourceName);
+
+                Task<byte[]> t;
+                try
+                {
+                    var cachedFileInfo = _fileCaching.GetCachedFileInfoStrict(ResourceName);
+
+                    t = Task.Run(() => _fileCaching.InternalLoad(ResourceName, cachedFileInfo));
+
+                    while (!t.IsCompleted)
+                    {
+                        yield return null;
+                    }
+                }
+                finally
+                {
+                    _fileCaching._fileLocksManager.RemoveReadLock(ResourceName);
+                }
+
+                Result = t.Result;
+                IsCompleted = true;
+                if (t.IsFaulted)
+                {
+                    throw new FileCachingException("Exception in asyncronyous save task", t.Exception);
+                }
+            }
+        }
+
+
+        public Dictionary<string, object> ReleaseResource(object owner, string uri)
+        {
+            return ForceReleaseResource(uri);
+        }
+
+        public Dictionary<string, object> ReleaseResources(object owner, List<string> uris)
+        {
+            return ForceReleaseResources(uris);
+        }
+
+        public Dictionary<string, object> ReleaseAllOwnerResources(object owner)
+        {
+            return new Dictionary<string, object>();
+        }
+
+        public Dictionary<string, object> ReleaseUnusedResources()
+        {
+            return new Dictionary<string, object>();
+        }
 
         public List<string> GetUnusedResourceNames()
         {
@@ -140,37 +204,10 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return new List<string>(0);
         }
 
-        public byte[] ForceReleaseResource(string key)
+        public Dictionary<string, object> ForceReleaseResources(List<string> keys)
         {
-            return ReleaseResource(null, key);
-        }
+            var result = new Dictionary<string, object>();
 
-        public byte[] ReleaseResource(object owner, string key)
-        {
-            if (!_cacheInfo.Contains(key))
-            {
-                return null;
-            }
-
-            if (_fileLocksManager.HasAnyLock(key))
-            {
-                return null;
-            }
-
-            InternalDelete(key);
-            _cacheInfo.Remove(key);
-
-            SaveMetaFile();
-            return null;
-        }
-
-        public List<byte[]> ReleaseResources(object owner, List<string> keys)
-        {
-            return ForceReleaseResources(keys);
-        }
-
-        public List<byte[]> ForceReleaseResources(List<string> keys)
-        {
             foreach (var key in keys)
             {
                 if (!_cacheInfo.Contains(key))
@@ -185,14 +222,39 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 
                 InternalDelete(key);
                 _cacheInfo.Remove(key);
+                result.Add(key, null);
             }
 
             SaveMetaFile();
-            return null;
+            return result;
         }
 
-        public List<byte[]> ReleaseAllResources()
+        public Dictionary<string, object> ForceReleaseResource(string key)
         {
+            var result = new Dictionary<string, object>();
+
+            if (!_cacheInfo.Contains(key))
+            {
+                return result;
+            }
+
+            if (_fileLocksManager.HasAnyLock(key))
+            {
+                return result;
+            }
+
+            InternalDelete(key);
+            _cacheInfo.Remove(key);
+            result.Add(key, null);
+
+
+            SaveMetaFile();
+            return result;
+        }
+
+        public Dictionary<string, object> ReleaseAllResources()
+        {
+            var returnResult = new Dictionary<string, object>();
             List<CachedFileInfo> infoForRemove = new List<CachedFileInfo>();
             foreach (var file in _cacheInfo.Files.ToArray())
             {
@@ -208,35 +270,12 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             foreach (var removedKey in infoForRemove)
             {
                 _cacheInfo.Files.Remove(removedKey);
+                returnResult.Add(removedKey.Key, null);
             }
 
             SaveMetaFile();
-            return null;
+            return returnResult;
         }
-
-//        public void LockResource(string key)
-//        {
-//            if (Contains(key))
-//            {
-//                _fileLocksManager.AddManualLock(key);
-//            }
-//        }
-//
-//        public void UnlockResource(string key)
-//        {
-//            if (Contains(key))
-//            {
-//                _fileLocksManager.RemoveManualLock(key);
-//            }
-//        }
-//
-//        public void UnlockAllResources(string key)
-//        {
-//            foreach (var file in _cacheInfo.Files.ToArray())
-//            {
-//                _fileLocksManager.RemoveManualLock(key);
-//            }
-//        }
 
         private void InternalSave(string key, byte[] file)
         {
@@ -307,17 +346,16 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return ToPrettyString(MD5.Create().ComputeHash(file));
         }
 
-        private static string ToPrettyString( byte[] bytes)
+        private static string ToPrettyString(byte[] bytes)
         {
             var sb = new StringBuilder();
-            for( var i = 0; i < bytes.Length; i++ )
+            for (var i = 0; i < bytes.Length; i++)
             {
-                sb.Append( bytes[ i ].ToString( "x2" ) );
+                sb.Append(bytes[i].ToString("x2"));
             }
+
             return sb.ToString();
         }
-
-#endregion
     }
 }
 #endif

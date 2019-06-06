@@ -144,7 +144,8 @@ namespace UnityEngine.AssetGraph
                         GetExportPath(m_exportPath[currentEditingGroup]),
                         (string folderSelected) =>
                         {
-                            var projectPath = Directory.GetParent(Application.dataPath).ToString();
+                            folderSelected = folderSelected.Replace('\\', '/');
+                            var projectPath = Directory.GetParent(Application.dataPath).ToString().Replace('\\','/');
 
                             if (projectPath == folderSelected)
                             {

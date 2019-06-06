@@ -13,8 +13,7 @@ public class PathTest {
 
 	[Test]
 	public void PathTestSimplePasses() {
-		// Use the Assert class to test conditions.
-
+        // Use the Assert class to test conditions.
         string baseDirName = Settings.Path.ToolDirName;
         Assert.IsFalse(string.IsNullOrEmpty(baseDirName));
 
@@ -22,6 +21,8 @@ public class PathTest {
 
 		string basePath = AssetGraphBasePath.BasePath;
 		string cachePath = AssetGraphBasePath.CachePath;
+
+        Assert.AreEqual(true, cachePath.StartsWith("Assets"));
         this.TestPath(Path.Combine(basePath, "Editor/ScriptTemplate"), Settings.Path.ScriptTemplatePath);
 
         this.TestPath(Path.Combine(basePath, "Generated/Editor"), Settings.Path.UserSpacePath);

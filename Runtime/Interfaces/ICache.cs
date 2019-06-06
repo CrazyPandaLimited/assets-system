@@ -66,42 +66,21 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         /// Will get all resources from cache, holds by this owner.
         /// </summary>
         /// <param name="owner">The resource owner</param>
-        List<string> GetOwnerResourcesNames(object owner);
+        List<string> GetOwnerResourcesNames(object owner);        
 
-        /// <summary>
-        /// Will remove resource from cache, holds by this owner.
-        /// But will keep resources, holded by other owners.
-        /// </summary>
-        /// <param name="owner">The resource owner</param>
-        /// <param name="keys">Resources keys to release</param>
-        TStoredResourcesType ReleaseResource(object owner, string key);
-        
-        /// <summary>
-        /// Will remove resources list from cache, holds by this owner.
-        /// But will keep resources, holded by other owners.
-        /// </summary>
-        /// <param name="owner">The resource owner</param>
-        /// <param name="keys">Resources keys to release</param>
-        List<TStoredResourcesType> ReleaseResources(object owner, List<string> keys);
-        
-        
-        /// <summary>
-        /// Force remove resources from cache without owners check
-        /// </summary>
-        /// <param name="keys"></param>
-        List<TStoredResourcesType> ForceReleaseResources(List<string> keys);
-        
-        /// <summary>
-        /// Force remove resource from cache without owners check
-        /// </summary>
-        /// <param name="keys"></param>
-        TStoredResourcesType ForceReleaseResource(string key);
+        Dictionary<string, object> ReleaseAllResources();
 
-        /// <summary>
-        /// Force remove all resources from cache without owners check
-        /// </summary>
-        /// <param name="keys"></param>
-        List<TStoredResourcesType> ReleaseAllResources();
+        Dictionary<string, object> ReleaseResource(object owner, string uri);
+
+        Dictionary<string, object> ReleaseResources(object owner, List<string> uri);
+
+        Dictionary<string, object> ForceReleaseResource(string uri);
+
+        Dictionary<string, object> ForceReleaseResources(List<string> uri);
+
+        Dictionary<string, object> ReleaseAllOwnerResources(object owner);
+
+        Dictionary<string, object> ReleaseUnusedResources();
 
         #endregion
     }

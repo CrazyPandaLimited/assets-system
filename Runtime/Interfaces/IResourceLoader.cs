@@ -15,16 +15,15 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 		ILoadingOperation< T > CreateLoadingWorkerAsync< T >( object owner, string uri ) where T : class;
 		bool IsCached( string uri );
 
-		List< object > ReleaseAllFromCache(bool destroy = true);
-		object ReleaseFromCache( object owner, string uri , bool destroy = true);
-		
-		object ForceReleaseFromCache(string uri , bool destroy = true);
-		List< object > ReleaseAllOwnerResourcesFromCache( object owner, bool destroy = true );
-		List< object > RemoveUnusedFromCache(bool destroy = true);
-		void DestroyResource( object resource );
+        Dictionary<string, object> ReleaseAllFromCache(bool destroy = true);
+        Dictionary<string, object> ReleaseFromCache( object owner, string uri , bool destroy = true);
+
+        Dictionary<string, object> ForceReleaseFromCache(string uri , bool destroy = true);
+        Dictionary<string, object> ReleaseAllOwnerResourcesFromCache( object owner, bool destroy = true );
+        Dictionary<string, object> ReleaseUnusedFromCache(bool destroy = true);
+		void DestroyResource(string uri, object resource );
 		
 		string SupportsMask { get; }
-		
 	}
 
 }

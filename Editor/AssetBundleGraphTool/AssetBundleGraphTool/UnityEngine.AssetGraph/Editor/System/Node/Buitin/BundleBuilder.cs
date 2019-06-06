@@ -191,6 +191,7 @@ namespace UnityEngine.AssetGraph {
                             !Directory.Exists (outputDir)) 
                         {
                             using (new EditorGUILayout.HorizontalScope()) {
+                                Debug.LogWarning("BundleBuilder"+outputDir + " does not exist.");
                                 EditorGUILayout.LabelField(outputDir + " does not exist.");
                                 if(GUILayout.Button("Create directory")) {
                                     Directory.CreateDirectory(outputDir);
@@ -447,20 +448,31 @@ namespace UnityEngine.AssetGraph {
             if (!string.IsNullOrEmpty (m_manifestName [target])) {
                 var projectPath = Directory.GetParent (Application.dataPath).ToString ();
                 var finalManifestName = GetManifestName (target, node, true);
-                var from = FileUtility.PathCombine (projectPath, bundleOutputDir, manifestName);
-                var to = FileUtility.PathCombine (projectPath, bundleOutputDir, finalManifestName);
+                if (finalManifestName != manifestName)
+                {
+                    var from = FileUtility.PathCombine(projectPath, bundleOutputDir, manifestName);
+                    var to = FileUtility.PathCombine(projectPath, bundleOutputDir, finalManifestName);
 
-                var fromPaths = new string[] { from, from + ".manifest" };
-                var toPaths = new string[] { to, to + ".manifest" };
+                    var fromPaths = new string[] { from, from + ".manifest" };
+                    var toPaths = new string[] { to, to + ".manifest" };
 
-                for (var i = 0; i < fromPaths.Length; ++i) {
-                    if (File.Exists (toPaths[i])) {
-                        File.Delete (toPaths[i]);
+                    for (var i = 0; i < fromPaths.Length; ++i)
+                    {
+                        if (File.Exists(toPaths[i]))
+                        {
+                            File.Delete(toPaths[i]);
+                        }
+                        if (File.Exists(fromPaths[i]))
+                        {
+                            File.Move(fromPaths[i], toPaths[i]);
+                        }
+                        else
+                        {
+                            Debug.LogError("File " + fromPaths[i] + " does not exists! Wanted to copy to "+ toPaths[i]);
+                        }
                     }
-                    File.Move (fromPaths[i], toPaths[i]);
+                    manifestName = finalManifestName;
                 }
-
-                manifestName = finalManifestName;
             }
 
             var generatedFiles = FileUtility.GetAllFilePathsInFolder(bundleOutputDir);
@@ -521,7 +533,7 @@ namespace UnityEngine.AssetGraph {
                     outputOption == OutputOption.ErrorIfNoOutputDirectoryFound) 
                 {
                     if (!Directory.Exists (outputDir)) {
-                        throw new NodeException ("Output directory not found.", 
+                        throw new NodeException ("Output directory not found. \n"+ outputDir, 
                             "Create output directory or select other valid directory from inspector.", node);
                     }
                 }

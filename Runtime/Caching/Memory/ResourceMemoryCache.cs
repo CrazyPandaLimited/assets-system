@@ -117,94 +117,96 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return keysToRemove;
         }
 
-        public object ReleaseResource(object owner, string key)
+        public Dictionary<string, object> ReleaseResource(object owner, string uri)
         {
-            var validName = ValidateKey(key);
-            if (!Contains(validName))
-            {
-                return null;
-            }
-
-            var assetReferenceInfo = _assets[validName];
-            var removedOwners = GetRemovedWeekRefereces(assetReferenceInfo, owner);
-
-            for (var i = 0; i < removedOwners.Count; i++)
-            {
-                assetReferenceInfo.Owners.Remove(removedOwners[i]);
-            }
-
-            if (assetReferenceInfo.Owners.Count == 0)
-            {
-                _assets.Remove(validName);
-                return assetReferenceInfo.Resource;
-            }
-
-            return null;
+            return ReleaseResources(new List<string>() { uri }, owner, false);
         }
 
-        public List<object> ReleaseResources(object owner, List<string> keys)
+        public Dictionary<string, object> ReleaseResources(object owner, List<string> uris)
         {
-            List<object> resourcesToRelease = new List<object>(0);
+            return ReleaseResources(uris, owner, false);
+        }
+
+        public Dictionary<string, object> ForceReleaseResource(string uri)
+        {
+            return ReleaseResources(new List<string>() { uri }, null, true);
+        }
+
+        public Dictionary<string, object> ForceReleaseResources(List<string> uris)
+        {
+            return ReleaseResources(uris, null, true);
+        }
+
+        public Dictionary<string, object> ReleaseAllOwnerResources(object owner)
+        {
+            return ReleaseResources(GetOwnerResourcesNames(owner), owner, false);
+        }
+
+        public Dictionary<string, object> ReleaseUnusedResources()
+        {
+            return ReleaseResources(GetUnusedResourceNames());
+        }
+
+        protected Dictionary<string, object> ReleaseResources(List<string> keys, object owner = null, bool forced = false)
+        {
+            Dictionary<string, object> resourcesToRelease = new Dictionary<string, object>(0);
             object tmp = null;
             foreach (var currentAssetName in keys)
             {
-                tmp = ReleaseResource(owner, currentAssetName);
+                tmp = ReleaseResource(owner, currentAssetName, forced);
                 if (tmp != null)
                 {
-                    resourcesToRelease.Add(tmp);
+                    resourcesToRelease.Add(currentAssetName, tmp);
                 }
             }
-            return resourcesToRelease;
+            return resourcesToRelease;           
         }
 
-        public List<object> ForceReleaseResources(List<string> keys)
+        protected object ReleaseResource(object owner, string key, bool forced)
         {
-            List<object> resources = new List<object>();
-            object resourceTmp = null;
-            foreach (var currentAssetName in keys)
-            {
-                resourceTmp = ForceReleaseResource(currentAssetName);
-                if (resourceTmp != null)
-                {
-                    resources.Add(resourceTmp);
-                }
-            }
-            return resources;
-        }
-
-        public object ForceReleaseResource(string key)
-        {
-            
             var validName = ValidateKey(key);
             if (!Contains(validName))
             {
                 return null;
             }
 
-            var assetReferenceInfo = _assets[validName];
-            _assets.Remove(validName);
-            assetReferenceInfo.Owners.Clear();
-            return assetReferenceInfo.Resource;
+            var assetReferenceInfo = _assets[validName];            
+
+            if (!forced)
+            {
+                var removedOwners = GetRemovedWeekRefereces(assetReferenceInfo, owner);
+                for (var i = 0; i < removedOwners.Count; i++)
+                {
+                    assetReferenceInfo.Owners.Remove(removedOwners[i]);
+                }
+
+                if (assetReferenceInfo.Owners.Count == 0)
+                {
+                    _assets.Remove(validName);
+                    return assetReferenceInfo.Resource;
+                }
+                return null;
+            }
+            else
+            {                
+                _assets.Remove(validName);
+                assetReferenceInfo.Owners.Clear();
+                return assetReferenceInfo.Resource;
+            }
         }
 
         public List<string> GetAllResorceNames()
-        {
-            var result = new List<string>(_assets.Count);
-            foreach (var asset in _assets)
-            {
-                result.Add(asset.Key);
-            }
-
-            return result;
+        {            
+            return new List<string>(_assets.Keys);            
         }
 
-        public List<object> ReleaseAllResources()
+        public Dictionary<string, object> ReleaseAllResources()
         {
-            List<object> resources = new List<object>();
+            var resources = new Dictionary<string, object>();
             foreach (var asset in _assets)
             {
                 asset.Value.Owners.Clear();
-                resources.Add(asset.Value.Resource);
+                resources.Add(asset.Key, asset.Value.Resource);
             }
 
             _assets.Clear();
@@ -233,7 +235,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         {
             return key;
             //return key.ToLower();
-        }
+        }       
 
         #endregion
     }

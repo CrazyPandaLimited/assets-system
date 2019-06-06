@@ -99,26 +99,25 @@ namespace UnityEngine.AssetGraph
 
         private static string FilterPath(string folderSelected)
         {
-            var projectPath = Directory.GetParent(Application.dataPath).ToString();
+            var projectPath = Directory.GetParent(Application.dataPath).ToString().Replace('\\', '/');
+            var projectAssetsPath = Application.dataPath.Replace('\\', '/');
 
-            if (projectPath == folderSelected)
+            var folderSelectedUnistyle = folderSelected.Replace('\\', '/');
+
+            if (folderSelectedUnistyle.StartsWith(projectAssetsPath))
             {
-                folderSelected = string.Empty;
+                folderSelectedUnistyle = folderSelectedUnistyle.Substring(projectPath.Length);//it must starts with Assets
+                if (folderSelectedUnistyle.StartsWith("/"))
+                {
+                    folderSelectedUnistyle = folderSelectedUnistyle.Substring(1);
+                }
+                return folderSelectedUnistyle;
             }
             else
             {
-                var index = folderSelected.IndexOf(projectPath);
-                if (index >= 0)
-                {
-                    folderSelected = folderSelected.Substring(projectPath.Length + index);
-                    if (folderSelected.IndexOf('/') == 0)
-                    {
-                        folderSelected = folderSelected.Substring(1);
-                    }
-                }
-            }
-
-            return folderSelected;
+                EditorUtility.DisplayDialog("Wrong directory", "You must select directory inside project Assets folder", "OK");
+                return null;
+            }          
         }
 #endif
     }

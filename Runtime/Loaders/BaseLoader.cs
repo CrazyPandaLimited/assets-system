@@ -2,11 +2,12 @@
 using System;
 using System.Collections.Generic;
 using CrazyPanda.UnityCore.CoroutineSystem;
+using CrazyPanda.UnityCore.ResourcesSystem.DebugTools;
 using Object = UnityEngine.Object;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public abstract class BaseLoader<TWorker> : IResourceLoader where TWorker : IResourceWorker
+    public abstract class BaseLoader<TWorker, TCache> : IResourceLoader where TWorker : IResourceWorker
     {
         #region Protected Fields
 
@@ -14,10 +15,22 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         protected ResourceStorage _resourceStorage;
         protected Action<Exception> _onResourceLoadError;
         protected WorkersQueue _workersQueue;
+        protected ICache<TCache> _memoryCache;
 
         #endregion
 
         #region Public Members
+
+#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM_DEBUG_TOOLS
+        public virtual List<ICacheDebugger> DebugCaches
+        {
+            get
+            {
+                if (_memoryCache is ICacheDebugger) return new List<ICacheDebugger>(1) { (ICacheDebugger)_memoryCache };
+                return new List<ICacheDebugger>(0);
+            }
+        }
+#endif
 
         protected BaseLoader(string supportsMask, ICoroutineManager coroutineManager)
         {
@@ -25,9 +38,13 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             _coroutineManager = coroutineManager;
         }
 
-        public void OnRegisteredToResourceStorage(ResourceStorage resourceStorege, WorkersQueue workersQueue, Action<Exception> onResourceLoadError)
+        public void OnRegisteredToResourceStorage(ResourceStorage resourceStorage, WorkersQueue workersQueue, Action<Exception> onResourceLoadError)
         {
-            _resourceStorage = resourceStorege;
+            _resourceStorage = resourceStorage;
+            if (_memoryCache is BundlesMemoryCache)
+            {
+                (_memoryCache as BundlesMemoryCache).SetResourceStorage(resourceStorage);
+            }
             _workersQueue = workersQueue;
             _onResourceLoadError = onResourceLoadError;
         }
@@ -65,16 +82,70 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return loadingOperation;
         }
 
-        public abstract bool IsCached(string uri);
+        public virtual bool IsCached(string uri)
+        {
+            return _memoryCache.Contains(uri);
+        }        
 
-        public abstract List<object> ReleaseAllFromCache(bool destroy = true);
-        public abstract object ReleaseFromCache(object owner, string uri,bool destroy = true);
+        public virtual Dictionary<string, object> ReleaseAllFromCache(bool destroy = true)
+        {
+            Dictionary<string, object> releasedRes = _memoryCache.ReleaseAllResources();
+            return DestroyReleasedResourcesIfNeed(releasedRes, destroy);
+        }
 
-        public abstract object ForceReleaseFromCache(string uri,bool destroy = true);
+        public virtual Dictionary<string, object> ReleaseFromCache(object owner, string uri, bool destroy = true)
+        {
+            Dictionary<string, object> releasedRes = _memoryCache.ReleaseResource(owner, uri);
+            return DestroyReleasedResourcesIfNeed(releasedRes, destroy);
+        }
 
-        public abstract List<object> ReleaseAllOwnerResourcesFromCache(object owner,bool destroy = true);
-        public abstract List<object> RemoveUnusedFromCache(bool destroy = true);
-        public abstract void DestroyResource(object resource);
+        public virtual Dictionary<string, object> ForceReleaseFromCache(string uri,bool destroy = true)                    
+        {
+            Dictionary<string, object> releasedRes = _memoryCache.ForceReleaseResource(uri);
+            return DestroyReleasedResourcesIfNeed(releasedRes, destroy);
+        }
+
+        public virtual Dictionary<string, object> ReleaseAllOwnerResourcesFromCache(object owner, bool destroy = true)
+        {
+            Dictionary<string, object> releasedRes = _memoryCache.ReleaseAllOwnerResources(owner);
+            return DestroyReleasedResourcesIfNeed(releasedRes, destroy);
+        }
+
+        public virtual Dictionary<string, object> ReleaseUnusedFromCache(bool destroy = true)
+        {
+            Dictionary<string, object> releasedRes = _memoryCache.ReleaseUnusedResources();
+            return DestroyReleasedResourcesIfNeed(releasedRes, destroy);
+        }
+
+        protected Dictionary<string, object> DestroyReleasedResourcesIfNeed(Dictionary<string, object> releasedRes, bool destroy)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            foreach (var kvp in releasedRes)
+            {
+                if (kvp.Value == null)
+                {
+                    continue;
+                }
+                if (destroy)
+                {
+                    CustomDestroyLogic(kvp.Key, kvp.Value);                    
+                    result.Add(kvp.Key, null);
+                }
+                else
+                {
+                    result.Add(kvp.Key, kvp.Value);
+                }
+            }
+            return result;
+        }
+
+        protected virtual void CustomDestroyLogic(string uri, object resource)
+        {
+            DestroyResource(uri, resource);
+        }
+
+        public abstract void DestroyResource(string uri, object resource);
+
 
         #endregion
 

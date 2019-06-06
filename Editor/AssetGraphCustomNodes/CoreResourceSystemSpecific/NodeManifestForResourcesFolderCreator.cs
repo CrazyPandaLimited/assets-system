@@ -15,8 +15,8 @@ using CustomManifest = CrazyPanda.UnityCore.ResourcesSystem.AssetBundleManifest;
 using Debug = UnityEngine.Debug;
 using JsonSerializer = CrazyPanda.UnityCore.Serialization.JsonSerializer;
 
-[CustomNode("Custom/Node Manifest сreator for versioned resources", 1000)]
-public class NodeManifestForVersionedResourcesCreator : Node
+[CustomNode("Custom/Node Resources folder assets Manifest", 1000)]
+public class NodeManifestForResourcesFolderCreator : Node
 {
     #region Private Fields
 
@@ -76,7 +76,7 @@ public class NodeManifestForVersionedResourcesCreator : Node
 
     public override Node Clone(Model.NodeData newData)
     {
-        var newNode = new NodeManifestForVersionedResourcesCreator();
+        var newNode = new NodeManifestForResourcesFolderCreator();
         newNode.m_myValue = new SerializableMultiTargetString(m_myValue);
         newData.AddDefaultInputPoint();
         newData.AddDefaultOutputPoint();
@@ -179,7 +179,7 @@ public class NodeManifestForVersionedResourcesCreator : Node
         IEnumerable<Model.ConnectionData> connectionsToOutput, PerformGraph.Output outputFunc,
         Action<Model.NodeData, string, float> progressFunc)
     {
-        var customManifest = new AssetsManifest<AssetFileInfo>();
+        var customManifest = new AssetsManifest<AssetInfo>();
 
         foreach (var assetGroups in incoming)
         {
@@ -222,13 +222,13 @@ public class NodeManifestForVersionedResourcesCreator : Node
     #region Private Members
 
     private void ProcessingAssetInfos(List<AssetReference> assetInfos,
-        AssetsManifest<AssetFileInfo> manifest)
+        AssetsManifest<AssetInfo> manifest)
     {
         foreach (var assetReference in assetInfos)
         {
             if (!_ignoreList.Contains(assetReference.fileNameAndExtension))
             {
-                var assetInfo = new AssetFileInfo();
+                var assetInfo = new AssetInfo();
                 assetInfo.name = ProcessPathFromManifest(assetReference.path).Replace(assetReference.extension, "");
                 assetInfo.ext = assetReference.extension;
                 manifest._assetsInfos.Add(assetInfo.name, assetInfo);

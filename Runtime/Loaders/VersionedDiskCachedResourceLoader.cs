@@ -7,7 +7,7 @@ using CrazyPanda.UnityCore.ResourcesSystem.DebugTools;
 
 namespace CrazyPanda.UnityCore.ResourcesSystem
 {
-    public class VersionedDiskCachedResourceLoader : AbstractMemoryCachedLoader<VersionedDiskCachedResourceWorker>
+    public class VersionedDiskCachedResourceLoader : AbstractMemoryCachedLoader<VersionedDiskCachedResourceWorker, object>
     {
 #if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM_DEBUG_TOOLS
         public override List<ICacheDebugger> DebugCaches
@@ -28,7 +28,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 
         protected ICache<byte[]> _fileCaching;
         protected string _serverUrl;
-        public AssetFilesManifest Manifest { get; protected set; }
+        public AssetsManifest<AssetFileInfo> Manifest { get; protected set; }
         public IAntiCacheUrlResolver AntiCacheUrlResolver { get; protected set; }
 
         #endregion
@@ -39,7 +39,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             IAntiCacheUrlResolver antiCacheUrlResolver = null,
             string supportMask = "VersionedResource") : base(supportMask, coroutineManager, new ResourceMemoryCache())
         {
-            Manifest = new AssetFilesManifest();
+            Manifest = new AssetsManifest<AssetFileInfo>();
             _fileCaching = new FileCaching(diskCacheDir);
             AntiCacheUrlResolver = antiCacheUrlResolver;
             _serverUrl = serverUrl;
@@ -48,7 +48,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         public VersionedDiskCachedResourceLoader(string serverUrl, ICache<byte[]> fileCacheOverride, ICache<object> memoryCacheOverride,
             ICoroutineManager coroutineManager, IAntiCacheUrlResolver antiCacheUrlResolver = null, string supportMask = "VersionedResource") : base(supportMask, coroutineManager, memoryCacheOverride)
         {
-            Manifest = new AssetFilesManifest();
+            Manifest = new AssetsManifest<AssetFileInfo>();
             AntiCacheUrlResolver = antiCacheUrlResolver;
             _fileCaching = fileCacheOverride;
             _serverUrl = serverUrl;
@@ -109,7 +109,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return _memoryCache.Contains(resourceFullUri);
         }
 
-        public override object ReleaseFromCache(object owner, string uri,bool destroy = true)
+        public override Dictionary<string, object> ReleaseFromCache(object owner, string uri,bool destroy = true)
         {
             var resourceName = UrlHelper.GetResourceName(uri);
 
@@ -121,16 +121,10 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             var resourceInfo = Manifest.GetAssetByName(resourceName);
             var resourceFullUri = UrlHelper.GetUriWithPrefix(SupportsMask, resourceInfo.GetVersionedResourceName());
             var resForRelease = _memoryCache.ReleaseResource(owner, resourceFullUri);
-            if (destroy)
-            {
-                DestroyResource(resForRelease);
-                return null;
-            }
-
-            return resForRelease;
+            return DestroyReleasedResourcesIfNeed(resForRelease, destroy);
         }
 
-        public override void DestroyResource(object resource)
+        public override void DestroyResource(string uri, object resource)
         {
             foreach (var resourceDataCreator in _resourceDataCreators)
             {
@@ -172,7 +166,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
 
                 for (int i = 0; i < oldVersionREsources.Count; i++)
                 {
-                    oldVersionREsources[i] = UrlHelper.GetUriWithPrefix(SupportsMask, oldVersionREsources[i]);
+                    oldVersionREsources[i] = UrlHelper.GetUriWithPrefix(SupportsMask, oldVersionREsources[i]);                    
                 }
 
                 _memoryCache.ReleaseResources(null, oldVersionREsources);

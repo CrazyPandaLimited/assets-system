@@ -12,15 +12,22 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
     {
         #region Private Fields
 
+        private ResourceStorage _resourceStorage;
         private readonly Dictionary<string, AssetBundle> _bundles;
 
         #endregion
 
         #region Constructors
 
-        public BundlesMemoryCache(int startCapacity = 200)
+        public BundlesMemoryCache(ResourceStorage _resourceStorage, int startCapacity = 200)
         {
             _bundles = new Dictionary<string, AssetBundle>(startCapacity);
+            SetResourceStorage(_resourceStorage);
+        }
+
+        public void SetResourceStorage(ResourceStorage _resourceStorage)
+        {
+            this._resourceStorage = _resourceStorage;
         }
 
         #endregion
@@ -82,17 +89,69 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
             return new List<string>();
         }
 
-        public List<AssetBundle> ReleaseUnusedResources()
-        {
-            return new List<AssetBundle>();
-        }
-
         public List<string> GetOwnerResourcesNames(object owner)
         {
             return new List<string>(0);
         }
 
-        public AssetBundle ReleaseResource(object owner, string key)
+        public Dictionary<string, object> ReleaseAllResources()
+        {
+            return ReleaseResources(_bundles.Keys.ToList());
+        }
+
+        public Dictionary<string, object> ReleaseResource(object owner, string uri)
+        {
+            return ReleaseResources(new List<string>() { uri });
+        }
+
+        public Dictionary<string, object> ReleaseResources(object owner, List<string> uris)
+        {
+            return ReleaseResources(uris);
+        }
+
+        public Dictionary<string, object> ForceReleaseResource(string uri)
+        {
+            return ReleaseResources(new List<string>() { uri });
+        }
+
+        public Dictionary<string, object> ForceReleaseResources(List<string> uris)
+        {
+            return ReleaseResources(uris);
+        }
+
+        public Dictionary<string, object> ReleaseAllOwnerResources(object owner)
+        {
+            return new Dictionary<string, object>();
+        }
+
+        public Dictionary<string, object> ReleaseUnusedResources()
+        {
+            return new Dictionary<string, object>();
+        }
+
+        private Dictionary<string, object> ReleaseResources(List<string> keys)
+        {
+            Dictionary<string, object> releasedBundles = new Dictionary<string, object>();
+            AssetBundle tmp = null;
+            foreach (var bundleName in keys)
+            {
+                tmp = ReleaseResource(bundleName);
+                if (tmp != null)
+                {
+                    if (!releasedBundles.ContainsKey(bundleName))
+                    {
+                        releasedBundles.Add(bundleName, tmp);
+                    }
+                    else
+                    {
+                        Debug.LogError("Removing resource with the same key = " + bundleName);
+                    }
+                }
+            }
+            return releasedBundles;
+        }
+
+        private AssetBundle ReleaseResource(string key)
         {
             var validBundleName = ValidateKey(key);
             if (!Contains(validBundleName))
@@ -100,40 +159,15 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
                 return null;
             }
 
-            var bundle = _bundles[validBundleName];
-            _bundles.Remove(validBundleName);
-            return bundle;
-        }
-
-        public List<AssetBundle> ReleaseResources(object owner, List<string> keys)
-        {
-            return ForceReleaseResources(keys);
-        }
-
-        public List<AssetBundle> ForceReleaseResources(List<string> keys)
-        {
-            List<AssetBundle> releasedBundles = new List<AssetBundle>(0);
-            AssetBundle tmp = null;
-            foreach (var bundleName in keys)
+            var loader = _resourceStorage.GetResourceLoader<UnityResourceFromBundleLoader>();
+            if (!loader.HasWorkersDependentOnAssetBundle(validBundleName))
             {
-                tmp = ForceReleaseResource(bundleName);
-                if (tmp != null)
-                {
-                    releasedBundles.Add(tmp);
-                }
+                var bundle = _bundles[validBundleName];
+                _bundles.Remove(validBundleName);
+                return bundle;
             }
-            return releasedBundles;
-        }
 
-        public AssetBundle ForceReleaseResource(string key)
-        {
-            return ReleaseResource(null, key);
-        }
-
-        public List<AssetBundle> ReleaseAllResources()
-        {
-            var allBundles = _bundles.Keys.ToList();
-            return ForceReleaseResources(allBundles);
+            return null;           
         }
 
         #endregion
