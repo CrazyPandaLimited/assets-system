@@ -1,8 +1,7 @@
-﻿#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 
-namespace CrazyPanda.UnityCore.ResourcesSystem
+namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class BundleInfo
     {
@@ -38,7 +37,7 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         /// CRC32 Hash
         /// </value>
         public string CRC { get; set; }
-        
+
         /// <summary>
         /// Get or sets Hash128 bundle hash
         /// A version hash. If this hash does not match the hash for the cached version of this asset bundle, the asset bundle will be redownloaded.
@@ -106,4 +105,3 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         #endregion
     }
 }
-#endif

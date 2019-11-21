@@ -1,26 +1,25 @@
-﻿#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM
-
-using System;
+﻿using System;
 using System.Text;
 
-namespace CrazyPanda.UnityCore.ResourcesSystem
+namespace CrazyPanda.UnityCore.AssetsSystem
 {
-	public class StringDataCreator : IResourceDataCreator
-	{
-		public bool Supports(Type requestedResourceType)
-		{
-			return requestedResourceType == typeof(String);
-		}
+    public class StringDataCreator : IAssetDataCreator
+    {
+        #region Public Members
+        public bool Supports( Type requestedAssetType )
+        {
+            return requestedAssetType == typeof( String );
+        }
 
-		public TResourceType Create<TResourceType>(byte[] data) where TResourceType : class
-		{
-			return Encoding.UTF8.GetString( data ) as TResourceType;
-		}
-		
-		public void Destroy( object resource )
-		{
-		}
-	}
+        public TAssetType Create< TAssetType >( byte[ ] data ) where TAssetType : class
+        {
+            return Encoding.UTF8.GetString( data ) as TAssetType;
+        }
+
+        public object Create( byte[ ] data, Type type )
+        {
+            return Create< string >( data );
+        }
+        #endregion
+    }
 }
-
-#endif

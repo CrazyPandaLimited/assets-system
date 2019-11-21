@@ -1,361 +1,231 @@
-#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM
+#if CRAZYPANDA_UNITYCORE_ASSETSSYSTEM_JSON
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using CrazyPanda.UnityCore.Serialization;
-using System.Threading.Tasks;
+using System.Linq;
+using UnityEngine;
 
-namespace CrazyPanda.UnityCore.ResourcesSystem
+namespace CrazyPanda.UnityCore.AssetsSystem
 {
-    public class FileCaching : ICache<byte[]>
+    public class FileCaching : ICache
     {
-        private CacheInfo _cacheInfo;
-        private UnityJsonSerializer _jsonSerializer;
+#region Private Fields
+        private CacheInfo _cacheInfo;        
         private FileLocksManager _fileLocksManager;
 
         private string _cachingDirectory;
         private string _cacheInfoPath;
+#endregion
 
-        public IEnumerable<string> CachedKeys
-        {
-            get { return _cacheInfo.Files.Select(f => f.Key); }
-        }
+#region Properties
+        public IEnumerable< string > CachedKeys { get { return _cacheInfo.Files.Select( f => f.Key ); } }
+#endregion
 
+#region Constructors
         /// <summary>
         /// Use different directories for different FileCachings
         /// You need provide full path
         /// </summary>
-        public FileCaching(string directory)
+        public FileCaching( string directory )
         {
             _cachingDirectory = directory;
-            if (!Directory.Exists(_cachingDirectory))
+            if( !Directory.Exists( _cachingDirectory ) )
             {
-                Directory.CreateDirectory(_cachingDirectory);
+                Directory.CreateDirectory( _cachingDirectory );
             }
-
-            _jsonSerializer = new UnityJsonSerializer();
+            
             _fileLocksManager = new FileLocksManager();
 
-            _cacheInfoPath = GetPathForKey("cacheinfo.txt");
-            if (File.Exists(_cacheInfoPath))
+            _cacheInfoPath = GetPathForKey( "cacheinfo.txt" );
+            if( File.Exists( _cacheInfoPath ) )
             {
-                _cacheInfo = _jsonSerializer.Deserialize<CacheInfo>(File.ReadAllBytes(_cacheInfoPath));
+                _cacheInfo = JsonUtility.FromJson<CacheInfo>(File.ReadAllText(_cacheInfoPath));                    
             }
             else
             {
                 _cacheInfo = new CacheInfo();
             }
         }
+#endregion
 
-        public bool Contains(string key)
+#region Public Members
+        public bool Contains( string key )
         {
-            return _cacheInfo.Contains(key);
+            return _cacheInfo.Contains( key );
         }
 
-        public List<string> GetAllResorceNames()
+        public List< string > GetAllAssetsNames()
         {
-            var result = new List<string>();
-            foreach (var info in _cacheInfo.Files)
+            var result = new List< string >();
+            foreach( var info in _cacheInfo.Files )
             {
-                result.Add(info.Key);
+                result.Add( info.Key );
             }
 
             return result;
         }
 
-        public void Add(object owner, string key, byte[] data)
+        public void Add( string key, object asset )
         {
-            _fileLocksManager.AddWriteLock(key);
+            if( !( asset is byte[ ] ) )
+            {
+                throw new InvalidOperationException( $"Try to add not bytes to file caching!!! Key:{key}" );
+            }
+
+            _fileLocksManager.AddWriteLock( key );
 
             try
             {
-                InternalSave(key, data);
+                InternalSave( key, ( byte[ ] ) asset );
 
-                AddKeyAndSaveMetaFile(key, data);
+                AddKeyAndSaveMetaFile( key, ( byte[ ] ) asset );
             }
             finally
             {
-                _fileLocksManager.RemoveWriteLock(key);
+                _fileLocksManager.RemoveWriteLock( key );
             }
         }
 
-        public byte[] Get(object owner, string key)
+        public object Get( string key )
         {
-            _fileLocksManager.AddReadLock(key);
+            _fileLocksManager.AddReadLock( key );
 
-            byte[] bytes;
+            byte[ ] bytes;
 
             try
             {
-                var cachedFileInfo = GetCachedFileInfoStrict(key);
-                bytes = InternalLoad(key, cachedFileInfo);
+                var cachedFileInfo = GetCachedFileInfoStrict( key );
+                bytes = InternalLoad( key, cachedFileInfo );
             }
             finally
             {
-                _fileLocksManager.RemoveReadLock(key);
+                _fileLocksManager.RemoveReadLock( key );
             }
 
             return bytes;
         }
 
-        public IEnumerator AddAsync(object owner, string key, byte[] resource)
+        public void Remove( string key )
         {
-            _fileLocksManager.AddWriteLock(key);
-
-            var t = Task.Run(() => { InternalSave(key, resource); });
-
-            while (!t.IsCompleted)
+            if( !_cacheInfo.Contains( key ) )
             {
-                yield return null;
+                return;
             }
 
-            _fileLocksManager.RemoveWriteLock(key);
-
-            if (t.IsFaulted)
+            if( _fileLocksManager.HasAnyLock( key ) )
             {
-                throw new FileCachingException("Exception in asyncronyous save task", t.Exception);
+                return;
             }
 
-            AddKeyAndSaveMetaFile(key, resource);
+            InternalDelete( key );
+            _cacheInfo.Remove( key );
+            SaveMetaFile();
         }
 
-        public ICacheGettingOperation<byte[]> GetAsync(object owner, string key)
+        public void ClearCache()
         {
-            return new FileCacheCacheLoadingOperation(this, key);
-        }
-
-        private class FileCacheCacheLoadingOperation : ICacheGettingOperation<byte[]>
-        {
-            private FileCaching _fileCaching;
-            
-            public string ResourceName { get; private set; }
-            public byte[] Result { get; private set; }
-            public bool IsCompleted { get; private set; }
-
-            public FileCacheCacheLoadingOperation(FileCaching fileCaching, string resourceName)
+            List< CachedFileInfo > infoForRemove = new List< CachedFileInfo >();
+            foreach( var file in _cacheInfo.Files.ToArray() )
             {
-                _fileCaching = fileCaching;
-                ResourceName = resourceName;
-            }
-
-
-            public IEnumerator StartProcess()
-            {
-                _fileCaching._fileLocksManager.AddReadLock(ResourceName);
-
-                Task<byte[]> t;
-                try
-                {
-                    var cachedFileInfo = _fileCaching.GetCachedFileInfoStrict(ResourceName);
-
-                    t = Task.Run(() => _fileCaching.InternalLoad(ResourceName, cachedFileInfo));
-
-                    while (!t.IsCompleted)
-                    {
-                        yield return null;
-                    }
-                }
-                finally
-                {
-                    _fileCaching._fileLocksManager.RemoveReadLock(ResourceName);
-                }
-
-                Result = t.Result;
-                IsCompleted = true;
-                if (t.IsFaulted)
-                {
-                    throw new FileCachingException("Exception in asyncronyous save task", t.Exception);
-                }
-            }
-        }
-
-
-        public Dictionary<string, object> ReleaseResource(object owner, string uri)
-        {
-            return ForceReleaseResource(uri);
-        }
-
-        public Dictionary<string, object> ReleaseResources(object owner, List<string> uris)
-        {
-            return ForceReleaseResources(uris);
-        }
-
-        public Dictionary<string, object> ReleaseAllOwnerResources(object owner)
-        {
-            return new Dictionary<string, object>();
-        }
-
-        public Dictionary<string, object> ReleaseUnusedResources()
-        {
-            return new Dictionary<string, object>();
-        }
-
-        public List<string> GetUnusedResourceNames()
-        {
-            return new List<string>();
-        }
-
-        public List<string> GetOwnerResourcesNames(object owner)
-        {
-            return new List<string>(0);
-        }
-
-        public Dictionary<string, object> ForceReleaseResources(List<string> keys)
-        {
-            var result = new Dictionary<string, object>();
-
-            foreach (var key in keys)
-            {
-                if (!_cacheInfo.Contains(key))
+                if( _fileLocksManager.HasAnyLock( file.Key ) )
                 {
                     continue;
                 }
 
-                if (_fileLocksManager.HasAnyLock(key))
-                {
-                    continue;
-                }
+                InternalDelete( file.Key );
+                infoForRemove.Add( file );
+            }
 
-                InternalDelete(key);
-                _cacheInfo.Remove(key);
-                result.Add(key, null);
+            foreach( var removedKey in infoForRemove )
+            {
+                _cacheInfo.Files.Remove( removedKey );
             }
 
             SaveMetaFile();
-            return result;
+        }
+#endregion
+
+#region Private Members
+        private void InternalSave( string key, byte[ ] file )
+        {
+            var path = GetPathForKey( key );
+            File.WriteAllBytes( path, file );
         }
 
-        public Dictionary<string, object> ForceReleaseResource(string key)
+        private byte[ ] InternalLoad( string key, CachedFileInfo cachedFileInfo )
         {
-            var result = new Dictionary<string, object>();
-
-            if (!_cacheInfo.Contains(key))
-            {
-                return result;
-            }
-
-            if (_fileLocksManager.HasAnyLock(key))
-            {
-                return result;
-            }
-
-            InternalDelete(key);
-            _cacheInfo.Remove(key);
-            result.Add(key, null);
-
-
-            SaveMetaFile();
-            return result;
-        }
-
-        public Dictionary<string, object> ReleaseAllResources()
-        {
-            var returnResult = new Dictionary<string, object>();
-            List<CachedFileInfo> infoForRemove = new List<CachedFileInfo>();
-            foreach (var file in _cacheInfo.Files.ToArray())
-            {
-                if (_fileLocksManager.HasAnyLock(file.Key))
-                {
-                    continue;
-                }
-
-                InternalDelete(file.Key);
-                infoForRemove.Add(file);
-            }
-
-            foreach (var removedKey in infoForRemove)
-            {
-                _cacheInfo.Files.Remove(removedKey);
-                returnResult.Add(removedKey.Key, null);
-            }
-
-            SaveMetaFile();
-            return returnResult;
-        }
-
-        private void InternalSave(string key, byte[] file)
-        {
-            var path = GetPathForKey(key);
-            File.WriteAllBytes(path, file);
-        }
-
-        private byte[] InternalLoad(string key, CachedFileInfo cachedFileInfo)
-        {
-            byte[] bytes;
-            var path = GetPathForKey(key);
+            byte[ ] bytes;
+            var path = GetPathForKey( key );
             try
             {
-                bytes = File.ReadAllBytes(path);
+                bytes = File.ReadAllBytes( path );
             }
-            catch (Exception e)
+            catch( Exception e )
             {
-                throw new FileCachingException(string.Format("Exception while reading a key {0} with path {1}", key, path), e);
+                throw new FileCachingException( string.Format( "Exception while reading a key {0} with path {1}", key, path ), e );
             }
 
-            var actualMd5 = CalculateMd5(bytes);
-            if (cachedFileInfo.Hash != actualMd5)
+            var actualMd5 = CalculateMd5( bytes );
+            if( cachedFileInfo.Hash != actualMd5 )
             {
-                throw new
-                    InvalidHashException(string.Format("Cached key {0} with path {1} hash {2} is not equals hash from disk {3}. Please remove or override file!",
-                        key, path, cachedFileInfo.Hash, actualMd5));
+                throw new InvalidHashException( string.Format( "Cached key {0} with path {1} hash {2} is not equals hash from disk {3}. Please remove or override file!", key, path, cachedFileInfo.Hash, actualMd5 ) );
             }
 
             return bytes;
         }
 
-        private void InternalDelete(string key)
+        private void InternalDelete( string key )
         {
-            var path = GetPathForKey(key);
-            File.Delete(path);
+            var path = GetPathForKey( key );
+            File.Delete( path );
         }
 
-        private string GetPathForKey(string key)
+        private string GetPathForKey( string key )
         {
             var invalidFileNameChars = Path.GetInvalidFileNameChars();
-            var filename = new string(key.Select(ch => invalidFileNameChars.Contains(ch) ? '_' : ch).ToArray());
-            return string.Format("{0}/{1}", _cachingDirectory, filename);
+            var filename = new string( key.Select( ch => invalidFileNameChars.Contains( ch ) ? '_' : ch ).ToArray() );
+            return string.Format( "{0}/{1}", _cachingDirectory, filename );
         }
 
-        private CachedFileInfo GetCachedFileInfoStrict(string key)
+        private CachedFileInfo GetCachedFileInfoStrict( string key )
         {
-            if (!_cacheInfo.Contains(key))
+            if( !_cacheInfo.Contains( key ) )
             {
-                throw new CachedFileNotFoundException(string.Format("Not found cached resource with key {0}", key));
+                throw new CachedFileNotFoundException( string.Format( "Not found cached asset with key {0}", key ) );
             }
 
-            return _cacheInfo.Get(key);
+            return _cacheInfo.Get( key );
         }
 
-        private void AddKeyAndSaveMetaFile(string key, byte[] file)
+        private void AddKeyAndSaveMetaFile( string key, byte[ ] file )
         {
-            _cacheInfo.AddOrUpdate(key, CalculateMd5(file));
+            _cacheInfo.AddOrUpdate( key, CalculateMd5( file ) );
             SaveMetaFile();
         }
 
         private void SaveMetaFile()
         {
-            File.WriteAllBytes(_cacheInfoPath, _jsonSerializer.Serialize(_cacheInfo));
+            File.WriteAllText( _cacheInfoPath, JsonUtility.ToJson( _cacheInfo ) );
         }
 
-        private static string CalculateMd5(byte[] file)
+        private static string CalculateMd5( byte[ ] file )
         {
-            return ToPrettyString(MD5.Create().ComputeHash(file));
+            return ToPrettyString( MD5.Create().ComputeHash( file ) );
         }
 
-        private static string ToPrettyString(byte[] bytes)
+        private static string ToPrettyString( byte[ ] bytes )
         {
             var sb = new StringBuilder();
-            for (var i = 0; i < bytes.Length; i++)
+            for( var i = 0; i < bytes.Length; i++ )
             {
-                sb.Append(bytes[i].ToString("x2"));
+                sb.Append( bytes[ i ].ToString( "x2" ) );
             }
 
             return sb.ToString();
         }
+#endregion
     }
 }
 #endif

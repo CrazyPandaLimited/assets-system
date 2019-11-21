@@ -1,32 +1,39 @@
-#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM
+#if CRAZYPANDA_UNITYCORE_ASSETSSYSTEM_JSON
 using System;
+
 using CrazyPanda.UnityCore.Serialization;
 
-namespace CrazyPanda.UnityCore.ResourcesSystem
+namespace CrazyPanda.UnityCore.AssetsSystem
 {
-    public class JsonDataCreator: IResourceDataCreator
+    public class JsonDataCreator : IAssetDataCreator
     {
-        private ISerializer _serializer;
+#region Private Fields
+        private NewtonsoftJsonSerializer _serializer;
+#endregion
 
-
-        public JsonDataCreator(ISerializer serializer)
+#region Constructors
+        public JsonDataCreator()
         {
-            _serializer = serializer;
+            _serializer = new NewtonsoftJsonSerializer();
+        }
+#endregion
+
+#region Public Members
+        public bool Supports( Type requestedAssetType )
+        {
+            return requestedAssetType == typeof( IJsonAsset );
         }
 
-        public bool Supports(Type requestedResourceType)
+        public TAssetType Create< TAssetType >( byte[ ] data ) where TAssetType : class
         {
-            return requestedResourceType == typeof(IJsonResource);
+            return _serializer.Deserialize< TAssetType >( data );
         }
 
-        public TResourceType Create<TResourceType>(byte[] data) where TResourceType:class
+        public object Create( byte[ ] data, Type type )
         {
-            return _serializer.Deserialize<TResourceType>(data);
+            return _serializer.Deserialize( data, type );
         }
-        
-        public void Destroy( object resource )
-        {
-        }
+#endregion
     }
 }
 #endif

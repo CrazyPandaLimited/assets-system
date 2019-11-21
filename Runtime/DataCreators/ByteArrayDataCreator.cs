@@ -1,23 +1,24 @@
-#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM
 using System;
 
-namespace CrazyPanda.UnityCore.ResourcesSystem
+namespace CrazyPanda.UnityCore.AssetsSystem
 {
-    public class ByteArrayDataCreator : IResourceDataCreator
+    public class ByteArrayDataCreator : IAssetDataCreator
     {
-        public bool Supports(Type requestedResourceType)
+        #region Public Members
+        public bool Supports( Type requestedAssetType )
         {
-            return requestedResourceType == typeof(byte[]);
+            return requestedAssetType == typeof( byte[ ] );
         }
 
-        public TResourceType Create<TResourceType>(byte[] data) where TResourceType : class
+        public TAssetType Create< TAssetType >( byte[ ] data ) where TAssetType : class
         {
-            return data as TResourceType;
+            return data as TAssetType;
         }
-        public void Destroy(object resource)
+
+        public object Create( byte[ ] data, Type type )
         {
-            
+            return data;
         }
+        #endregion
     }
 }
-#endif

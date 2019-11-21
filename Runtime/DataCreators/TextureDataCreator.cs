@@ -1,42 +1,27 @@
-﻿#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM
-
-using System;
+﻿using System;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
-namespace CrazyPanda.UnityCore.ResourcesSystem
+namespace CrazyPanda.UnityCore.AssetsSystem
 {
-    public class TextureDataCreator : IResourceDataCreator
+    public class TextureDataCreator : IAssetDataCreator
     {
-        public bool Supports(Type requestedResourceType)
+        #region Public Members
+        public bool Supports( Type requestedAssetType )
         {
-            return requestedResourceType == typeof(Texture) || requestedResourceType == typeof(Texture2D);
+            return requestedAssetType == typeof( Texture ) || requestedAssetType == typeof( Texture2D );
         }
 
-        #region Public Members
-        
-        public TResourceType Create<TResourceType>(byte[] data) where TResourceType : class
+        public TResourceType Create< TResourceType >( byte[ ] data ) where TResourceType : class
         {
-            var result = new Texture2D(2, 2);
-            result.LoadImage(data);
+            var result = new Texture2D( 2, 2 );
+            result.LoadImage( data );
             return result as TResourceType;
         }
 
-        public void Destroy(object resource)
+        public object Create( byte[ ] data, Type type )
         {
-            var texture = resource as Texture2D;
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                Object.DestroyImmediate(texture);
-                return;
-            }
-#endif
-            Object.Destroy(texture);
+            return Create< Texture2D >( data );
         }
-
         #endregion
     }
 }
-
-#endif

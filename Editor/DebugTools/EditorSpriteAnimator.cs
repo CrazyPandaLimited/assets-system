@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace CrazyPanda.UnityCore.ResourcesSystem.DebugTools
+namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 {
     public class EditorSpriteAnimator
     {

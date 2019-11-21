@@ -1,8 +1,7 @@
-﻿#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 
-namespace CrazyPanda.UnityCore.ResourcesSystem
+namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class AssetInBundleInfo
     {
@@ -81,4 +80,3 @@ namespace CrazyPanda.UnityCore.ResourcesSystem
         #endregion
     }
 }
-#endif

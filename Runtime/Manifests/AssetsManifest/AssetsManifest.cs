@@ -1,34 +1,36 @@
-﻿#if CRAZYPANDA_UNITYCORE_RESOURCESYSTEM
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace CrazyPanda.UnityCore.ResourcesSystem
+namespace CrazyPanda.UnityCore.AssetsSystem
 {
-    public class AssetsManifest<AssetInfoType> where AssetInfoType:class
+    public class AssetsManifest< AssetInfoType > : IManifest where AssetInfoType : class
     {
+        #region Public Fields
         public Dictionary< string, AssetInfoType > _assetsInfos = new Dictionary< string, AssetInfoType >();
-        
-        public void AddManifestPart( AssetsManifest<AssetInfoType> manifestPart )
+        #endregion
+
+        #region Public Members
+        public void AddManifestPart( AssetsManifest< AssetInfoType > manifestPart )
         {
-            foreach (var part in manifestPart._assetsInfos)
+            foreach( var part in manifestPart._assetsInfos )
             {
-                _assetsInfos.Add(part.Key,part.Value);
+                _assetsInfos.Add( part.Key, part.Value );
             }
         }
 
-        public bool HasResource(string name)
+        public bool ContainsAsset( string name )
         {
-            return _assetsInfos.ContainsKey(name);
+            return _assetsInfos.ContainsKey( name );
         }
 
-        public AssetInfoType GetAssetByName(string name)
+        public AssetInfoType GetAssetByName( string name )
         {
-            if (!_assetsInfos.ContainsKey(name))
+            if( !_assetsInfos.ContainsKey( name ) )
             {
-                throw new AssetInFileManifestMissingException(name);
+                throw new AssetInFileManifestMissingException( name );
             }
 
-            return _assetsInfos[name];
+            return _assetsInfos[ name ];
         }
+        #endregion
     }
 }
-#endif
