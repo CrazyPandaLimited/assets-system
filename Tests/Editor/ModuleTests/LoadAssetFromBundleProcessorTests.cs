@@ -1,13 +1,11 @@
 using CrazyPanda.UnityCore.PandaTasks.Progress;
 using System.Linq;
 using System.Threading;
-using NSubstitute;
 using UnityEngine.TestTools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
-using CrazyPanda.UnityCore.CoroutineSystem;
 using NUnit.Framework;
 using UnityCore.MessagesFlow;
 using UnityEngine;
@@ -16,9 +14,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     public class LoadAssetFromBundleProcessorTests : BaseProcessorModuleWithOneOutTest< AssetFromBundleLoadProcessor, UrlLoadingRequest, AssetLoadingRequest< UnityEngine.Object > >
     {
-        private ITimeProvider _timeProvider;
-        private ICoroutineManager _coroutineManager;
-
         private AssetsStorage _storageWithBundlesProcessors;
         private AssetBundleManifest _manifest;
         private CacheControllerForTests _cacheController;
@@ -40,10 +35,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         {
             AssetBundle.UnloadAllAssetBundles( true );
 
-            _timeProvider = ResourceSystemTestTimeProvider.TestTimeProvider();
-            _coroutineManager = new CoroutineManager();
-            _coroutineManager.TimeProvider = _timeProvider;
-
             _manifest = new AssetBundleManifest();
             _manifest.BundleInfos.Add( bundleName, new BundleInfo( new GameAssetType( "Image" ), bundleName ) { AssetInfos = new List< string > { assetName, prefabAssetName } } );
 
@@ -51,7 +42,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             _manifest.AssetInfos.Add( prefabAssetName, new AssetInBundleInfo( prefabAssetName ) );
             _manifest.RecalculateCache();
 
-            var bundleLoader = new BundlesFromLocalFolderLoadProcessor( _coroutineManager, $"{Application.dataPath}/UnityCoreSystems/Systems/Tests/ResourcesSystem/Bundle", _manifest );
+            var bundleLoader = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/Systems/Tests/ResourcesSystem/Bundle", _manifest );
 
             _requestToPromiseMap = new RequestToPromiseMap();
             _storageWithBundlesProcessors = new AssetsStorage( _requestToPromiseMap );
@@ -61,7 +52,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             _cacheController = new CacheControllerForTests();
 
-            _workProcessor = new AssetFromBundleLoadProcessor(_storageWithBundlesProcessors, _manifest, _cacheController, _coroutineManager );
+            _workProcessor = new AssetFromBundleLoadProcessor(_storageWithBundlesProcessors, _manifest, _cacheController );
         }
 
 
@@ -84,7 +75,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var timeoutTime = DateTime.Now.AddSeconds( RemoteLoadingTimeoutSec );
             while( sendedBody == null && DateTime.Now < timeoutTime )
             {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
                 yield return null;
             }
 
@@ -152,7 +142,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var timeoutTime = DateTime.Now.AddSeconds( RemoteLoadingTimeoutSec );
             while( sendedBody == null && DateTime.Now < timeoutTime )
             {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
                 yield return null;
             }
 

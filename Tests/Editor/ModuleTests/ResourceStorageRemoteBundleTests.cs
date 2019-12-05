@@ -38,7 +38,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             LoadManifest( ResourceStorageTestUtils.ConstructTestBundlesUrl( BaseManifestName ) );
 
-            _workProcessor = new BundlesFromWebRequestLoadProcessor( ResourceStorageTestUtils.ConstructTestBundlesUrl(), _manifest, corman );
+            _workProcessor = new BundlesFromWebRequestLoadProcessor( ResourceStorageTestUtils.ConstructTestBundlesUrl(), _manifest );
         }
 
         private void LoadManifest( string manifestUrl )

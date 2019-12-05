@@ -11,22 +11,20 @@ using Object = UnityEngine.Object;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class AssetFromBundleLoadProcessor : AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< UrlLoadingRequest, AssetLoadingRequest< Object >,UrlLoadingRequest >
+    public class AssetFromBundleLoadProcessor : AbstractRequestProcessor< AssetBundleRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
     {
         #region Protected Fields
         protected IAssetsStorage _assetsStorage;
         protected ICacheControllerWithAssetReferences _bundlesCacheWithRefcounts;
         protected AssetBundleManifest _manifest;
-        protected ICoroutineManager _coroutineManager;
         #endregion
 
         #region Constructors
-        public AssetFromBundleLoadProcessor(IAssetsStorage assetsStorage, AssetBundleManifest manifest, ICacheControllerWithAssetReferences bundlesCacheWithRefcounts, ICoroutineManager coroutineManager )
+        public AssetFromBundleLoadProcessor( IAssetsStorage assetsStorage, AssetBundleManifest manifest, ICacheControllerWithAssetReferences bundlesCacheWithRefcounts )
         {
-            _assetsStorage =  assetsStorage ?? throw new ArgumentNullException( nameof(assetsStorage) );
+            _assetsStorage = assetsStorage ?? throw new ArgumentNullException( nameof(assetsStorage) );
             _manifest = manifest ?? throw new ArgumentNullException( nameof(manifest) );
             _bundlesCacheWithRefcounts = bundlesCacheWithRefcounts ?? throw new ArgumentNullException( nameof(bundlesCacheWithRefcounts) );
-            _coroutineManager = coroutineManager ?? throw new ArgumentNullException( nameof(coroutineManager) );
         }
         #endregion
 
@@ -36,7 +34,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             bool isSyncRequest = header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG );
             var loadingTasks = new List< IPandaTask< AssetBundle > >();
             var progressTrackers = new List< ProgressTracker< float > >();
-            var assetLoadingProgressTracker = new ProgressTracker< float >();
             var cancelTocken = new CancellationTokenSource();
             IPandaTask< AssetBundle > mainBundleTask = null;
 
@@ -79,20 +76,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
                 if( isSyncRequest )
                 {
-                    assetLoadingProgressTracker.ReportProgress( 1.0f );
                     OnAssetLoaded( header, body, mainBundleTask.Result.LoadAsset( body.Url, body.AssetType ), bundlesToLoad, bundlesHolder );
                 }
                 else
                 {
-                    _coroutineManager.StartCoroutine( this, LoadAssetAsync( header, body, mainBundleTask.Result, assetLoadingProgressTracker, bundlesToLoad, bundlesHolder ), ( o, exception ) =>
-                    {
-                        foreach( var loadedBundle in bundlesToLoad )
-                        {
-                            _bundlesCacheWithRefcounts.ReleaseReference( loadedBundle, bundlesHolder );
-                        }
-
-                        ProcessException( header, body, exception );
-                    } );
+                    ConfigureLoadingProcess( new AssetFromBundleProcessorData( mainBundleTask.Result.LoadAssetAsync( body.Url, body.AssetType ), header, body, bundlesToLoad, bundlesHolder ) );
                 }
             } ).Fail( exception =>
             {
@@ -103,45 +91,39 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             return FlowMessageStatus.Accepted;
         }
 
+        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( 0f );
 
-        protected override void InternalDispose()
+        protected override void OnErrorLoading( RequestProcessorData data )
         {
-            _coroutineManager.StopAllCoroutinesForTarget( this );
+            var processorData = ( AssetFromBundleProcessorData ) data;
+            ReleaseAssetBundlesData( processorData.Bundles, processorData.Target );
+        }
+
+        protected override void OnLoadingCompleted( RequestProcessorData data )
+        {
+            data.Body.ProgressTracker.ReportProgress( 1.0f );
+            var processorData = ( AssetFromBundleProcessorData ) data;
+            ReleaseAssetBundlesData( processorData.Bundles, processorData.Target );
+            _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( data.Body.Url, data.Body.AssetType, data.Body.ProgressTracker, data.RequestLoadingOperation.asset ) );
+        }
+
+        protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data )
+        {
+            if( data.RequestLoadingOperation.asset == null )
+            {
+                data.Header.AddException( new AssetSystemException( "Asset not loaded from bundle" ) );
+                _exceptionConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( data.Body.Url, data.Body.AssetType, data.Body.ProgressTracker, data.RequestLoadingOperation.asset ) );
+                return false;
+            }
+
+            return true;
         }
         #endregion
 
         #region Private Members
-        private IEnumerator LoadAssetAsync( MessageHeader header, UrlLoadingRequest body, AssetBundle mainBundle, IProgressTracker< float > progressTracker, List< string > bundlesNames, object bundlesHolder )
-        {
-            AssetBundleRequest assetrequest = mainBundle.LoadAssetAsync( body.Url, body.AssetType );
-
-            while( !assetrequest.isDone )
-            {
-                progressTracker?.ReportProgress( assetrequest.progress );
-
-                if( header.CancellationToken.IsCancellationRequested )
-                {
-                    foreach( var loadedBundle in bundlesNames )
-                    {
-                        _bundlesCacheWithRefcounts.ReleaseReference( loadedBundle, bundlesHolder );
-                    }
-
-                    yield break;
-                }
-
-                yield return null;
-            }
-
-            progressTracker?.ReportProgress( 1.0f );
-            OnAssetLoaded( header, body, assetrequest.asset, bundlesNames, bundlesHolder );
-        }
-
         private void OnAssetLoaded( MessageHeader header, UrlLoadingRequest body, Object asset, List< string > bundlesNames, object bundlesHolder )
         {
-            foreach( var loadedBundle in bundlesNames )
-            {
-                _bundlesCacheWithRefcounts.ReleaseReference( loadedBundle, bundlesHolder );
-            }
+            ReleaseAssetBundlesData( bundlesNames, bundlesHolder );
 
             if( asset == null )
             {
@@ -152,6 +134,26 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< Object >( body.Url, body.AssetType, body.ProgressTracker, asset ) );
         }
+
+        private void ReleaseAssetBundlesData( IReadOnlyList< string > bundles, object target )
+        {
+            foreach( var loadedBundle in bundles )
+            {
+                _bundlesCacheWithRefcounts.ReleaseReference( loadedBundle, target );
+            }
+        }
         #endregion
+
+        protected sealed class AssetFromBundleProcessorData : RequestProcessorData
+        {
+            public IReadOnlyList< string > Bundles { get; }
+            public object Target { get; }
+
+            public AssetFromBundleProcessorData( AssetBundleRequest requestLoadingOperation, MessageHeader header, UrlLoadingRequest body, IReadOnlyList< string > bundles, object target ) : base( requestLoadingOperation, header, body )
+            {
+                Bundles = bundles ?? throw new ArgumentNullException( nameof(bundles) );
+                Target = target ?? throw new ArgumentNullException( nameof(Target) );
+            }
+        }
     }
 }

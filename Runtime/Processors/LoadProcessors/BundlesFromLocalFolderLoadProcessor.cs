@@ -1,16 +1,13 @@
 using System;
-using System.Collections;
 using System.IO;
-using CrazyPanda.UnityCore.CoroutineSystem;
 using UnityCore.MessagesFlow;
 using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class BundlesFromLocalFolderLoadProcessor : AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< UrlLoadingRequest, AssetLoadingRequest< AssetBundle >, UrlLoadingRequest >
+    public class BundlesFromLocalFolderLoadProcessor : AbstractRequestProcessor< AssetBundleCreateRequest, UrlLoadingRequest, AssetLoadingRequest< AssetBundle>, UrlLoadingRequest >
     {
         #region Protected Fields
-        protected readonly ICoroutineManager _coroutineManager;
         protected readonly string _localFolder;
         #endregion
 
@@ -19,9 +16,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Constructors
-        public BundlesFromLocalFolderLoadProcessor( ICoroutineManager coroutineManager, string localFolder, AssetBundleManifest manifest )
+        public BundlesFromLocalFolderLoadProcessor( string localFolder, AssetBundleManifest manifest )
         {
-            _coroutineManager = coroutineManager ?? throw new ArgumentNullException( nameof(coroutineManager) );
             _localFolder = localFolder ?? throw new ArgumentNullException( nameof(localFolder) );
 
             if( manifest == null )
@@ -54,43 +50,32 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 return FlowMessageStatus.Accepted;
             }
 
-            _coroutineManager.StartCoroutine( this, LoadingProcess( header, body, bundleInfo ), ( o, exception ) => { ProcessException( header,body, exception ); } );
+            var loadingProcess = string.IsNullOrEmpty( bundleInfo.CRC ) ? AssetBundle.LoadFromFileAsync( Path.Combine( _localFolder, bundleInfo.Name ) ) : AssetBundle.LoadFromFileAsync( Path.Combine( _localFolder, bundleInfo.Name ), uint.Parse( bundleInfo.CRC ) );
+            ConfigureLoadingProcess( new RequestProcessorData(loadingProcess,header,body) );
+            
             return FlowMessageStatus.Accepted;
         }
+        
+        protected override void InternalRestore() => Status = FlowNodeStatus.Working;
+        
+        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( 0f );
 
-        protected override void InternalRestore()
+        protected override void OnLoadingCompleted( RequestProcessorData data )
         {
-            Status = FlowNodeStatus.Working;
+            data.Body.ProgressTracker.ReportProgress( 1.0f );
+            _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< AssetBundle >( data.Body, data.RequestLoadingOperation.assetBundle ) );
         }
 
-        protected IEnumerator LoadingProcess( MessageHeader header, UrlLoadingRequest body, BundleInfo bundleInfo )
+        protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data )
         {
-            var loadingProcess = string.IsNullOrEmpty( bundleInfo.CRC ) ? AssetBundle.LoadFromFileAsync( Path.Combine( _localFolder, bundleInfo.Name ) ) : AssetBundle.LoadFromFileAsync( Path.Combine( _localFolder, bundleInfo.Name ), uint.Parse( bundleInfo.CRC ) );
-
-            while( !loadingProcess.isDone )
+            if( data.RequestLoadingOperation.assetBundle == null )
             {
-                if( header.CancellationToken.IsCancellationRequested )
-                {
-                    yield break;
-                }
-
-                body.ProgressTracker.ReportProgress( loadingProcess.progress );
-                yield return null;
+                data.Header.AddException( new AssetSystemException( "Bundle not loaded" ));
+                _exceptionConnection.ProcessMessage( data.Header, data.Body );
+                return false;
             }
 
-            if( loadingProcess.assetBundle == null )
-            {
-                header.AddException( new AssetSystemException( "Bundle not loaded" ));
-                _exceptionConnection.ProcessMessage( header, body );
-                yield break;
-            }
-            
-            _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< AssetBundle >( body, loadingProcess.assetBundle ) );
-        }
-
-        protected override void InternalDispose()
-        {
-            _coroutineManager.StopAllCoroutinesForTarget( this );
+            return true;
         }
         #endregion
     }

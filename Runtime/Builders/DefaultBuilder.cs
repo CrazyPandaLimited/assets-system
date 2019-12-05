@@ -68,7 +68,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var getFromCache = new GetAssetFromCacheWithRefcountProcessor< Object >( OtherAssetsCache );
             _allProcessors.Add( getFromCache );
 
-            var loader = new ResorcesFolderLoadProcessor( _coroutineManager );
+            var loader = new ResorcesFolderLoadProcessor( );
             _allProcessors.Add( loader );
 
             var addToCache = new AddAssetToCacheWithRefcountProcessor< Object >( OtherAssetsCache );
@@ -105,7 +105,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var getFromCache = new GetAssetFromCacheWithRefcountProcessor< Object >( OtherAssetsCache );
             _allProcessors.Add( getFromCache );
 
-            var loader = new ResorcesFolderLoadProcessor( _coroutineManager );
+            var loader = new ResorcesFolderLoadProcessor();
             _allProcessors.Add( loader );
 
             var addToCache = new AddAssetToCacheWithRefcountProcessor< Object >( OtherAssetsCache );
@@ -146,7 +146,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             var dataCreators = new List< IAssetDataCreator > { new StringDataCreator(), new TextureDataCreator() };
 
-            var loader = new WebRequestLoadProcessor< UAssetType >( _coroutineManager, dataCreators );
+            var loader = new WebRequestLoadProcessor< UAssetType >( dataCreators );
             _allProcessors.Add( loader );
 
             var addToCache = new AddAssetToCacheWithRefcountProcessor< UAssetType >( OtherAssetsCache );
@@ -211,7 +211,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var getFromCache = new GetAssetFromCacheWithRefcountProcessor< AssetBundle >( BundlesCache );
             _allProcessors.Add( getFromCache );
 
-            var loader = new BundlesFromWebRequestLoadProcessor( serverUrl, AssetBundleManifest, _coroutineManager );
+            var loader = new BundlesFromWebRequestLoadProcessor( serverUrl, AssetBundleManifest);
             _allProcessors.Add( loader );
 
             var addToCache = new AddAssetToCacheWithRefcountProcessor< AssetBundle >( BundlesCache );
@@ -279,7 +279,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var getFromCache = new GetAssetFromCacheWithRefcountProcessor< Object >( AssetsFromBundlesCache );
             _allProcessors.Add( getFromCache );
 
-            var loader = new AssetFromBundleLoadProcessor(AssetsStorage, AssetBundleManifest, BundlesCache, _coroutineManager );
+            var loader = new AssetFromBundleLoadProcessor(AssetsStorage, AssetBundleManifest, BundlesCache);
             _allProcessors.Add( loader );
 
             var addToCache = new AddAssetToCacheWithRefcountProcessor< Object >( AssetsFromBundlesCache );

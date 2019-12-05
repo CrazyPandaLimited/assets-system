@@ -23,9 +23,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         protected override void InternalSetup()
         {
             _timeProvider = ResourceSystemTestTimeProvider.TestTimeProvider();
-            var corman = new CoroutineManager();
-            corman.TimeProvider = _timeProvider;
-            _workProcessor = new ResorcesFolderLoadProcessor( corman );
+            _workProcessor = new ResorcesFolderLoadProcessor();
             _body = new UrlLoadingRequest( url, typeof( GameObject ), new ProgressTracker< float >() );
         }
 

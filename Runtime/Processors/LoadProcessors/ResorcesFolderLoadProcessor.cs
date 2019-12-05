@@ -1,29 +1,11 @@
-using System;
-using System.Collections;
-using CrazyPanda.UnityCore.CoroutineSystem;
 using UnityCore.MessagesFlow;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class ResorcesFolderLoadProcessor : AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
+    public class ResorcesFolderLoadProcessor :  AbstractRequestProcessor<  ResourceRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
     {
-        #region Protected Fields
-        protected ICoroutineManager _coroutineManager;
-        #endregion
-
-        #region Constructors
-        public ResorcesFolderLoadProcessor( ICoroutineManager coroutineManager )
-        {
-            _coroutineManager = coroutineManager ?? throw new ArgumentNullException( nameof(coroutineManager) );
-        }
-
-        public ResorcesFolderLoadProcessor()
-        {
-        }
-        #endregion
-
         #region Protected Members
         protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
@@ -42,44 +24,31 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 return FlowMessageStatus.Accepted;
             }
 
-            if( _coroutineManager == null )
-            {
-                ProcessException( header, body, new Exception( "Need ICoroutineManager for async processing this request" ) );
-                return FlowMessageStatus.Rejected;
-            }
+            ConfigureLoadingProcess( new RequestProcessorData( Resources.LoadAsync( body.Url, body.AssetType ), header, body ) );
 
-            _coroutineManager.StartCoroutine( this, LoadProcess( header, body ), ( o, exception ) => { ProcessException( header, body, exception ); } );
             return FlowMessageStatus.Accepted;
         }
 
-        protected override void InternalRestore()
+        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( 0f );
+
+        protected override void OnLoadingCompleted( RequestProcessorData data )
         {
+            data.Body.ProgressTracker.ReportProgress( 1.0f );
+            _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( data.Body, data.RequestLoadingOperation.asset ) );
         }
 
-        protected IEnumerator LoadProcess( MessageHeader header, UrlLoadingRequest body )
+        protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data )
         {
-            var operation = Resources.LoadAsync( body.Url, body.AssetType );
-
-            while( !operation.isDone )
+            if( data.RequestLoadingOperation.asset == null)
             {
-                body.ProgressTracker.ReportProgress( operation.progress );
-                yield return null;
+                data.Header.AddException( new AssetSystemException( "Asset not loaded" ) );
+                _exceptionConnection.ProcessMessage( data.Header, data.Body );
+                return false;
             }
 
-            if( operation.asset == null )
-            {
-                header.AddException( new UnityAssetFolderLoaderException( "Asset not loaded" ) );
-                _exceptionConnection.ProcessMessage( header, body );
-                yield break;
-            }
-
-            _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< Object >( body, operation.asset ) );
+            return true;            
         }
-
-
-        protected override void InternalDispose()
-        {
-        }
+        
         #endregion
     }
 }

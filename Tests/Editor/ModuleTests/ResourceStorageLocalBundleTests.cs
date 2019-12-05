@@ -26,9 +26,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             AssetBundle.UnloadAllAssetBundles(true);
             
             _timeProvider = ResourceSystemTestTimeProvider.TestTimeProvider();
-            var corman = new CoroutineManager();
-            corman.TimeProvider = _timeProvider;
-            
+
             _manifest = new AssetBundleManifest();
             _manifest.BundleInfos.Add(bundleName,
                 new BundleInfo(new GameAssetType("Image"), bundleName)
@@ -36,7 +34,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
                     AssetInfos = new List<string> {"assets/assetbundlesexperiments/stuff/aliceslots/images/gem_alice.png"}
                 });
             
-            _workProcessor = new BundlesFromLocalFolderLoadProcessor(corman,  $"{Application.dataPath}/UnityCoreSystems/Systems/Tests/ResourcesSystem/Bundle",_manifest );
+            _workProcessor = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/Systems/Tests/ResourcesSystem/Bundle",_manifest );
         }
         
         [UnityTest]

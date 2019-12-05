@@ -1,0 +1,108 @@
+using System;
+using System.Collections.Generic;
+using System.Net;
+using JetBrains.Annotations;
+using UnityCore.MessagesFlow;
+using UnityEngine;
+using UnityEngine.Networking;
+
+namespace CrazyPanda.UnityCore.AssetsSystem.Processors
+{
+    public abstract class AbstractWebRequestLoadProcessor< T > : AbstractRequestProcessor< UnityWebRequestAsyncOperation, UrlLoadingRequest, AssetLoadingRequest< T >, UrlLoadingRequest >
+    {
+        #region Private Fields
+        private readonly WebRequestSettings _webRequestSettings;
+        #endregion
+
+        #region Constructors
+        protected AbstractWebRequestLoadProcessor([CanBeNull] WebRequestSettings webRequestSettings ) => _webRequestSettings = webRequestSettings;
+        #endregion
+
+        #region Protected Members
+        protected abstract UnityWebRequest GetRequestData(MessageHeader header, UrlLoadingRequest body );
+        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        {
+            var message = FlowMessageStatus.Accepted;
+
+            if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) )
+            {
+                header.AddException( new Exception( "Sync processing not available" ) );
+                _exceptionConnection.ProcessMessage( header, body );
+                return message;
+            }
+
+            BuildAndSendWebRequest( GetRequestData(header, body ), header, body );
+            return message;
+        }
+
+        protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data ) => RequestFinishedWithoutErrors( data.RequestLoadingOperation.webRequest, data.Header, data.Body );
+        
+        protected override void OnOperationCancelled( RequestProcessorData data ) => data.RequestLoadingOperation.webRequest.Dispose();
+        #endregion
+
+        #region Private Members
+        private void BuildAndSendWebRequest( UnityWebRequest webRequest, MessageHeader header, UrlLoadingRequest body )
+        {
+            webRequest.downloadHandler = GetDownloadHandler();
+            ConfigureWebRequest( webRequest, _webRequestSettings );
+
+#if UNITY_2017_2_OR_NEWER
+            var webRequestInProgressTask = webRequest.SendWebRequest();
+#else
+            var webRequestInProgressTask = webRequest.Send();
+#endif
+
+            ConfigureLoadingProcess( new RequestProcessorData( webRequestInProgressTask, header, body ) );
+
+            DownloadHandler GetDownloadHandler()
+            {
+                var downloadHandler = new ProgressTrackerDownloadHandler();
+                downloadHandler.ProgressTrackerEvent += body.ProgressTracker.ReportProgress;
+                return downloadHandler;
+            }
+        }
+        
+        private void ConfigureWebRequest( UnityWebRequest webRequest, WebRequestSettings webRequestSettings )
+        {
+            if( webRequestSettings == null )
+            {
+                return;
+            }
+
+            foreach( var header in webRequestSettings.Headers )
+            {
+                webRequest.SetRequestHeader( header.Key, header.Value );
+            }
+
+            if( webRequestSettings.Method != WebRequestMethod.NotSet )
+            {
+                webRequest.method = webRequestSettings.Method.ToString().ToUpper();
+            }
+
+            webRequest.timeout = Mathf.RoundToInt( webRequestSettings.Timeout );
+            webRequest.redirectLimit = webRequestSettings.RedirectsLimit;
+            webRequest.chunkedTransfer = webRequestSettings.ChunkTransfer;
+        }
+
+        private bool RequestFinishedWithoutErrors( UnityWebRequest webRequest, MessageHeader header, UrlLoadingRequest body )
+        {
+            if( !webRequest.isDone )
+            {
+                return false;
+            }
+
+#if UNITY_2017_1_OR_NEWER
+            if( webRequest.isNetworkError || webRequest.isHttpError )
+#else
+			if( webRequest.isError )
+#endif
+            {
+                header.AddException( new Exception( webRequest.error )  );
+                _exceptionConnection.ProcessMessage( header, body );
+                return false;
+            }
+            return true;
+        }
+        #endregion
+    }
+}
