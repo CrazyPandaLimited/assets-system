@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using CrazyPanda.UnityCore.AssetsSystem.Caching;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
-using CrazyPanda.UnityCore.CoroutineSystem;
 using UnityCore.MessagesFlow;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -12,7 +11,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
     public class DefaultBuilder
     {
         #region Protected Fields
-        protected ICoroutineManager _coroutineManager;
         protected RequestsQueue _requestsQueue;
         protected RequestToPromiseMap _promiseMap;
         #endregion
@@ -35,10 +33,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         #endregion
 
         #region Constructors
-        public DefaultBuilder( ICoroutineManager coroutineManager, int maxWorkingRequests )
+        public DefaultBuilder( int maxWorkingRequests )
         {
-            _coroutineManager = coroutineManager ?? throw new ArgumentNullException( $"{nameof(coroutineManager)} can not be null!" );
-
             _requestsQueue = new RequestsQueue( maxWorkingRequests );
 
             AssetsManifestFromResourcesFolder = new AssetsManifest< AssetInfo >();

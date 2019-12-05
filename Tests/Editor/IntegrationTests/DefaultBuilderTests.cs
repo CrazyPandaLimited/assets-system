@@ -2,14 +2,11 @@ using CrazyPanda.UnityCore.AssetsSystem.Tests;
 using System.Text;
 using Newtonsoft.Json;
 using System;
-using NSubstitute;
 using UnityEngine.TestTools;
 using Object = System.Object;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
-using CrazyPanda.UnityCore.CoroutineSystem;
 using CrazyPanda.UnityCore.PandaTasks;
 using NUnit.Framework;
 using UnityEngine;
@@ -19,22 +16,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 {
     public class DefaultBuilderTests
     {
-        private ITimeProvider _timeProvider;
-        private ICoroutineManager _coroutineManager;
         private DefaultBuilder _builder;
 
         [ SetUp ]
         public void Setup()
         {
             AssetBundle.UnloadAllAssetBundles( true );
-
-            _timeProvider = ResourceSystemTestTimeProvider.TestTimeProvider();
-            _coroutineManager = new CoroutineManager();
-            _coroutineManager.TimeProvider = _timeProvider;
-            _builder = new DefaultBuilder( _coroutineManager, 3 );
+            _builder = new DefaultBuilder(  3 );
         }
-
-
+        
         [ Test ]
         public void BuildAllTree()
         {
@@ -62,13 +52,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             _builder.AssetsStorage.RegisterOutConnection( loadFromResourceFolderTree );
             var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
-
-            var timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
+            yield return WaitForPromiseEnging( promise );
 
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.NotNull( promise.Result );
@@ -85,14 +69,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             _builder.AssetsStorage.RegisterOutConnection( loadFromResourceFolderTree );
             var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
-
-            var timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
-
+            yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
             Assert.Catch( () => { Debug.Log( promise.Result ); } );
 
@@ -109,14 +86,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             _builder.AssetsStorage.RegisterOutConnection( loadFromResourceFolderTree );
             var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
-
-            var timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
-
+            yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
             Assert.Catch( () => { Debug.Log( promise.Result ); } );
 
@@ -124,14 +94,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             url = "Cube";
             promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
-
-            timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
-
+            yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.NotNull( promise.Result );
             Assert.True( _builder.OtherAssetsCache.Contains( url ) );
@@ -147,14 +110,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             _builder.AssetsStorage.RegisterOutConnection( loadFromResourceFolderTree );
             var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
-
-            var timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
-
+            yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.NotNull( promise.Result );
             Assert.True( _builder.OtherAssetsCache.Contains( url ) );
@@ -183,14 +139,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ) );
             var promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner2 ) );
-
-            var timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
-
+            yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise2.Status );
             Assert.NotNull( promise.Result );
@@ -231,13 +180,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             //Load manifest
             var manifestPromise = _builder.AssetsStorage.LoadAssetAsync< string >( manifestUrl, new MetaDataExtended( owner ) );
-            var timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( manifestPromise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
-
+            yield return WaitForPromiseEnging( manifestPromise );
             Assert.AreEqual( PandaTaskStatus.Resolved, manifestPromise.Status );
             Assert.NotNull( manifestPromise.Result );
 
@@ -248,13 +191,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             //load asset
             var assetPromise = _builder.AssetsStorage.LoadAssetAsync< Texture >( assetName, new MetaDataExtended( owner ) );
-            timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( assetPromise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
-
+            yield return WaitForPromiseEnging( assetPromise );
             Assert.AreEqual( PandaTaskStatus.Resolved, assetPromise.Status );
             Assert.NotNull( assetPromise.Result );
 
@@ -295,13 +232,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ) );
             var promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner2 ) );
-
-            var timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
+            yield return WaitForPromiseEnging( promise );
 
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
             Assert.AreEqual( PandaTaskStatus.Rejected, promise2.Status );
@@ -310,14 +241,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             url = ResourceStorageTestUtils.ConstructTestUrl( "logo_test.jpg" );
             promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ) );
             promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner2 ) );
-
-            timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
-
+            yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise2.Status );
             Assert.NotNull( promise.Result );
@@ -372,18 +296,21 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             CancellationTokenSource cancelTocken = new CancellationTokenSource();
 
             var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ), cancelTocken.Token );
-
-            var timeoutTime = DateTime.Now.AddSeconds( 5f );
-            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
+            yield return WaitForPromiseEnging( promise );
 
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.NotNull( promise.Result );
 
             cancelTocken.Cancel();
+        }
+
+        private IEnumerator WaitForPromiseEnging <TaskType>(IPandaTask<TaskType> promise)
+        {
+            var timeoutTime = DateTime.Now.AddSeconds( 5f );
+            while( promise.Status == PandaTaskStatus.Pending && DateTime.Now < timeoutTime )
+            {
+                yield return null;
+            }
         }
     }
 }
