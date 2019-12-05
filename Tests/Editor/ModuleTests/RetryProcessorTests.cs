@@ -3,14 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
-using CrazyPanda.UnityCore.CoroutineSystem;
 using CrazyPanda.UnityCore.PandaTasks;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
 using NSubstitute;
 using NSubstitute.Core;
 using NUnit.Framework;
 using UnityCore.MessagesFlow;
-using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
@@ -18,8 +16,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     public class RetryProcessorTests
     {
-        private ICoroutineManager _coroutineManager;
-        private ITimeProvider _timeProvider;
         private RequestRetryProcessor<Object> _processor;
         PandaTaskCompletionSource<Object> _taskSource;
 
@@ -30,9 +26,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [SetUp]
         public void Setup()
         {   
-            _timeProvider = ResourceSystemTestTimeProvider.TestTimeProvider();
-            _coroutineManager = new CoroutineManager();
-            _coroutineManager.TimeProvider = _timeProvider;
             _taskSource = new PandaTaskCompletionSource<Object>();
 
             _messageBodyFirstFile1 = new AssetLoadingRequest<Object>("1", typeof(UnityEngine.Object), new ProgressTracker<float>(), null);
@@ -47,7 +40,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             {
                 {1, 0.5f}
             },
-            _coroutineManager, 
             (header, request) => {
                 return true;
             });
@@ -59,13 +51,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.True(msgStatus == FlowMessageStatus.Accepted);
             
-            var waitTime = DateTime.Now.AddSeconds(0.6f);
-            while (DateTime.Now < waitTime)
-            {
-                _timeProvider.OnUpdate += Raise.Event<Action>();
-                yield return null;
-            }           
-
+            yield return WaitResults();
+            
             var rCalls = new List<ICall>(inputOutNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
 
@@ -82,7 +69,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             {
                 {2, 0.5f}
             }, 
-            _coroutineManager,
             (header, request) => {
                 return true;
             });
@@ -100,13 +86,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.True(msgStatus == FlowMessageStatus.Accepted);
 
-            var waitTime = DateTime.Now.AddSeconds(0.6f);
-            while (DateTime.Now < waitTime)
-            {
-                _timeProvider.OnUpdate += Raise.Event<Action>();
-                yield return null;
-            }
-
+            yield return WaitResults();
+            
             var rCalls = new List<ICall>(inputOutNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
 
@@ -124,7 +105,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             {
                 {1, 0.5f}
             },
-            _coroutineManager,
             (header, request) => {
                 return true;
             });
@@ -150,13 +130,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.True(msgStatus == FlowMessageStatus.Accepted);
 
-            var waitTime = DateTime.Now.AddSeconds(0.6f);
-            while (DateTime.Now < waitTime)
-            {
-                _timeProvider.OnUpdate += Raise.Event<Action>();
-                yield return null;
-            }
-
+            yield return WaitResults();
+            
             var rCallsRetry = new List<ICall>(inputRetryNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
             Assert.AreEqual(0,rCallsRetry.Count);
@@ -182,7 +157,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             {
                 {1, 0.5f}
             },
-            _coroutineManager,
             (header, request) => {
                 return true;
             });
@@ -203,14 +177,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.True(msgStatus == FlowMessageStatus.Accepted);
 
-            _timeProvider.OnUpdate += Raise.Event<Action>();
-            yield return null;
-
             tokenSource.Cancel();
 
-            _timeProvider.OnUpdate += Raise.Event<Action>();
-            yield return null;
-
+            yield return WaitResults();
+            
             var rCallsRetry = new List<ICall>(inputRetryNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
             Assert.True(rCallsRetry.Count == 0);
@@ -222,7 +192,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.True(_messageHeaderFirstFile1.CancellationToken.IsCancellationRequested);
             Assert.False(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
         }
-
-
+        
+        private IEnumerator WaitResults(float timeToWait = 0.6f)
+        {
+            var waitTime = DateTime.Now.AddSeconds(timeToWait);
+            while (DateTime.Now < waitTime)
+            {
+                yield return null;
+            }
+        }
     }
 }

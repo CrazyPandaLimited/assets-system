@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Castle.Core.Internal;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
-using CrazyPanda.UnityCore.CoroutineSystem;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
 using Object = UnityEngine.Object;
 using System.Collections;
@@ -20,6 +19,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
     public sealed class WebRequestLoadProcessorTests : BaseProcessorModuleWithOneOutTest< WebRequestLoadProcessor< Object >, UrlLoadingRequest, AssetLoadingRequest< Object > >
     {
         private const float MaxDownloadProgress = 1.0f;
+        private UrlLoadingRequest BaseSendedBody => _workProcessor.GetSendedHeaders().BaseSendedBody;
         private string ExistingFileOnServerUrl => ResourceStorageTestUtils.ConstructTestUrl( "logo_test.jpg" );
 
         protected override void InternalSetup() => _workProcessor = new WebRequestLoadProcessor< Object >( new List< IAssetDataCreator > { new TextureDataCreator(), new StringDataCreator() } );
@@ -32,7 +32,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             WebRequestLoadProcessorTestUtils.MessageHeadersData data = _workProcessor.GetSendedHeaders();
             var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
-            yield return WaitRequestOverCoroutine();
+            yield return WaitForTimeOut( BaseSendedBody );
 
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
@@ -51,8 +51,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
-            yield return WaitRequestOverCoroutine();
-
+            yield return WaitForTimeOut( BaseSendedBody );
+            
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
             Assert.NotNull( data.BaseSendedBody );
@@ -72,7 +72,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             cancelTocken.Cancel();
 
-            yield return WaitRequestOverCoroutine();
+            yield return WaitForTimeOut( BaseSendedBody );
 
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
@@ -104,7 +104,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
-            yield return WaitRequestOverCoroutine();
+            yield return WaitForTimeOut( BaseSendedBody );
 
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
@@ -122,23 +122,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
-            yield return WaitRequestOverCoroutine();
-
+            yield return WaitForTimeOut( BaseSendedBody );
+            
             Assert.AreEqual( MaxDownloadProgress, currentDownloadProgress );
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
-        }
-
-        protected IEnumerator WaitRequestOverCoroutine()
-        {
-            var sendedBodyData = _workProcessor.GetSendedHeaders();
-
-            var timeoutTime = DateTime.Now.AddSeconds( RemoteLoadingTimeoutSec );
-
-            while( sendedBodyData.BaseSendedBody == null && DateTime.Now < timeoutTime )
-            {
-                yield return null;
-            }
         }
     }
 

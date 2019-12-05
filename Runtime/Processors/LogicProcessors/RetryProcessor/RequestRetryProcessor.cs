@@ -1,7 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using CrazyPanda.UnityCore.CoroutineSystem;
+using System.Threading.Tasks;
 using UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
@@ -18,7 +17,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         /// value: seconds before next try
         /// </summary>
         protected Dictionary< int, float > _retryMap;
-        protected ICoroutineManager _coroutineManager;
         protected Func< MessageHeader, AssetLoadingRequest< T >, bool > _needRetryChecker;
         protected NodeOutputConnection< UrlLoadingRequest > _retryConnection;
         protected NodeOutputConnection< AssetLoadingRequest< T > > _outputConnection;
@@ -32,10 +30,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         /// <param name="retryMap"></param>
         /// <param name="coroutineManager"></param>
         /// <param name="needRetryChecker">return true if need retry</param>
-        public RequestRetryProcessor( Dictionary< int, float > retryMap, ICoroutineManager coroutineManager, Func< MessageHeader, AssetLoadingRequest< T >, bool > needRetryChecker )
+        public RequestRetryProcessor( Dictionary< int, float > retryMap,  Func< MessageHeader, AssetLoadingRequest< T >, bool > needRetryChecker )
         {
             _retryMap = retryMap ?? throw new ArgumentNullException( nameof(retryMap) );
-            _coroutineManager = coroutineManager ?? throw new ArgumentNullException( nameof(coroutineManager) );
             _needRetryChecker = needRetryChecker ?? throw new ArgumentNullException( nameof(needRetryChecker) );
         }
         #endregion
@@ -87,27 +84,27 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 return FlowMessageStatus.Accepted;
             }
 
-            _coroutineManager.StartCoroutine( this, NextTryWait( header, body, nextRetryIdx ) );
+            NextTryWait( header,body,nextRetryIdx );
             return FlowMessageStatus.Accepted;
         }
 
+        #endregion
+        #region Private Members
 
-        protected IEnumerator NextTryWait( MessageHeader header, AssetLoadingRequest< T > body, int nextRetryIdx )
+        private async void NextTryWait( MessageHeader header, AssetLoadingRequest< T > body, int nextRetryIdx )
         {
-            var nextTryTime = DateTime.Now.AddSeconds( _retryMap[ nextRetryIdx ] );
-            while( nextTryTime >= DateTime.Now )
-            {
-                if( header.CancellationToken.IsCancellationRequested )
-                {
-                    yield break;
-                }
-
-                yield return null;
-            }
-
-            header.MetaData.SetMeta( RETRY_METADATA_KEY, nextRetryIdx, true );
-            _retryConnection.ProcessMessage( header, new UrlLoadingRequest( body ) );
+           await Task.Delay( TimeSpan.FromSeconds( _retryMap[nextRetryIdx]), header.CancellationToken).ContinueWith( _ =>
+           {
+               if( header.CancellationToken.IsCancellationRequested )
+               {
+                   return;
+               }
+            
+               header.MetaData.SetMeta( RETRY_METADATA_KEY, nextRetryIdx, true );
+               _retryConnection.ProcessMessage( header, new UrlLoadingRequest( body ) );
+           },TaskScheduler.FromCurrentSynchronizationContext());
         }
+        
         #endregion
     }
 }

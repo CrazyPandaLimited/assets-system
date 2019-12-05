@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using CrazyPanda.UnityCore.CoroutineSystem;
 using NSubstitute;
 using NUnit.Framework;
 using UnityEngine;
@@ -17,7 +16,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
     public class ResourceStorageLocalBundleTests : BaseProcessorModuleWithOneOutTest<BundlesFromLocalFolderLoadProcessor,UrlLoadingRequest, AssetLoadingRequest< AssetBundle >>
     {   
         private AssetBundleManifest _manifest;
-        private ITimeProvider _timeProvider;
         
         string bundleName = "experiment_aliceslots.bundle";
         
@@ -25,8 +23,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         {
             AssetBundle.UnloadAllAssetBundles(true);
             
-            _timeProvider = ResourceSystemTestTimeProvider.TestTimeProvider();
-
             _manifest = new AssetBundleManifest();
             _manifest.BundleInfos.Add(bundleName,
                 new BundleInfo(new GameAssetType("Image"), bundleName)
@@ -53,12 +49,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
             
-            var timeoutTime = DateTime.Now.AddSeconds(RemoteLoadingTimeoutSec);
-            while (sendedBody == null && DateTime.Now < timeoutTime)
-            {
-                _timeProvider.OnUpdate += Raise.Event<Action>();
-                yield return null;
-            }
+            yield return base.WaitForTimeOut(sendedBody);
 
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
@@ -104,14 +95,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), cancelTocken.Token ), requestBody );
             
             cancelTocken.Cancel();
-            
-            var timeoutTime = DateTime.Now.AddSeconds(RemoteLoadingTimeoutSec);
-            while (DateTime.Now < timeoutTime)
-            {
-                _timeProvider.OnUpdate += Raise.Event<Action>();
-                yield return null;
-            }
 
+            yield return base.WaitForTimeOut();
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
             Assert.IsFalse( outCalled );

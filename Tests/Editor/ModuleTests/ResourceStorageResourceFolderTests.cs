@@ -1,11 +1,8 @@
 using System.Linq;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
-using System;
 using System.Collections;
 using System.Threading;
-using CrazyPanda.UnityCore.CoroutineSystem;
-using NSubstitute;
 using NUnit.Framework;
 using UnityCore.MessagesFlow;
 using UnityEngine;
@@ -15,14 +12,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     public class ResourceStorageResourceFolderTests : BaseProcessorModuleWithOneOutTest< ResorcesFolderLoadProcessor,UrlLoadingRequest, AssetLoadingRequest< UnityEngine.Object > >
     {
-        private ITimeProvider _timeProvider;
         private UrlLoadingRequest _body;
         private string url = "Cube";
         #region Public Members
         
         protected override void InternalSetup()
         {
-            _timeProvider = ResourceSystemTestTimeProvider.TestTimeProvider();
             _workProcessor = new ResorcesFolderLoadProcessor();
             _body = new UrlLoadingRequest( url, typeof( GameObject ), new ProgressTracker< float >() );
         }
@@ -63,13 +58,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var status = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _body );
 
             Assert.AreEqual( FlowMessageStatus.Accepted, status );
-            
-            var timeoutTime = DateTime.Now.AddSeconds(RemoteLoadingTimeoutSec);
-            while( sendedBody == null && DateTime.Now < timeoutTime)
-            {
-                _timeProvider.OnUpdate += Raise.Event< Action >();
-                yield return null;
-            }
+
+            yield return WaitForTimeOut( sendedBody );
             
             Assert.Null( _workProcessor.Exception );
 
