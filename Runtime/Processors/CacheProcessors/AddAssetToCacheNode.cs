@@ -19,11 +19,18 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #region Protected Members
         protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, AssetLoadingRequest< T > body )
         {
-            if (!_memoryCache.Contains(body.Url))
+            var assetName = body.Url;
+            if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
             {
-                _memoryCache.Add(body.Url, body.Asset);
+                var subAssetName = header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET );
+                assetName = $"{body.Url}_SubAsset:{subAssetName}";
             }
-            else if (_memoryCache.Get(body.Url) != (object)body.Asset)
+
+            if (!_memoryCache.Contains(assetName))
+            {
+                _memoryCache.Add(assetName, body.Asset);
+            }
+            else if (_memoryCache.Get(assetName) != (object)body.Asset)
             {
                 header.AddException( new TryOfOverridingCachedObjectException("Can't override cached object"));
                 _exceptionConnection.ProcessMessage( header, new UrlLoadingRequest( body ) );

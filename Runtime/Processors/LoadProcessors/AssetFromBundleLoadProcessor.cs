@@ -74,11 +74,40 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
                 if( isSyncRequest )
                 {
-                    OnAssetLoaded( header, body, mainBundleTask.Result.LoadAsset( body.Url, body.AssetType ), bundlesToLoad, bundlesHolder );
+                    UnityEngine.Object asset = null;
+            
+                    if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
+                    {
+                        var subAssets = mainBundleTask.Result.LoadAssetWithSubAssets( body.Url, body.AssetType );
+                        var subAssetName = header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET );
+
+                        foreach( var subAsset in subAssets )
+                        {
+                            if( subAsset.name == subAssetName )
+                            {
+                                asset = subAsset;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        asset = mainBundleTask.Result.LoadAsset( body.Url, body.AssetType );
+                    }
+                    
+                    OnAssetLoaded( header, body, asset, bundlesToLoad, bundlesHolder );
                 }
                 else
                 {
-                    ConfigureLoadingProcess( new AssetFromBundleProcessorData( mainBundleTask.Result.LoadAssetAsync( body.Url, body.AssetType ), header, body, bundlesToLoad, bundlesHolder ) );
+                    if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
+                    {
+                        ConfigureLoadingProcess( new AssetFromBundleProcessorData( mainBundleTask.Result.LoadAssetWithSubAssetsAsync( body.Url, body.AssetType ), header, body, bundlesToLoad, bundlesHolder ) );
+                    }
+                    else
+                    {
+                        ConfigureLoadingProcess( new AssetFromBundleProcessorData( mainBundleTask.Result.LoadAssetAsync( body.Url, body.AssetType ), header, body, bundlesToLoad, bundlesHolder ) );
+                    }
+
                 }
             } ).Fail( exception =>
             {
@@ -102,7 +131,29 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             data.Body.ProgressTracker.ReportProgress( 1.0f );
             var processorData = ( AssetFromBundleProcessorData ) data;
             ReleaseAssetBundlesData( processorData.Bundles, processorData.Target );
-            _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( data.Body.Url, data.Body.AssetType, data.Body.ProgressTracker, data.RequestLoadingOperation.asset ) );
+            
+            UnityEngine.Object asset = null;
+            
+            if( data.Header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
+            {
+                var subAssets = data.RequestLoadingOperation.allAssets;
+                var subAssetName = data.Header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET );
+
+                foreach( var subAsset in subAssets )
+                {
+                    if( subAsset.name == subAssetName )
+                    {
+                        asset = subAsset;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                asset = data.RequestLoadingOperation.asset;
+            }
+            
+            _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( data.Body.Url, data.Body.AssetType, data.Body.ProgressTracker, asset ) );
         }
 
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data )

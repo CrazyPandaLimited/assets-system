@@ -28,7 +28,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             //if sync request, don't combine it
-            if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) )
+            //if request with sub assets, don't combine it
+            if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) ||
+                header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ))
             {
                 _defaultConnection.ProcessMessage( header, body );
                 return FlowMessageStatus.Accepted;

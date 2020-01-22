@@ -37,7 +37,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #region Protected Members
         protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
-            _cacheCheckResultOutConnections[ _cache.Contains( body.Url ) ].ProcessMessage( header, body );
+            var assetName = body.Url;
+            if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
+            {
+                var subAssetName = header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET );
+                assetName = $"{body.Url}_SubAsset:{subAssetName}";
+            }
+            _cacheCheckResultOutConnections[ _cache.Contains(assetName ) ].ProcessMessage( header, body );
             return FlowMessageStatus.Accepted;
         }
         #endregion

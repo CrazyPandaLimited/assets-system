@@ -14,6 +14,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
     {
         private UrlLoadingRequest _body;
         private string url = "Cube";
+        private string multipleSpriteAtlasUrl = "MultipleSpritesAtlas";
+        private string subAssetName = "MultipleSpritesAtlas_0";
         #region Public Members
         
         protected override void InternalSetup()
@@ -66,6 +68,55 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.NotNull( sendedBody );
             Assert.NotNull( sendedBody.Asset );
         }
+        
+        [ Test ]
+        public void LoadFromResourceFolderRootResourceSubAssetSync()
+        {
+            _body = new UrlLoadingRequest( multipleSpriteAtlasUrl, typeof( Sprite ), new ProgressTracker< float >() );
+            MessageHeader sendedHeader = null;
+            AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
+
+            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            {
+                sendedHeader = args.Header;
+                sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
+            };
+
+            var metadata = new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG );
+            metadata.SetMeta( MetaDataReservedKeys.GET_SUB_ASSET, subAssetName );
+            var status = _workProcessor.ProcessMessage( new MessageHeader( metadata, CancellationToken.None ), _body );
+
+            Assert.AreEqual( FlowMessageStatus.Accepted, status );
+            Assert.Null( _workProcessor.Exception );
+
+            Assert.NotNull( sendedBody );
+            Assert.NotNull( sendedBody.Asset );
+        }
+
+        [ Test ]
+        public void ErrorLoadFromResourceFolderRootResourceSubAssetAsync()
+        {
+            _body = new UrlLoadingRequest( multipleSpriteAtlasUrl, typeof( Sprite ), new ProgressTracker< float >() );
+            MessageHeader sendedHeader = null;
+            AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
+
+            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            {
+                sendedHeader = args.Header;
+                sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
+            };
+            
+            var metadata = new MetaData();
+            metadata.SetMeta( MetaDataReservedKeys.GET_SUB_ASSET, subAssetName );
+            var status = _workProcessor.ProcessMessage( new MessageHeader( metadata, CancellationToken.None ), _body );
+
+            Assert.AreEqual( FlowMessageStatus.Rejected, status );
+            
+            Assert.NotNull( _workProcessor.Exception );
+            Assert.Null( sendedBody );
+        }
+        
+        
         #endregion
     }
 }

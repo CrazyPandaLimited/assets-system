@@ -4,14 +4,32 @@ using Object = UnityEngine.Object;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class ResorcesFolderLoadProcessor :  AbstractRequestProcessor<  ResourceRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
+    public class ResorcesFolderLoadProcessor : AbstractRequestProcessor< ResourceRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
     {
         #region Protected Members
         protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) )
             {
-                var asset = Resources.Load( body.Url, body.AssetType );
+                Object asset = null;
+                if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
+                {
+                    var subAssets = Resources.LoadAll( body.Url, body.AssetType );
+                    var subAssetName = header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET );
+
+                    foreach( var subAsset in subAssets )
+                    {
+                        if( subAsset.name == subAssetName )
+                        {
+                            asset = subAsset;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    asset = Resources.Load( body.Url, body.AssetType );
+                }
 
                 if( asset == null )
                 {
@@ -24,8 +42,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 return FlowMessageStatus.Accepted;
             }
 
-            ConfigureLoadingProcess( new RequestProcessorData( Resources.LoadAsync( body.Url, body.AssetType ), header, body ) );
+            if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
+            {
+                header.AddException( new AssetSystemException( $"You try to ASYNC load subAsset:{header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET )} for asset '{body.Url}' of type {body.AssetType}. Async loading for subAssets not supported by Unity3d API!!" ) );
+                _exceptionConnection.ProcessMessage( header, body );
+                return FlowMessageStatus.Accepted;
+            }
 
+            ConfigureLoadingProcess( new RequestProcessorData( Resources.LoadAsync( body.Url, body.AssetType ), header, body ) );
             return FlowMessageStatus.Accepted;
         }
 
@@ -39,16 +63,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data )
         {
-            if( data.RequestLoadingOperation.asset == null)
+            if( data.RequestLoadingOperation.asset == null )
             {
                 data.Header.AddException( new AssetSystemException( "Asset not loaded" ) );
                 _exceptionConnection.ProcessMessage( data.Header, data.Body );
                 return false;
             }
 
-            return true;            
+            return true;
         }
-        
         #endregion
     }
 }
