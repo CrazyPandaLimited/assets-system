@@ -40,8 +40,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             var assetName = body.Url;
             if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
             {
-                var subAssetName = header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET );
-                assetName = $"{body.Url}_SubAsset:{subAssetName}";
+                assetName = Utils.ConstructAssetWithSubassetName( body.Url, header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET ) );
             }
             
             if( _cache.Contains( assetName ) )
