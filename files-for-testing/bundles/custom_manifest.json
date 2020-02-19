@@ -1,0 +1,117 @@
+{
+  "BundleInfos": {
+    "blue.bundle3d": {
+      "Uri": null,
+      "Name": "blue.bundle3d",
+      "Ux": 0,
+      "CRC": "2382335961",
+      "Hash": "a915bad024b1a88e71a5a07ed552e574",
+      "AssetInfos": [
+        "blue.png"
+      ],
+      "CustomInfo": {}
+    },
+    "cube.bundle3d": {
+      "Uri": null,
+      "Name": "cube.bundle3d",
+      "Ux": 0,
+      "CRC": "293081927",
+      "Hash": "c499ac9196aadff3d3279dcb4bab37fb",
+      "AssetInfos": [
+        "Cube.prefab"
+      ],
+      "CustomInfo": {}
+    },
+    "cylinder.bundle3d": {
+      "Uri": null,
+      "Name": "cylinder.bundle3d",
+      "Ux": 0,
+      "CRC": "1838060021",
+      "Hash": "6b1b882a8ebc5ba4f2975efe4de9a77d",
+      "AssetInfos": [
+        "Cylinder.prefab"
+      ],
+      "CustomInfo": {}
+    },
+    "main_manifest.json": {
+      "Uri": null,
+      "Name": "main_manifest.json",
+      "Ux": 0,
+      "CRC": "929180385",
+      "Hash": null,
+      "AssetInfos": [],
+      "CustomInfo": {}
+    },
+    "sphere.bundle3d": {
+      "Uri": null,
+      "Name": "sphere.bundle3d",
+      "Ux": 0,
+      "CRC": "3417678368",
+      "Hash": "4e295061096a95a22b1cbe4b9604c73b",
+      "AssetInfos": [
+        "Sphere.prefab"
+      ],
+      "CustomInfo": {}
+    },
+    "splash.bundle3d": {
+      "Uri": null,
+      "Name": "splash.bundle3d",
+      "Ux": 0,
+      "CRC": "4001037765",
+      "Hash": "d8c8ebc54b09451ed18f7d5d313aeb5b",
+      "AssetInfos": [
+        "splash.png"
+      ],
+      "CustomInfo": {}
+    },
+    "wheel.bundle3d": {
+      "Uri": null,
+      "Name": "wheel.bundle3d",
+      "Ux": 0,
+      "CRC": "4279406299",
+      "Hash": "ed777a98e4c525d00ec01bbd85ee0202",
+      "AssetInfos": [
+        "wheel.png"
+      ],
+      "CustomInfo": {}
+    }
+  },
+  "AssetInfos": {
+    "blue.png": {
+      "GameAssetTypeTag": "Image",
+      "Name": "blue.png",
+      "Dependencies": [],
+      "CustomInfo": {}
+    },
+    "Cube.prefab": {
+      "GameAssetTypeTag": "Prefab",
+      "Name": "Cube.prefab",
+      "Dependencies": [],
+      "CustomInfo": {}
+    },
+    "Cylinder.prefab": {
+      "GameAssetTypeTag": "Prefab",
+      "Name": "Cylinder.prefab",
+      "Dependencies": [],
+      "CustomInfo": {}
+    },
+    "Sphere.prefab": {
+      "GameAssetTypeTag": "Prefab",
+      "Name": "Sphere.prefab",
+      "Dependencies": [],
+      "CustomInfo": {}
+    },
+    "splash.png": {
+      "GameAssetTypeTag": "Image",
+      "Name": "splash.png",
+      "Dependencies": [],
+      "CustomInfo": {}
+    },
+    "wheel.png": {
+      "GameAssetTypeTag": "Image",
+      "Name": "wheel.png",
+      "Dependencies": [],
+      "CustomInfo": {}
+    }
+  }
+}

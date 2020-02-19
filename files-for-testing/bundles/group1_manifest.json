@@ -1,0 +1,37 @@
+{
+  "BundleInfos": {
+    "group1.bundle3d": {
+      "Uri": null,
+      "Name": "group1.bundle3d",
+      "Ux": 0,
+      "CRC": "2434336077",
+      "Hash": "b440bbd390591606ee180ba6e96679e7",
+      "AssetInfos": [
+        "gSphere",
+        "gCube",
+        "gCylinder"
+      ],
+      "CustomInfo": {}
+    }
+  },
+  "AssetInfos": {
+    "gSphere": {
+      "GameAssetTypeTag": "Prefab",
+      "Name": "gSphere",
+      "Dependencies": [],
+      "CustomInfo": {}
+    },
+    "gCube": {
+      "GameAssetTypeTag": "Prefab",
+      "Name": "gCube",
+      "Dependencies": [],
+      "CustomInfo": {}
+    },
+    "gCylinder": {
+      "GameAssetTypeTag": "Prefab",
+      "Name": "gCylinder",
+      "Dependencies": [],
+      "CustomInfo": {}
+    }
+  }
+}
