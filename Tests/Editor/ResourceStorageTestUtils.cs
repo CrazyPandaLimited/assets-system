@@ -8,15 +8,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Tests
         {
             if (string.IsNullOrEmpty(filename))
             {
-                return "http://unitycore.dev.crazypanda.ru/s/files-for-testing/bundles";
+                return "https://crazypandalimited.github.io/assets-system/files-for-testing/bundles";
             }
 
-            return string.Format("http://unitycore.dev.crazypanda.ru/s/files-for-testing/bundles/{0}", filename);
+            return string.Format("https://crazypandalimited.github.io/assets-system/files-for-testing/bundles/{0}", filename);
         }
 
         public static string ConstructTestUrl(string filename)
         {
-            return string.Format("http://unitycore.dev.crazypanda.ru/s/files-for-testing/{0}", filename);
+            return string.Format("https://crazypandalimited.github.io/assets-system/files-for-testing/{0}", filename);
         }
 
         public static bool IsBundleLoaded(string bundleName)
