@@ -53,11 +53,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             return FlowMessageStatus.Accepted;
         }
 
-        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( 0f );
+        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( InitialProgress );
+
+        protected override void OnLoadingProgressUpdated( UrlLoadingRequest body, float currentProgress ) => body.ProgressTracker.ReportProgress( currentProgress );
 
         protected override void OnLoadingCompleted( RequestProcessorData data )
         {
-            data.Body.ProgressTracker.ReportProgress( 1.0f );
+            data.Body.ProgressTracker.ReportProgress( FinalProgress );
             _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( data.Body, data.RequestLoadingOperation.asset ) );
         }
 

@@ -12,30 +12,33 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
-    public class LoadAssetFromBundleProcessorTests : BaseProcessorModuleWithOneOutTest< AssetFromBundleLoadProcessor, UrlLoadingRequest, AssetLoadingRequest< UnityEngine.Object > >
+    [TestFixture]
+    public class LoadAssetFromBundleProcessorTests
     {
-        private AssetsStorage _storageWithBundlesProcessors;
+        private const float _defaultWaitTimeout = 5.0f;
+        private const string bundleName = "experiment_aliceslots.bundle";
+
+        private const string bundleName2 = "bundletest_0.bundle";
+        private const string bundleName3 = "bundletest_1.bundle";
+
+        private const string assetInTestBundle0 = "Assets/AssetsInBundle/TestPrefab1.prefab";
+        private const string assetInTestBundle1 = "Assets/AssetsInBundle/TestPrefab2.prefab";
+
+        private const string assetName = "assets/assetbundlesexperiments/stuff/aliceslots/images/gem_alice.png";
+        private const string prefabAssetName = "assets/assetbundlesexperiments/stuff/aliceslots/prefabs/prefabalice.prefab";
+
         private AssetBundleManifest _manifest;
-        private CacheControllerForTests _cacheController;
-        private RequestToPromiseMap _requestToPromiseMap;
+        private AssetFromBundleLoadProcessor _assetLoaderProcessor;
+        private AssetBundleManifestCheckerProcessor _assetBundleLoaderProcessor;
 
-        string bundleName = "experiment_aliceslots.bundle";
-
-        string bundleName2 = "bundletest_0.bundle";
-        string bundleName3 = "bundletest_1.bundle";
-
-        private string assetInTestBundle0 = "Assets/AssetsInBundle/TestPrefab1.prefab";
-        private string assetInTestBundle1 = "Assets/AssetsInBundle/TestPrefab2.prefab";
-
-        private string assetName = "assets/assetbundlesexperiments/stuff/aliceslots/images/gem_alice.png";
-        private string prefabAssetName = "assets/assetbundlesexperiments/stuff/aliceslots/prefabs/prefabalice.prefab";
-
-
-        protected override void InternalSetup()
+        [SetUp]
+        public void InternalSetup()
         {
             AssetBundle.UnloadAllAssetBundles( true );
 
-            _manifest = new AssetBundleManifest();
+            var nodesBuilder = new DefaultBuilder( 5 );
+            
+            _manifest = nodesBuilder.AssetBundleManifest;
             _manifest.BundleInfos.Add( bundleName, new BundleInfo( new GameAssetType( "Image" ), bundleName ) { AssetInfos = new List< string > { assetName, prefabAssetName } } );
 
             _manifest.AssetInfos.Add( assetName, new AssetInBundleInfo( assetName ) );
@@ -44,15 +47,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             var bundleLoader = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/Systems/Tests/ResourcesSystem/Bundle", _manifest );
 
-            _requestToPromiseMap = new RequestToPromiseMap();
-            _storageWithBundlesProcessors = new AssetsStorage( _requestToPromiseMap );
-            _storageWithBundlesProcessors.RegisterOutConnection( bundleLoader );
+            nodesBuilder.AssetsStorage.RegisterOutConnection( bundleLoader );
+            bundleLoader.RegisterDefaultConnection( nodesBuilder.GetNewAssetLoadingRequestEndpoint< AssetBundle >() );
 
-            bundleLoader.RegisterDefaultConnection( new AssetLoadingRequestEndPointProcessor< AssetBundle >( _requestToPromiseMap ) );
-
-            _cacheController = new CacheControllerForTests();
-
-            _workProcessor = new AssetFromBundleLoadProcessor(_storageWithBundlesProcessors, _manifest, _cacheController );
+            _assetBundleLoaderProcessor = nodesBuilder.BuildLoadAssetFromBundleTree();
+            
+            _assetLoaderProcessor = nodesBuilder.GetExistingNodes<AssetFromBundleLoadProcessor>().First();
         }
 
 
@@ -64,29 +64,28 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _assetLoaderProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
-                sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
+                sendedBody = args.Body as AssetLoadingRequest< UnityEngine.Object >;
             };
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
+            var processResult = _assetBundleLoaderProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
-            var timeoutTime = DateTime.Now.AddSeconds( RemoteLoadingTimeoutSec );
+            var timeoutTime = DateTime.Now.AddSeconds( _defaultWaitTimeout );
             while( sendedBody == null && DateTime.Now < timeoutTime )
             {
                 yield return null;
             }
 
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
-            Assert.Null( _workProcessor.Exception );
+            Assert.Null( _assetLoaderProcessor.Exception );
 
             Assert.NotNull( sendedBody );
             Assert.NotNull( sendedBody.Asset );
-            Assert.AreEqual( typeof( Texture2D ), sendedBody.Asset.GetType() );
+            Assert.IsInstanceOf( typeof( Texture2D ), sendedBody.Asset );
         }
-
-
+        
         [ Test ]
         public void SuccesLoadAssetSync()
         {
@@ -95,23 +94,22 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _assetLoaderProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
-                sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
+                sendedBody = args.Body as AssetLoadingRequest< UnityEngine.Object >;
             };
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
+            var processResult = _assetBundleLoaderProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
 
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
-            Assert.Null( _workProcessor.Exception );
+            Assert.Null( _assetLoaderProcessor.Exception );
 
             Assert.NotNull( sendedBody );
             Assert.NotNull( sendedBody.Asset );
-            Assert.AreEqual( typeof( Texture2D ), sendedBody.Asset.GetType() );
+            Assert.IsInstanceOf( typeof( Texture2D ), sendedBody.Asset );
         }
-
-
+        
         [ UnityTest ]
         public IEnumerator SuccesLoadAssetWithDependentBundlesAsync()
         {
@@ -131,27 +129,23 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _assetLoaderProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
-                sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
+                sendedBody = args.Body as AssetLoadingRequest< UnityEngine.Object >;
             };
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
+            var processResult = _assetBundleLoaderProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
-            var timeoutTime = DateTime.Now.AddSeconds( RemoteLoadingTimeoutSec );
+            var timeoutTime = DateTime.Now.AddSeconds( _defaultWaitTimeout );
             while( sendedBody == null && DateTime.Now < timeoutTime )
             {
                 yield return null;
             }
 
-            Assert.AreEqual( 3, _cacheController.AddedReferences.Count );
-            Assert.AreEqual( 3, _cacheController.RemovedReferences.Count );
-            Assert.AreEqual( 0, _cacheController.ResultReferencesStatus.Count );
-
             Assert.NotNull( sendedBody );
             Assert.NotNull( sendedBody.Asset );
-            Assert.AreEqual( typeof( Texture2D ), sendedBody.Asset.GetType() );
+            Assert.IsInstanceOf( typeof( Texture2D ), sendedBody.Asset );
         }
 
         [ Test ]
@@ -173,13 +167,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _assetLoaderProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
-                sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
+                sendedBody = args.Body as AssetLoadingRequest< UnityEngine.Object >;
             };
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
+            var processResult = _assetBundleLoaderProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
 
             var loadedBundles = AssetBundle.GetAllLoadedAssetBundles();
             Assert.NotNull( loadedBundles.First( c => c.name == bundleName.Replace( ".bundle", "" ) ) );
@@ -189,69 +183,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.NotNull( sendedBody );
             Assert.NotNull( sendedBody.Asset );
-            Assert.AreEqual( typeof( Texture2D ), sendedBody.Asset.GetType() );
-
-            Assert.AreEqual( 3, _cacheController.AddedReferences.Count );
-            Assert.AreEqual( 3, _cacheController.RemovedReferences.Count );
-            Assert.AreEqual( 0, _cacheController.ResultReferencesStatus.Count );
+            Assert.IsInstanceOf( typeof( Texture2D ), sendedBody.Asset );
         }
-        
-        private class CacheControllerForTests : ICacheControllerWithAssetReferences
-        {
-            public List< string > AddedReferences = new List< string >();
-            public List< string > RemovedReferences = new List< string >();
-            public List< string > ResultReferencesStatus = new List< string >();
-
-            public void Add( string assetName, object asset )
-            {
-                AddedReferences.Add( assetName );
-                ResultReferencesStatus.Add( assetName );
-            }
-
-            public void Add< T >( T asset, string assetName, object reference )
-            {
-                AddedReferences.Add( assetName );
-                ResultReferencesStatus.Add( assetName );
-            }
-
-            public List< string > GetAllAssetsNames()
-            {
-                return new List< string >();
-            }
-
-            public List< object > GetReferencesByAssetName( string assetName )
-            {
-                return new List< object >();
-            }
-
-            public object Get( string assetName, object reference, Type assetType )
-            {
-                AddedReferences.Add( assetName );
-                ResultReferencesStatus.Add( assetName );
-                return default;
-            }
-
-            public void ReleaseReference( string assetName, object reference )
-            {
-                RemovedReferences.Add( assetName );
-                ResultReferencesStatus.Remove( assetName );
-            }
-
-            public T Get< T >( string assetName, object reference )
-            {
-                AddedReferences.Add( assetName );
-                ResultReferencesStatus.Add( assetName );
-                return default( T );
-            }
-
-            public bool Contains( string assetName )
-            {
-                return true;
-            }
-        }
-    }
-
-    public class TestComponent : MonoBehaviour
-    {
     }
 }

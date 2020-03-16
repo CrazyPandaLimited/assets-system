@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using CrazyPanda.UnityCore.PandaTasks;
 using UnityCore.MessagesFlow;
 using UnityEngine;
 
@@ -8,21 +10,24 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< TInputBodyType, TOutputBodyType, TEceptionOutputBodyType > where TEceptionOutputBodyType : IMessageBody where TOutputBodyType : IMessageBody where TInputBodyType : IMessageBody where TAsyncOperation : AsyncOperation
     {
         #region Protected Members
-        protected abstract void OnLoadingCompleted( RequestProcessorData data );
-        protected abstract bool LoadingFinishedWithoutErrors( RequestProcessorData data );
+        protected const float InitialProgress = 0.0f;
+        protected const float FinalProgress = 1.0f;
 
+        protected abstract void OnLoadingStarted( MessageHeader header, TInputBodyType body );
+        protected abstract void OnLoadingCompleted( RequestProcessorData data );
+        protected abstract void OnLoadingProgressUpdated( TInputBodyType body, float currentProgress );
+
+        protected abstract bool LoadingFinishedWithoutErrors( RequestProcessorData data );
+        
         protected virtual void OnErrorLoading( RequestProcessorData data )
         {
             
         }
 
-        protected virtual void OnLoadingStarted( MessageHeader header, TInputBodyType body )
-        {
-        }
-
         protected virtual void OnOperationCancelled( RequestProcessorData data)
         {
         }
+
         protected void ConfigureLoadingProcess( RequestProcessorData data )
         {
             OnLoadingStarted( data.Header, data.Body );
@@ -34,6 +39,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 OnOperationCancelled( data );
             } );
 
+            StartToTrackLoadingProgress( data );
             data.RequestLoadingOperation.completed += OnOperationFinished;
 
             void OnOperationFinished( AsyncOperation o )
@@ -59,8 +65,27 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 }
             }
         }
-
         #endregion
+
+        private void StartToTrackLoadingProgress( RequestProcessorData data )
+        {
+            PandaTasksUtilitys.WaitWhile( () =>
+            {
+                if( data.RequestLoadingOperation.isDone )
+                {
+                    OnLoadingProgressUpdated( data.Body, FinalProgress );
+                    return false;
+                }
+
+                if( data.Header.CancellationToken.IsCancellationRequested )
+                {
+                    return false;
+                }
+
+                OnLoadingProgressUpdated(data.Body, data.RequestLoadingOperation.progress );
+                return true;
+            } );
+        }
         
         protected class RequestProcessorData
         {

@@ -1,159 +1,39 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-using CrazyPanda.UnityCore.PandaTasks;
-using CrazyPanda.UnityCore.PandaTasks.Progress;
 using UnityCore.MessagesFlow;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class AssetFromBundleLoadProcessor : AbstractRequestProcessor< AssetBundleRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
+    public sealed class AssetFromBundleLoadProcessor : AbstractRequestProcessor< AssetBundleRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
     {
-        #region Protected Fields
-        protected IAssetsStorage _assetsStorage;
-        protected ICacheControllerWithAssetReferences _bundlesCacheWithRefcounts;
-        protected AssetBundleManifest _manifest;
-        #endregion
+        private readonly AssetBundleManifest _manifest;
+        private readonly IAssetsStorage _assetsStorage;
 
-        #region Constructors
-        public AssetFromBundleLoadProcessor( IAssetsStorage assetsStorage, AssetBundleManifest manifest, ICacheControllerWithAssetReferences bundlesCacheWithRefcounts )
+        public AssetFromBundleLoadProcessor( AssetBundleManifest manifest, IAssetsStorage assetsStorage )
         {
-            _assetsStorage = assetsStorage ?? throw new ArgumentNullException( nameof(assetsStorage) );
             _manifest = manifest ?? throw new ArgumentNullException( nameof(manifest) );
-            _bundlesCacheWithRefcounts = bundlesCacheWithRefcounts ?? throw new ArgumentNullException( nameof(bundlesCacheWithRefcounts) );
+            _assetsStorage = assetsStorage ?? throw new ArgumentNullException( nameof(assetsStorage) );
         }
-        #endregion
 
-        #region Protected Members
         protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
-            bool isSyncRequest = header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG );
-            var loadingTasks = new List< IPandaTask< AssetBundle > >();
-            var progressTrackers = new List< ProgressTracker< float > >();
-            var cancelTocken = new CancellationTokenSource();
-            IPandaTask< AssetBundle > mainBundleTask = null;
-
-            var assetInfo = _manifest.AssetInfos[ body.Url ];
-            var bundleInfo = _manifest.GetBundleByAssetName( body.Url );
-
-            object bundlesHolder = new object();
-
-            var metadataForBundlesRequest = isSyncRequest ? new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) : new MetaData();
-            metadataForBundlesRequest.SetMeta( MetaDataReservedKeys.OWNER_REFERENCE_RESERVED_KEY, bundlesHolder );
-
-            List< string > bundlesToLoad = assetInfo.Dependencies == null ? new List< string >() : assetInfo.Dependencies;
-            bundlesToLoad.Add( bundleInfo.Name );
-
-
-            ProgressTracker< float > progressTracker = null;
-
-            foreach( var dependentBundle in bundlesToLoad )
-            {
-                progressTracker = new ProgressTracker< float >();
-                loadingTasks.Add( _assetsStorage.LoadAssetAsync< AssetBundle >( dependentBundle, metadataForBundlesRequest, cancelTocken.Token, progressTracker ) );
-                progressTrackers.Add( progressTracker );
-            }
-
-            mainBundleTask = loadingTasks[ loadingTasks.Count - 1 ];
-
-
-            header.CancellationToken.Register( () => { cancelTocken.Cancel(); } );
-
-            CompositeProgressTracker compositeProgressTracker = new CompositeProgressTracker( progressTrackers );
-
-            compositeProgressTracker.OnProgressChanged += ( sender, args ) => { body.ProgressTracker.ReportProgress( args.progress ); };
-
-            new WhenAllPandaTask( loadingTasks ).Done( () =>
-            {
-                foreach( var loadedBundle in bundlesToLoad )
-                {
-                    _bundlesCacheWithRefcounts.Get< AssetBundle >( loadedBundle, bundlesHolder );
-                }
-
-                if( isSyncRequest )
-                {
-                    UnityEngine.Object asset = null;
-            
-                    if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
-                    {
-                        var subAssets = mainBundleTask.Result.LoadAssetWithSubAssets( body.Url, body.AssetType );
-                        var subAssetName = header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET );
-
-                        foreach( var subAsset in subAssets )
-                        {
-                            if( subAsset.name == subAssetName )
-                            {
-                                asset = subAsset;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        asset = mainBundleTask.Result.LoadAsset( body.Url, body.AssetType );
-                    }
-                    
-                    OnAssetLoaded( header, body, asset, bundlesToLoad, bundlesHolder );
-                }
-                else
-                {
-                    if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
-                    {
-                        ConfigureLoadingProcess( new AssetFromBundleProcessorData( mainBundleTask.Result.LoadAssetWithSubAssetsAsync( body.Url, body.AssetType ), header, body, bundlesToLoad, bundlesHolder ) );
-                    }
-                    else
-                    {
-                        ConfigureLoadingProcess( new AssetFromBundleProcessorData( mainBundleTask.Result.LoadAssetAsync( body.Url, body.AssetType ), header, body, bundlesToLoad, bundlesHolder ) );
-                    }
-
-                }
-            } ).Fail( exception =>
-            {
-                header.AddException( exception );
-                OnAssetLoaded( header, body, null, bundlesToLoad, bundlesHolder );
-            } );
-
+            StartToLoadMainBundle( header, body );
             return FlowMessageStatus.Accepted;
         }
+        
+        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( InitialProgress );
 
-        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( 0f );
-
-        protected override void OnErrorLoading( RequestProcessorData data )
-        {
-            var processorData = ( AssetFromBundleProcessorData ) data;
-            ReleaseAssetBundlesData( processorData.Bundles, processorData.Target );
-        }
+        protected override void OnLoadingProgressUpdated( UrlLoadingRequest body, float currentProgress ) => body.ProgressTracker.ReportProgress( currentProgress );
 
         protected override void OnLoadingCompleted( RequestProcessorData data )
         {
-            data.Body.ProgressTracker.ReportProgress( 1.0f );
-            var processorData = ( AssetFromBundleProcessorData ) data;
-            ReleaseAssetBundlesData( processorData.Bundles, processorData.Target );
-            
-            UnityEngine.Object asset = null;
-            
-            if( data.Header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
-            {
-                var subAssets = data.RequestLoadingOperation.allAssets;
-                var subAssetName = data.Header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET );
-
-                foreach( var subAsset in subAssets )
-                {
-                    if( subAsset.name == subAssetName )
-                    {
-                        asset = subAsset;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                asset = data.RequestLoadingOperation.asset;
-            }
-            
-            _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( data.Body.Url, data.Body.AssetType, data.Body.ProgressTracker, asset ) );
+            ReportFinalProgress( data.Body );
+            var finalAsset = GetFinalAsset( data.Header, () => data.RequestLoadingOperation.allAssets, () => data.RequestLoadingOperation.asset );
+            _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( GetAssetNameToLoad( data.Body ), data.Body.AssetType, data.Body.ProgressTracker, finalAsset ) );
         }
 
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data )
@@ -161,48 +41,101 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( data.RequestLoadingOperation.asset == null )
             {
                 data.Header.AddException( new AssetSystemException( "Asset not loaded from bundle" ) );
-                _exceptionConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( data.Body.Url, data.Body.AssetType, data.Body.ProgressTracker, data.RequestLoadingOperation.asset ) );
+                _exceptionConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( GetAssetNameToLoad( data.Body ), data.Body.AssetType, data.Body.ProgressTracker, data.RequestLoadingOperation.asset ) );
                 return false;
             }
 
             return true;
         }
-        #endregion
 
-        #region Private Members
-        private void OnAssetLoaded( MessageHeader header, UrlLoadingRequest body, Object asset, List< string > bundlesNames, object bundlesHolder )
+        private void StartToLoadMainBundle( MessageHeader header, UrlLoadingRequest body )
         {
-            ReleaseAssetBundlesData( bundlesNames, bundlesHolder );
+            var cancelToken = new CancellationTokenSource();
+            header.CancellationToken.Register( () => { cancelToken.Cancel(); } );
 
+            var mainBundleLoader = _assetsStorage.LoadAssetAsync< AssetBundle >( GetMainBundleName( body ), BundleDepsLoadingProcessor.MetaDataFactory.CreateMetadata( header ), cancelToken.Token, body.ProgressTracker );
+            mainBundleLoader.Done( mainBundle => StartToLoadAssetFromBundle( mainBundle, header, body ) ).Fail( header.AddException );
+        }
+        
+        private void StartToLoadAssetFromBundle( AssetBundle mainBundle, MessageHeader header, UrlLoadingRequest body )
+        {
+            var doesItIsSyncRequest = header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG );
+
+            if( doesItIsSyncRequest )
+            {
+                LoadAssetFromBundle( mainBundle, header, body );
+            }
+            else
+            {
+                LoadAssetFromBundleAsync( mainBundle, header, body );
+            }
+        }
+
+        private void LoadAssetFromBundle( AssetBundle mainBundle, MessageHeader header, UrlLoadingRequest body )
+        {
+            var finalAsset = GetFinalAsset( header, () => mainBundle.LoadAssetWithSubAssets( GetAssetNameToLoad( body ), body.AssetType ), () => mainBundle.LoadAsset( GetAssetNameToLoad( body ), body.AssetType ) );
+            OnAssetLoaded( finalAsset, header, body );
+        }
+
+        private void LoadAssetFromBundleAsync( AssetBundle mainBundle, MessageHeader header, UrlLoadingRequest body )
+        {
+            ConfigureLoadingProcess( new RequestProcessorData( GetAssetLoadingRequest(), header, body ) );
+
+            AssetBundleRequest GetAssetLoadingRequest()
+            {
+                var needToLoadSubAssets = header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET );
+                var assetNameToLoad = GetAssetNameToLoad( body );
+                var assetTypeToLoad = body.AssetType;
+
+                if( needToLoadSubAssets )
+                {
+                    return mainBundle.LoadAssetWithSubAssetsAsync( assetNameToLoad, assetTypeToLoad );
+                }
+                else
+                {
+                    return mainBundle.LoadAssetAsync( assetNameToLoad, assetTypeToLoad );
+                }
+            }
+        }
+
+        private void OnAssetLoaded( Object asset, MessageHeader header, UrlLoadingRequest body )
+        {
+            ReportFinalProgress( body );
+
+            var assetNameToLoad = GetAssetNameToLoad( body );
+            var assetTypeToLoad = body.AssetType;
+            
             if( asset == null )
             {
                 header.AddException( new AssetSystemException( "Asset not loaded from bundle" ) );
-                _exceptionConnection.ProcessMessage( header, new AssetLoadingRequest< Object >( body.Url, body.AssetType, body.ProgressTracker, asset ) );
+                _exceptionConnection.ProcessMessage( header, new AssetLoadingRequest< Object >( assetNameToLoad, assetTypeToLoad, body.ProgressTracker, null ) );
                 return;
             }
 
-            _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< Object >( body.Url, body.AssetType, body.ProgressTracker, asset ) );
+            _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< Object >( assetNameToLoad, assetTypeToLoad, body.ProgressTracker, asset ) );
         }
 
-        private void ReleaseAssetBundlesData( IReadOnlyList< string > bundles, object target )
+        private Object GetFinalAsset( MessageHeader header, Func< IReadOnlyCollection< Object > > getSubAssets, Func< Object > getDefaultAsset )
         {
-            foreach( var loadedBundle in bundles )
+            Object asset = null;
+            if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
             {
-                _bundlesCacheWithRefcounts.ReleaseReference( loadedBundle, target );
+                var subAssets = getSubAssets.Invoke();
+                var subAssetName = header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET );
+                asset = subAssets.FirstOrDefault( subAsset => subAsset.name == subAssetName );
             }
-        }
-        #endregion
-
-        protected sealed class AssetFromBundleProcessorData : RequestProcessorData
-        {
-            public IReadOnlyList< string > Bundles { get; }
-            public object Target { get; }
-
-            public AssetFromBundleProcessorData( AssetBundleRequest requestLoadingOperation, MessageHeader header, UrlLoadingRequest body, IReadOnlyList< string > bundles, object target ) : base( requestLoadingOperation, header, body )
+            else
             {
-                Bundles = bundles ?? throw new ArgumentNullException( nameof(bundles) );
-                Target = target ?? throw new ArgumentNullException( nameof(Target) );
+                asset = getDefaultAsset.Invoke();
             }
+
+            return asset;
         }
+
+        private string GetMainBundleName( UrlLoadingRequest body ) => _manifest.GetBundleByAssetName( body.Url ).Name;
+
+        private string GetAssetNameToLoad( UrlLoadingRequest body ) => body.Url;
+
+        private void ReportFinalProgress( UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( FinalProgress );
     }
 }

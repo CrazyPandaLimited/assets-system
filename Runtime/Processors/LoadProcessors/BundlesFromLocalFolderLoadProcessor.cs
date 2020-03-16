@@ -51,18 +51,20 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             }
 
             var loadingProcess = string.IsNullOrEmpty( bundleInfo.CRC ) ? AssetBundle.LoadFromFileAsync( Path.Combine( _localFolder, bundleInfo.Name ) ) : AssetBundle.LoadFromFileAsync( Path.Combine( _localFolder, bundleInfo.Name ), uint.Parse( bundleInfo.CRC ) );
-            ConfigureLoadingProcess( new RequestProcessorData(loadingProcess,header,body) );
+            ConfigureLoadingProcess( new RequestProcessorData( loadingProcess, header, body ) );
             
             return FlowMessageStatus.Accepted;
         }
-        
+
         protected override void InternalRestore() => Status = FlowNodeStatus.Working;
         
-        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( 0f );
+        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( InitialProgress );
+        
+        protected override void OnLoadingProgressUpdated( UrlLoadingRequest body, float currentProgress ) => body.ProgressTracker.ReportProgress( currentProgress );
 
         protected override void OnLoadingCompleted( RequestProcessorData data )
         {
-            data.Body.ProgressTracker.ReportProgress( 1.0f );
+            data.Body.ProgressTracker.ReportProgress( FinalProgress );
             _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< AssetBundle >( data.Body, data.RequestLoadingOperation.assetBundle ) );
         }
 
@@ -77,6 +79,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             return true;
         }
+        
         #endregion
     }
 }

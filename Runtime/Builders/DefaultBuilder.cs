@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CrazyPanda.UnityCore.AssetsSystem.Caching;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using UnityCore.MessagesFlow;
@@ -275,9 +276,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var getFromCache = new GetAssetFromCacheWithRefcountProcessor< Object >( AssetsFromBundlesCache );
             _allProcessors.Add( getFromCache );
 
-            var loader = new AssetFromBundleLoadProcessor(AssetsStorage, AssetBundleManifest, BundlesCache);
-            _allProcessors.Add( loader );
+            var assetFromBundleLoader = new AssetFromBundleLoadProcessor( AssetBundleManifest, AssetsStorage );
+            _allProcessors.Add( assetFromBundleLoader );
 
+            var bundlesWithDepsLoader = new BundleDepsLoadingProcessor( AssetBundleManifest, AssetsStorage );
+            _allProcessors.Add( bundlesWithDepsLoader );
+            
             var addToCache = new AddAssetToCacheWithRefcountProcessor< Object >( AssetsFromBundlesCache );
             _allProcessors.Add( addToCache );
 
@@ -292,9 +296,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             getFromCache.RegisterDefaultConnection( finishNode );
             getFromCache.RegisterExceptionConnection( finishNodeException );
 
-            cacheChecker.RegisterNotExistCacheOutConnection( loader );
-            loader.RegisterDefaultConnection( addToCache );
-            loader.RegisterExceptionConnection( finishNodeException );
+            cacheChecker.RegisterNotExistCacheOutConnection( bundlesWithDepsLoader );
+
+            bundlesWithDepsLoader.RegisterDefaultConnection( assetFromBundleLoader );
+            bundlesWithDepsLoader.RegisterExceptionConnection( finishNodeException );
+            
+            assetFromBundleLoader.RegisterDefaultConnection( addToCache );
+            assetFromBundleLoader.RegisterExceptionConnection( finishNodeException );
+            
             addToCache.RegisterDefaultConnection( finishNode );
             addToCache.RegisterExceptionConnection( finishNodeException );
             
@@ -303,46 +312,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
         public void AddExceptionsHandlingForAllNodes( params IFlowNode[ ] additionalNodes )
         {
-            foreach( var flowNode in _allProcessors )
-            {
-                flowNode.OnStatusChanged += ( sender, args ) =>
-                {
-                    if( args.NewStatus == FlowNodeStatus.Failed )
-                    {
-                        var exception = new AggregateException( $"Exception in node {args.Node.GetType()}", args.Node.Exception );
-                        Debug.LogException( exception );
-                        _promiseMap.Get( args.Header.Id ).SetError( exception );
-                    }
-                };
-            }
-
-            AssetsStorage.OnStatusChanged += ( sender, args ) =>
-            {
-                if( args.NewStatus == FlowNodeStatus.Failed )
-                {
-                    var exception = new AggregateException( $"Exception in node {args.Node.GetType()} headerId:{args.Header?.Id} headerMeta:{args.Header?.MetaData.ToString()} isCanceled:{args.Header?.CancellationToken.IsCancellationRequested}", args.Node.Exception );
-                    Debug.LogException( exception );
-                    _promiseMap.Get( args.Header.Id ).SetError( exception );
-                }
-            };
-
-            if( additionalNodes == null )
-            {
-                return;
-            }
-
-            foreach( var additionalNode in additionalNodes )
-            {
-                additionalNode.OnStatusChanged += ( sender, args ) =>
-                {
-                    if( args.NewStatus == FlowNodeStatus.Failed )
-                    {
-                        var exception = new AggregateException( $"Exception in node {args.Node.GetType()} headerId:{args.Header?.Id} headerMeta:{args.Header?.MetaData.ToString()} isCanceled:{args.Header?.CancellationToken.IsCancellationRequested}", args.Node.Exception );
-                        Debug.LogException( exception );
-                        _promiseMap.Get( args.Header.Id ).SetError( exception );
-                    }
-                };
-            }
+            PrintExceptionForNodes( _allProcessors );
+            AssetsStorage.OnStatusChanged += PrintExceptionForNode;
+            PrintExceptionForNodes( additionalNodes );
         }
 
         public AssetLoadingRequestEndPointProcessor< BodyType > GetNewAssetLoadingRequestEndpoint< BodyType >()
@@ -352,6 +324,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             return processor;
         }
 
+        public IEnumerable< T > GetExistingNodes< T >() where T : IFlowNode
+        {
+            var nodeType = typeof( T ); 
+            return _allProcessors.Where( node => node.GetType() == nodeType ).Cast< T >();
+        }
+
         public UrlRequestEndPointProcessor GetNewUrlRequestEndpoint()
         {
             var processor = new UrlRequestEndPointProcessor( _promiseMap );
@@ -359,5 +337,38 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             return processor;
         }
         #endregion
+
+        private void PrintExceptionForNodes( IEnumerable< IFlowNode > nodes )
+        {
+            if( nodes == null )
+            {
+                return;
+            }
+            
+            foreach( var node in nodes )
+            {
+                node.OnStatusChanged += PrintExceptionForNode;
+            }
+        }
+        
+        private void PrintExceptionForNode(object sender, FlowNodeStatusChangedEventArgs args)
+        {
+            if( args.NewStatus == FlowNodeStatus.Failed )
+            {
+                var exception = new AggregateException( $"Exception in node {args.Node.GetType()} headerId:{args.Header?.Id} headerMeta:{args.Header?.MetaData.ToString()} isCanceled:{args.Header?.CancellationToken.IsCancellationRequested}", args.Node.Exception );
+
+                Debug.LogException( exception );
+
+                foreach( var innerException in args.Node.Exception.InnerExceptions )
+                {
+                    Debug.LogException( innerException );
+                }
+
+                if( _promiseMap.Has( args.Header.Id ) )
+                {
+                    _promiseMap.Get( args.Header.Id ).SetError( exception );
+                }
+            }
+        }
     }
 }

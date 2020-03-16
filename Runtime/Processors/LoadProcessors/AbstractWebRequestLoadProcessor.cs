@@ -35,15 +35,22 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             return message;
         }
 
+        protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( InitialProgress );
+
+        protected override void OnLoadingProgressUpdated( UrlLoadingRequest body, float currentProgress ) => body.ProgressTracker.ReportProgress( currentProgress );
+
+        protected override void OnLoadingCompleted( RequestProcessorData data ) => data.Body.ProgressTracker.ReportProgress( FinalProgress );
+
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data ) => RequestFinishedWithoutErrors( data.RequestLoadingOperation.webRequest, data.Header, data.Body );
         
         protected override void OnOperationCancelled( RequestProcessorData data ) => data.RequestLoadingOperation.webRequest.Dispose();
+        
         #endregion
 
         #region Private Members
         private void BuildAndSendWebRequest( UnityWebRequest webRequest, MessageHeader header, UrlLoadingRequest body )
         {
-            webRequest.downloadHandler = GetDownloadHandler();
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
             ConfigureWebRequest( webRequest, _webRequestSettings );
 
 #if UNITY_2017_2_OR_NEWER
@@ -53,13 +60,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 #endif
 
             ConfigureLoadingProcess( new RequestProcessorData( webRequestInProgressTask, header, body ) );
-
-            DownloadHandler GetDownloadHandler()
-            {
-                var downloadHandler = new ProgressTrackerDownloadHandler();
-                downloadHandler.ProgressTrackerEvent += body.ProgressTracker.ReportProgress;
-                return downloadHandler;
-            }
         }
         
         private void ConfigureWebRequest( UnityWebRequest webRequest, WebRequestSettings webRequestSettings )
