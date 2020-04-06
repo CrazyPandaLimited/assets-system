@@ -52,7 +52,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
             yield return WaitForTimeOut( BaseSendedBody );
-            
+
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
             Assert.NotNull( data.BaseSendedBody );
@@ -123,7 +123,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
             yield return WaitForTimeOut( BaseSendedBody );
-            
+
             Assert.AreEqual( MaxDownloadProgress, currentDownloadProgress );
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
@@ -136,13 +136,16 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         {
             MessageHeadersData data = new MessageHeadersData();
 
-            workProcessor.GetOutputs().ForEach( output => output.OnMessageSended += ( sender, args ) =>
+            var outputs = workProcessor.GetOutputs();
+            foreach( var output in outputs )
             {
-                data.SendedHeader = args.Header;
-                data.AssetSendedBody = args.Body as AssetLoadingRequest< Object >;
-                data.BaseSendedBody = ( UrlLoadingRequest ) args.Body;
-            } );
-
+                output.OnMessageSended += ( sender, args ) =>
+                {
+                    data.SendedHeader = args.Header;
+                    data.AssetSendedBody = args.Body as AssetLoadingRequest< Object >;
+                    data.BaseSendedBody = ( UrlLoadingRequest )args.Body;
+                };
+            }
             return data;
         }
 
