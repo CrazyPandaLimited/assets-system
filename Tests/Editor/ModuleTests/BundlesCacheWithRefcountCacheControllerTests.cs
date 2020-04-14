@@ -22,16 +22,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         private object ownerObject2 = new object();
         //private string bundleName3 = "_assetBundle3";
 
-        string bundleName = "experiment_aliceslots.bundle";
-
         string bundleName2 = "bundletest_0.bundle";
         string bundleName3 = "bundletest_1.bundle";
-
-        private string assetInTestBundle0 = "Assets/AssetsInBundle/TestPrefab1.prefab";
-        private string assetInTestBundle1 = "Assets/AssetsInBundle/TestPrefab2.prefab";
-
-        private string assetName = "assets/assetbundlesexperiments/stuff/aliceslots/images/gem_alice.png";
-        private string prefabAssetName = "assets/assetbundlesexperiments/stuff/aliceslots/prefabs/prefabalice.prefab";
 
         [SetUp]
         public void Setup()

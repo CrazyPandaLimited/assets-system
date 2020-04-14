@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using CrazyPanda.UnityCore.AssetsSystem.Caching;
@@ -313,7 +313,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         public void AddExceptionsHandlingForAllNodes( params IFlowNode[ ] additionalNodes )
         {
             PrintExceptionForNodes( _allProcessors );
-            AssetsStorage.OnStatusChanged += PrintExceptionForNode;
             PrintExceptionForNodes( additionalNodes );
         }
 

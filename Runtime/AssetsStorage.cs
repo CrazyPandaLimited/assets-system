@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using CrazyPanda.UnityCore.PandaTasks;
@@ -19,7 +19,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         #endregion
 
         #region Events
-        public event EventHandler< FlowNodeStatusChangedEventArgs > OnStatusChanged;
         public event EventHandler< MessageSendedOutEventArgs > OnMessageSended;
         #endregion
 

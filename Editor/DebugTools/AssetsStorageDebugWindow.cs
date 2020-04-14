@@ -17,7 +17,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 
         private const string GRAPHICS_SETTINGS_FILE_NAME = "RSDebugToolAssets";
 
-        private int resStorageIdToDraw;
+        //private int resStorageIdToDraw;
         private Action _drawFunction;
         private DrawAssetsSystemDebugGui systemDrawer;
         private AssetsSystemDebugToolAssets _settings;
@@ -97,7 +97,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 
         private void Clear()
         {
-            resStorageIdToDraw = 0;
+            //resStorageIdToDraw = 0;
             systemDrawer = null;
         }
 
@@ -121,6 +121,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
                 return;
             }
 
+            // TODO: Add support
             // if (AssetsSystemDebugInterface.AssetsStorageInstances.Count > 1)
             // {
             //     GUILayout.Label(_settings.PlayModeSelectRSTitle, _settings.PlayModeSelectRSTitleStyle);

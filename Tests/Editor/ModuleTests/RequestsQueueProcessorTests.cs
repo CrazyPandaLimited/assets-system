@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -103,9 +103,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         {
             CancellationTokenSource cancelTocken = new CancellationTokenSource();
             _messageHeader1 = new MessageHeader(new MetaData(), cancelTocken.Token);
-            bool continueCalled = false;
             RecreateProcessors(0);
-            var queueEntry = new RequestQueueEntry( _messageHeader1, _messageBody, 0, () => continueCalled = true );
+            var queueEntry = new RequestQueueEntry( _messageHeader1, _messageBody, 0, () => { } );
             
             _requestsQueue.Add( queueEntry );
             

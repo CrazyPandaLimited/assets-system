@@ -1,11 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class DefaultAntiCacheUrlResolver : IAntiCacheUrlResolver
     {
         #region Private Fields
-        private Dictionary< string, string > _perResourceAntiCache;
+        private Dictionary< string, string > _perResourceAntiCache = new Dictionary< string, string >();
         private string _defaultAnticache;
         #endregion
 

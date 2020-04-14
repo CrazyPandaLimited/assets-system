@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CrazyPanda.UnityCore.PandaTasks;
@@ -91,17 +91,19 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Private Members
-        private async IPandaTask NextTryWait( MessageHeader header, AssetLoadingRequest< T > body, int nextRetryIdx )
+        private void NextTryWait( MessageHeader header, AssetLoadingRequest< T > body, int nextRetryIdx )
         {
-            await PandaTasksUtilitys.Delay( TimeSpan.FromSeconds( _retryMap[ nextRetryIdx ] ) );
-            
-            if( header.CancellationToken.IsCancellationRequested )
-            {
-                return;
-            }
+            PandaTasksUtilitys.Delay( TimeSpan.FromSeconds( _retryMap[ nextRetryIdx ] ) )
+                .Done( () =>
+                {
+                    if( header.CancellationToken.IsCancellationRequested )
+                    {
+                        return;
+                    }
 
-            header.MetaData.SetMeta( RETRY_METADATA_KEY, nextRetryIdx, true );
-            _retryConnection.ProcessMessage( header, new UrlLoadingRequest( body ) );
+                    header.MetaData.SetMeta( RETRY_METADATA_KEY, nextRetryIdx, true );
+                    _retryConnection.ProcessMessage( header, new UrlLoadingRequest( body ) );
+                } );
         }
         #endregion
     }
