@@ -1,17 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
-using CrazyPanda.UnityCore.PandaTasks;
 using NSubstitute;
 using NUnit.Framework;
 using UnityCore.MessagesFlow;
-using UnityEditor.VersionControl;
-using UnityEngine;
-using UnityEngine.TestTools;
-using Object = UnityEngine.Object;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
