@@ -54,7 +54,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             }
             else
             {
-                new WhenAllPandaTask( downloadableData.loadingTasks ).Done( InvokeDownloadFinishedEvent ).Fail( header.AddException );
+                PandaTasksUtilitys.WaitAll( downloadableData.loadingTasks ).Done( InvokeDownloadFinishedEvent ).Fail( header.AddException );
             }
             
             void InvokeDownloadFinishedEvent()
