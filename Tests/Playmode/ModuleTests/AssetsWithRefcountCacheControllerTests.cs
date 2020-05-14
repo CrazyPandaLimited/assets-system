@@ -8,6 +8,8 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
+    [NUnit.Framework.Category("ModuleTests")]
+    [NUnit.Framework.Category("LocalTests")]
     public class AssetsWithRefcountCacheControllerTests
     { 
         private AssetsWithRefcountCacheController _cacheController;

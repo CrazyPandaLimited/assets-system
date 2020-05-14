@@ -7,6 +7,8 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
+    [NUnit.Framework.Category("ModuleTests")]
+    [NUnit.Framework.Category("ServerTests")]
     public class AssetReferenceInfoTests
     { 
         private AssetReferenceInfo _assetReferenceInfo;

@@ -16,6 +16,8 @@ using UnityEngine.TestTools;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
+    [NUnit.Framework.Category("ModuleTests")]
+    [NUnit.Framework.Category("ServerTests")]
     public sealed class WebRequestLoadProcessorTests : BaseProcessorModuleWithOneOutTest< WebRequestLoadProcessor< Object >, UrlLoadingRequest, AssetLoadingRequest< Object > >
     {
         private const float MaxDownloadProgress = 1.0f;

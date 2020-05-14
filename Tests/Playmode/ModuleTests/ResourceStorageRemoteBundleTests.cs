@@ -17,6 +17,8 @@ using CrazyPanda.UnityCore.Serialization;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
+    [NUnit.Framework.Category("ModuleTests")]
+    [NUnit.Framework.Category("ServerTests")]
     public class ResourceStorageRemoteBundleTests : BaseProcessorModuleWithOneOutTest< BundlesFromWebRequestLoadProcessor, UrlLoadingRequest, AssetLoadingRequest< AssetBundle > >
     {
         private const string BaseManifestName = "custom_manifest.json";

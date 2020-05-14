@@ -10,6 +10,8 @@ using UnityEngine.TestTools;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
+    [NUnit.Framework.Category("ModuleTests")]
+    [NUnit.Framework.Category("LocalTests")]
     public class ResourceStorageResourceFolderTests : BaseProcessorModuleWithOneOutTest< ResorcesFolderLoadProcessor,UrlLoadingRequest, AssetLoadingRequest< UnityEngine.Object > >
     {
         private UrlLoadingRequest _body;

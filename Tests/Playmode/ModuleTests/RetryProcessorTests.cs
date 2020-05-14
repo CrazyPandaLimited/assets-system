@@ -14,6 +14,8 @@ using Object = UnityEngine.Object;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
+    [NUnit.Framework.Category("ModuleTests")]
+    [NUnit.Framework.Category("LocalTests")]
     public class RetryProcessorTests
     {
         private RequestRetryProcessor<Object> _processor;
