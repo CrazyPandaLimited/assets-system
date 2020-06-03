@@ -28,7 +28,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( !header.MetaData.IsMetaExist( MetaDataReservedKeys.OWNER_REFERENCE_RESERVED_KEY ) )
             {
                 header.AddException( new MetaDataNotContainsReferenceObjectForAsset( this, header, body ) );
-                ProcessMessageToExceptionConnection( header,body );
+                _exceptionConnection.ProcessMessage( header, body);
                 return FlowMessageStatus.Accepted;
             }
 
