@@ -46,7 +46,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 return uri + _perResourceAntiCache[ anticacheAssetKey ];
             }
 
-            throw new AnticacheNotFoundException( "URI:" + uri + " ResorceKey:" + anticacheAssetKey );
+            throw new AnticacheNotFoundException( uri, anticacheAssetKey );
         }
         #endregion
     }

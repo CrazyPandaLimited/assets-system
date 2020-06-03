@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
@@ -27,7 +27,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             
             if( !header.MetaData.IsMetaExist( MetaDataReservedKeys.OWNER_REFERENCE_RESERVED_KEY ) )
             {
-                header.AddException( new MetaDataNotContainsReferenceObjectForAsset( assetName ) );
+                header.AddException( new MetaDataNotContainsReferenceObjectForAsset( this, header, body ) );
                 _exceptionConnection.ProcessMessage( header, body);
                 return FlowMessageStatus.Accepted;
             }

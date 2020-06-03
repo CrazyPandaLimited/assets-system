@@ -41,12 +41,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             if( InternalHasLock( lockReason, LockReason.Read ) )
             {
-                throw new FileLocksManagerException( string.Format( "Cannot add lock {0} more than once", LockReason.Read ) );
+                throw new LockAlreadyCapturedException( key, LockReason.Read, LockReason.Read );
             }
 
             if( InternalHasLock( lockReason, LockReason.Write ) )
             {
-                throw new FileLocksManagerException( string.Format( "Cannot add lock {0} while there lock {1} exist", LockReason.Read, LockReason.Write ) );
+                throw new LockAlreadyCapturedException( key, LockReason.Read, LockReason.Write );
             }
 
             _locks[ key ] = lockReason | LockReason.Read;
@@ -59,7 +59,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             if( !InternalHasLock( lockReason, LockReason.Read ) )
             {
-                throw new FileLocksManagerException( string.Format( "Cannot remove lock {0} because this lock was not set", LockReason.Read ) );
+                throw new LockNotFoundException( key, LockReason.Read );
             }
 
             _locks[ key ] = lockReason & ~LockReason.Read;
@@ -71,17 +71,17 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             if( InternalHasLock( lockReason, LockReason.Write ) )
             {
-                throw new FileLocksManagerException( string.Format( "Cannot add lock {0} more than once", LockReason.Write ) );
+                throw new LockAlreadyCapturedException( key, LockReason.Write, LockReason.Write );
             }
 
             if( InternalHasLock( lockReason, LockReason.Read ) )
             {
-                throw new FileLocksManagerException( string.Format( "Cannot add lock {0} while there lock {1} exist", LockReason.Write, LockReason.Read ) );
+                throw new LockAlreadyCapturedException( key, LockReason.Write, LockReason.Read );
             }
 
             if( InternalHasLock( lockReason, LockReason.ManualLock ) )
             {
-                throw new FileLocksManagerException( string.Format( "Cannot add lock {0} while there lock {1} exist", LockReason.Write, LockReason.ManualLock ) );
+                throw new LockAlreadyCapturedException( key, LockReason.Write, LockReason.ManualLock );
             }
 
             _locks[ key ] = lockReason | LockReason.Write;
@@ -93,7 +93,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             if( !InternalHasLock( lockReason, LockReason.Write ) )
             {
-                throw new FileLocksManagerException( string.Format( "Cannot remove lock {0} because this lock was not set", LockReason.Write ) );
+                throw new LockNotFoundException( key, LockReason.Write );
             }
 
             _locks[ key ] = lockReason & ~LockReason.Write;

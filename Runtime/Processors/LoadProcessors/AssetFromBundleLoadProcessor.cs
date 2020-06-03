@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -40,7 +40,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         {
             if( data.RequestLoadingOperation.asset == null )
             {
-                data.Header.AddException( new AssetSystemException( "Asset not loaded from bundle" ) );
+                data.Header.AddException( new AssetNotLoadedException( "Asset not loaded", this, data.Header, data.Body ) );
                 _exceptionConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( GetAssetNameToLoad( data.Body ), data.Body.AssetType, data.Body.ProgressTracker, data.RequestLoadingOperation.asset ) );
                 return false;
             }
@@ -107,7 +107,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             
             if( asset == null )
             {
-                header.AddException( new AssetSystemException( "Asset not loaded from bundle" ) );
+                header.AddException( new AssetNotLoadedException( "Asset not loaded", this, header, body ) );
                 _exceptionConnection.ProcessMessage( header, new AssetLoadingRequest< Object >( assetNameToLoad, assetTypeToLoad, body.ProgressTracker, null ) );
                 return;
             }

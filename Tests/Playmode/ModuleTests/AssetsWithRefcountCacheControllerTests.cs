@@ -70,7 +70,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         {
             _cacheController.Add<object>(testObject1, testObject1Name, ownerObject1);            
 
-            Assert.Throws<AssetMemoryCacheException>(()=> { _cacheController.Get<string>(testObject1Name, ownerObject1); });            
+            Assert.Throws<AssetTypeMismatchException>(()=> { _cacheController.Get<string>(testObject1Name, ownerObject1); });            
         }
 
         [Test]
@@ -97,7 +97,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         {
             _cacheController.Add<object>(testObject1, testObject1Name, ownerObject1);
 
-            Assert.Throws<AssetMemoryCacheException>(() => { _cacheController.Get(testObject1Name, ownerObject1, typeof(string)); });
+            Assert.Throws<AssetTypeMismatchException>(() => { _cacheController.Get(testObject1Name, ownerObject1, typeof(string)); });
         }
 
         [Test]

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using UnityCore.MessagesFlow;
 using UnityEngine;
@@ -36,7 +36,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         {
             if( !Manifest.BundleInfos.ContainsKey( body.Url ) )
             {
-                header.AddException( new AssetSystemException( "Manifest not contains bundle" ));
+                header.AddException( new AssetNotLoadedException( "Manifest not contains bundle", this, header, body ) );
                 _exceptionConnection.ProcessMessage( header, body );
                 return FlowMessageStatus.Accepted;
             }
@@ -72,7 +72,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         {
             if( data.RequestLoadingOperation.assetBundle == null )
             {
-                data.Header.AddException( new AssetSystemException( "Bundle not loaded" ));
+                data.Header.AddException( new AssetNotLoadedException( "Bundle not loaded", this, data.Header, data.Body ) );
                 _exceptionConnection.ProcessMessage( data.Header, data.Body );
                 return false;
             }

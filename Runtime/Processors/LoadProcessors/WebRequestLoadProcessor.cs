@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityCore.MessagesFlow;
 using UnityEngine.Networking;
@@ -8,8 +8,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class WebRequestLoadProcessor< T > : AbstractWebRequestLoadProcessor< T >
     {
-        public const string NoAnyAssetDataCreatorExceptionMessage = "Asset creator not found";
-
         #region Protected Fields
         protected readonly IAntiCacheUrlResolver _antiCacheUrlResolver;
         protected readonly List< IAssetDataCreator > _assetTypeDataCreators;
@@ -57,7 +55,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             if( !isCreatorFounded )
             {
-                header.AddException( new Exception( NoAnyAssetDataCreatorExceptionMessage ) );
+                header.AddException( new AssetDataCreatorNotFoundException( body.AssetType, this, header, body ) );
                 _exceptionConnection.ProcessMessage( header, body );
                 return;
             }

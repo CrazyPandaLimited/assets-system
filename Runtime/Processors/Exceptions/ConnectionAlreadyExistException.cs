@@ -1,16 +1,20 @@
-using System;
+﻿using UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class ConnectionAlreadyExistException : Exception
+    public class ConnectionAlreadyExistException : AssetsSystemException
     {
-        #region Constructors
-        public ConnectionAlreadyExistException( string message ) : base( message )
-        {
-        }
+        #region Properties
+        public IFlowNode FlowNode { get; }
+        public IBaseOutputConnection Connection { get; }
+        #endregion
 
-        public ConnectionAlreadyExistException( string message, Exception innerException ) : base( message, innerException )
+        #region Constructors
+        public ConnectionAlreadyExistException( IFlowNode flowNode, IBaseOutputConnection connection )
+            : base( $"Connection {connection} already exists in node '{flowNode}'" )
         {
+            FlowNode = flowNode;
+            Connection = connection;
         }
         #endregion
     }

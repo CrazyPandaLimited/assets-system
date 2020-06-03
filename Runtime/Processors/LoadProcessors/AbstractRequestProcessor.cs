@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using CrazyPanda.UnityCore.PandaTasks;
 using UnityCore.MessagesFlow;
@@ -7,7 +7,11 @@ using UnityEngine;
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public abstract class AbstractRequestProcessor<TAsyncOperation, TInputBodyType, TOutputBodyType, TEceptionOutputBodyType > :
-        AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< TInputBodyType, TOutputBodyType, TEceptionOutputBodyType > where TEceptionOutputBodyType : IMessageBody where TOutputBodyType : IMessageBody where TInputBodyType : IMessageBody where TAsyncOperation : AsyncOperation
+        AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< TInputBodyType, TOutputBodyType, TEceptionOutputBodyType >
+        where TEceptionOutputBodyType : IMessageBody
+        where TOutputBodyType : IMessageBody
+        where TInputBodyType : IMessageBody
+        where TAsyncOperation : AsyncOperation
     {
         #region Protected Members
         protected const float InitialProgress = 0.0f;

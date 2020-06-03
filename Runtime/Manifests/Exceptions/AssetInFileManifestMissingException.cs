@@ -1,17 +1,16 @@
-using System;
-
-namespace CrazyPanda.UnityCore.AssetsSystem
+﻿namespace CrazyPanda.UnityCore.AssetsSystem
 {
-    public class AssetInFileManifestMissingException : Exception
+    public class AssetInFileManifestMissingException : AssetsSystemException
     {
-        #region Public Fields
-        public string assetName;
+        #region Properties
+        public string AssetName { get; }
         #endregion
 
         #region Constructors
         public AssetInFileManifestMissingException( string name )
+            : base( $"Asset '{name}' is missing in manifest file" )
         {
-            assetName = name;
+            AssetName = name;
         }
         #endregion
     }

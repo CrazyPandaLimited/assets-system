@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using JetBrains.Annotations;
@@ -26,7 +26,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) )
             {
-                header.AddException( new Exception( "Sync processing not available" ) );
+                header.AddException( new SyncLoadNotSupportedException( this, header, body ) );
                 _exceptionConnection.ProcessMessage( header, body );
                 return message;
             }
@@ -97,7 +97,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 			if( webRequest.isError )
 #endif
             {
-                header.AddException( new Exception( webRequest.error )  );
+                header.AddException( new WebRequestException( webRequest, this, header, body ) );
                 _exceptionConnection.ProcessMessage( header, body );
                 return false;
             }

@@ -79,7 +79,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             fileCaching.Remove("TEST");
             Assert.IsFalse(fileCaching.Contains("TEST"));
-            Assert.Throws<CachedFileNotFoundException>(() => fileCaching.Get("TEST"));
+            Assert.Throws<AssetNotFoundInCacheException>(() => fileCaching.Get("TEST"));
 
             fileCaching.Add("TEST", _test1);
             File.WriteAllBytes(TestPath + "/TEST", _test2);

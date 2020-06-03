@@ -1,4 +1,4 @@
-using UnityCore.MessagesFlow;
+﻿using UnityCore.MessagesFlow;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -33,7 +33,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
                 if( asset == null )
                 {
-                    header.AddException( new AssetSystemException( $"You try to load '{body.Url}' of type {body.AssetType}. This asset not found in project." ) );
+                    header.AddException( new AssetNotLoadedException( $"Asset not found in project", this, header, body ) );
                     _exceptionConnection.ProcessMessage( header, body );
                     return FlowMessageStatus.Accepted;
                 }
@@ -44,7 +44,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
             {
-                header.AddException( new AssetSystemException( $"You try to ASYNC load subAsset:{header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET )} for asset '{body.Url}' of type {body.AssetType}. Async loading for subAssets not supported by Unity3d API!!" ) );
+                header.AddException( new AssetNotLoadedException( $"Async loading for subAssets not supported by Unity3d API", this, header, body ) );
                 _exceptionConnection.ProcessMessage( header, body );
                 return FlowMessageStatus.Accepted;
             }
@@ -67,7 +67,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         {
             if( data.RequestLoadingOperation.asset == null )
             {
-                data.Header.AddException( new AssetSystemException( "Asset not loaded" ) );
+                data.Header.AddException( new AssetNotLoadedException( "Asset not loaded", this, data.Header, data.Body ) );
                 _exceptionConnection.ProcessMessage( data.Header, data.Body );
                 return false;
             }

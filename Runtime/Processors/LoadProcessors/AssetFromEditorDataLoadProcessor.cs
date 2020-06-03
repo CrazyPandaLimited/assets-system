@@ -1,4 +1,4 @@
-using UnityCore.MessagesFlow;
+﻿using UnityCore.MessagesFlow;
 using UnityEditor;
 using UnityEngine;
 using System;
@@ -35,7 +35,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             if( asset == null )
             {
-                header.AddException(new AssetSystemException( "Asset not loaded from bundle" ) );
+                header.AddException( new AssetNotLoadedException( "Asset not loaded", this, header, body ) );
                 _exceptionConnection.ProcessMessage( header, body );
                 return FlowMessageStatus.Accepted;
             }
@@ -43,7 +43,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< UnityEngine.Object >( body.Url, body.AssetType, body.ProgressTracker, asset ) );
             return FlowMessageStatus.Accepted;
 #else
-            ProcessException( header, body, new AssetSystemException( "Asset not loaded from bundle" ) );
+            ProcessException( header, body, new AssetNotLoadedException( "Asset not loaded", this, header, body ) );
             return FlowMessageStatus.Rejected;
 #endif
         }

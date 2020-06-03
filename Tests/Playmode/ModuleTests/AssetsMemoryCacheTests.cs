@@ -84,7 +84,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [Test]
         public void GetNotExistedElementTest()
         {
-            Assert.Throws<AssetMemoryCacheException>(() => { _assetsMemoryCache.Get("any"); });
+            Assert.Throws<AssetNotFoundInCacheException>(() => { _assetsMemoryCache.Get("any"); });
         }
 
         [Test]

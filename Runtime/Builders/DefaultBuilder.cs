@@ -354,14 +354,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             if( args.NewStatus == FlowNodeStatus.Failed )
             {
-                var exception = new AggregateException( $"Exception in node {args.Node.GetType()} headerId:{args.Header?.Id} headerMeta:{args.Header?.MetaData.ToString()} isCanceled:{args.Header?.CancellationToken.IsCancellationRequested}", args.Node.Exception );
-
+                var exception = args.Node.Exception;
                 Debug.LogException( exception );
-
-                foreach( var innerException in args.Node.Exception.InnerExceptions )
-                {
-                    Debug.LogException( innerException );
-                }
 
                 if( _promiseMap.Has( args.Header.Id ) )
                 {

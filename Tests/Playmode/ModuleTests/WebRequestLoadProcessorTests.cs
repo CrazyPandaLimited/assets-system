@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Castle.Core.Internal;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
@@ -110,7 +110,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
-            Assert.Contains( WebRequestLoadProcessor< Object >.NoAnyAssetDataCreatorExceptionMessage, data.SendedHeader.Exceptions.InnerExceptions.Select( exception => exception.Message ).ToArray() );
+            Assert.That( data.SendedHeader.Exceptions.InnerExceptions, Has.Some.Matches< Exception >( e => e is AssetDataCreatorNotFoundException ) );
             Assert.NotNull( data.SendedHeader );
             Assert.NotNull( data.BaseSendedBody );
         }

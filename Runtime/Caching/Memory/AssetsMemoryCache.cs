@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CrazyPanda.UnityCore.AssetsSystem
@@ -72,7 +72,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 return _assets[ key ];
             }
 
-            throw new AssetMemoryCacheException( string.Format( "Missing asset in cach. Asset name: {0}", key ) );
+            throw new AssetNotFoundInCacheException( key );
         }
 
         /// <summary>

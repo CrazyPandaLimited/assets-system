@@ -1,4 +1,4 @@
-#if CRAZYPANDA_UNITYCORE_ASSETSSYSTEM_JSON
+﻿#if CRAZYPANDA_UNITYCORE_ASSETSSYSTEM_JSON
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -74,13 +74,20 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 throw new InvalidOperationException( $"Try to add not bytes to file caching!!! Key:{key}" );
             }
 
-            _fileLocksManager.AddWriteLock( key );
+            try
+            {
+                _fileLocksManager.AddWriteLock( key );
+            }
+            catch( LockAlreadyCapturedException e )
+            {
+                throw new FileCacheReadException( key, GetPathForKey( key ), e );
+            }
 
             try
             {
-                InternalSave( key, ( byte[ ] ) asset );
+                InternalSave( key, ( byte[] ) asset );
 
-                AddKeyAndSaveMetaFile( key, ( byte[ ] ) asset );
+                AddKeyAndSaveMetaFile( key, ( byte[] ) asset );
             }
             finally
             {
@@ -90,21 +97,24 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
         public object Get( string key )
         {
-            _fileLocksManager.AddReadLock( key );
-
-            byte[ ] bytes;
+            try
+            {
+                _fileLocksManager.AddReadLock( key );
+            }
+            catch( LockAlreadyCapturedException e )
+            {
+                throw new FileCacheReadException( key, GetPathForKey( key ), e );
+            }
 
             try
             {
                 var cachedFileInfo = GetCachedFileInfoStrict( key );
-                bytes = InternalLoad( key, cachedFileInfo );
+                return InternalLoad( key, cachedFileInfo );
             }
             finally
             {
                 _fileLocksManager.RemoveReadLock( key );
             }
-
-            return bytes;
         }
 
         public void Remove( string key )
@@ -164,13 +174,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             }
             catch( Exception e )
             {
-                throw new FileCachingException( string.Format( "Exception while reading a key {0} with path {1}", key, path ), e );
+                throw new FileCacheReadException( key, path, e );
             }
 
             var actualMd5 = CalculateMd5( bytes );
             if( cachedFileInfo.Hash != actualMd5 )
             {
-                throw new InvalidHashException( string.Format( "Cached key {0} with path {1} hash {2} is not equals hash from disk {3}. Please remove or override file!", key, path, cachedFileInfo.Hash, actualMd5 ) );
+                throw new InvalidHashException( key, path, cachedFileInfo.Hash, actualMd5 );
             }
 
             return bytes;
@@ -193,7 +203,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             if( !_cacheInfo.Contains( key ) )
             {
-                throw new CachedFileNotFoundException( string.Format( "Not found cached asset with key {0}", key ) );
+                throw new AssetNotFoundInCacheException( key );
             }
 
             return _cacheInfo.Get( key );

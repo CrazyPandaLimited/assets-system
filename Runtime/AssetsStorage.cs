@@ -60,6 +60,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         /// <param name="metaData">Any additional data</param>
         /// <typeparam name="AssetType"></typeparam>
         /// <returns>Loaded asset</returns>
+        /// <exception cref="SyncLoadException">Thrown when graph needs async execution</exception>
         public AssetType LoadAssetSync< AssetType >( string url, MetaData metaData )
         {
             metaData.SetFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG );
@@ -73,10 +74,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             if( promice.Status == PandaTaskStatus.Rejected )
             {
-                throw new SyncLoadException( $"Something happen, see inner exception InputInfo: url:{url} {metaData.ToString()}", promice.Error );
+                throw new SyncLoadException( url, metaData, promice.Error );
             }
 
-            throw new SyncLoadException( $"Something in graph has async operation!!! InputInfo: url:{url} {metaData.ToString()}" );
+            throw new SyncLoadException( url, metaData );
         }
 
         /// <summary>
@@ -139,39 +140,36 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         /// <returns>Loading task </returns>
         public IPandaTask< AssetType > LoadAssetAsync< AssetType >( string url, MetaData metaData, CancellationToken tocken, IProgressTracker< float > tracker )
         {
+            CheckDisposed();
+            if( string.IsNullOrEmpty( url ) )
+            {
+                throw new AssetUrlEmptyException( "Asset url can not be null or empty" );
+            }
+
+            var header = new MessageHeader( metaData, tocken );
+            var body = new UrlLoadingRequest( url, typeof( AssetType ), tracker == null ? new ProgressTracker< float >() : tracker );
+
             var resultTask = new PandaTaskCompletionSource< AssetType >();
+            var internalTask = new PandaTaskCompletionSource< object >();
+
+            internalTask.ResultTask
+                .Done( o => { resultTask.SetValue( ( AssetType ) o ); } )
+                .Fail( exception => { resultTask.SetError( exception ); } );
+
+            tocken.Register( () =>
+            {
+                if( !_requestToPromiseMap.Has( header.Id ) )
+                {
+                    return;
+                }
+
+                _requestToPromiseMap.Get( header.Id ).SetError( new OperationCanceledException() );
+            } );
+
+            _requestToPromiseMap.Add( header.Id, internalTask );
+            OnMessageSended?.Invoke( this, new MessageSendedOutEventArgs( header, body ) );
             try
             {
-                CheckDisposed();
-                if( string.IsNullOrEmpty( url ) )
-                {
-                    throw new AssetUrlException( "Asset url can not be null or empty" );
-                }
-
-                var internalMetaData = metaData;
-                if( metaData == null )
-                {
-                    internalMetaData = new MetaData();
-                }
-
-                var header = new MessageHeader( metaData, tocken );
-                var body = new UrlLoadingRequest( url, typeof( AssetType ), tracker == null ? new ProgressTracker< float >() : tracker );
-
-                var internalTask = new PandaTaskCompletionSource< object >();
-
-                internalTask.ResultTask.Done( o => { resultTask.SetValue( ( AssetType ) o ); } ).Fail( exception => { resultTask.SetError( exception ); } );
-
-                tocken.Register( () =>
-                {
-                    if( !_requestToPromiseMap.Has( header.Id ) )
-                    {
-                        return;
-                    }
-                    _requestToPromiseMap.Get( header.Id ).SetError( new OperationCanceledException() );
-                } );
-
-                _requestToPromiseMap.Add( header.Id, internalTask );
-                OnMessageSended?.Invoke( this, new MessageSendedOutEventArgs( header, body ) );
                 _outputConnection.ProcessMessage( header, body );
             }
             catch( Exception exception )
@@ -180,19 +178,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 {
                     resultTask.SetError( exception );
                 }
-                else if( resultTask.ResultTask.Status == PandaTaskStatus.Resolved )
-                {
-                    throw new Exception( $"Task completed, but catch other exception InputInfo: url:{url} {metaData.ToString()}", exception );
-                }
-                else
-                {
-                    throw new Exception( $"Task rejected with {resultTask.ResultTask.Error} and catched other exception InputInfo: url:{url} {metaData.ToString()}", exception );
-                }
             }
 
             return resultTask.ResultTask;
         }
-
 
         /// <summary>
         /// Dispose system

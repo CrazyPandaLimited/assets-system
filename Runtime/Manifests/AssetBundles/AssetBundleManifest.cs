@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,11 +17,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         #endregion
 
         #region Public Members
+        /// <exception cref="BundleInfoDuplicateException"></exception>
+        /// <exception cref="AssetInBundleInfoDuplicateException"></exception>
         public void AddManifestPart( AssetBundleManifest manifestPart, bool allowOverrides = false )
         {
             AddManifestPart( manifestPart.BundleInfos, manifestPart.AssetInfos, allowOverrides );
         }
 
+        /// <exception cref="BundleInfoDuplicateException"></exception>
+        /// <exception cref="AssetInBundleInfoDuplicateException"></exception>
         public void AddManifestPart( Dictionary< string, BundleInfo > bundleInfos, Dictionary< string, AssetInBundleInfo > assetInfos, bool allowOverrides = false )
         {
             foreach( var bundleInfo in bundleInfos )
@@ -38,7 +42,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                     continue;
                 }
 
-                throw new BundleManifestInfoDuplicationException( "Try to add double Bundle Info for " + bundleInfo.Key );
+                throw new BundleInfoDuplicateException( bundleInfo.Key );
             }
 
             foreach( var assetInfo in assetInfos )
@@ -55,7 +59,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                     continue;
                 }
 
-                throw new BundleManifestInfoDuplicationException( "Try to add double Asset Info for " + assetInfo.Key );
+                throw new AssetInBundleInfoDuplicateException( assetInfo.Key );
             }
 
             RecalculateCache();
@@ -76,6 +80,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         /// </summary>
         /// <param name="assetName">Name of the asset.</param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public BundleInfo GetBundleByAssetName( string assetName )
         {
             if( string.IsNullOrEmpty( assetName ) )
@@ -98,7 +103,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         /// </summary>
         /// <param name="assetInBundleInfo">The asset information.</param>
         /// <returns></returns>
-        /// <exception cref="System.ArgumentException">AssetInBundleInfo is NULL</exception>
+        /// <exception cref="ArgumentException">AssetInBundleInfo is NULL</exception>
         public List< AssetInBundleInfo > GetAssetWithDependencies( AssetInBundleInfo assetInBundleInfo )
         {
             var result = new List< AssetInBundleInfo >();
@@ -117,6 +122,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             return result.Distinct().ToList();
         }
 
+        /// <exception cref="ArgumentException"></exception>
         public List< AssetInBundleInfo > GetAssetInfosByTag( string tag )
         {
             List< AssetInBundleInfo > result = null;
@@ -173,11 +179,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             }
 
             return GetBundleByAssetName( assetName ) != null;
-        }
-
-        public List< BundleInfo > GetBundlesByAssetName( string assetName )
-        {
-            throw new NotImplementedException();
         }
         #endregion
     }

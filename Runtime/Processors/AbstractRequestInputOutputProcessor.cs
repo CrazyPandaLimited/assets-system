@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityCore.MessagesFlow;
 
@@ -26,7 +26,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         {
             if( _connections.Contains( connection ) )
             {
-                throw new ConnectionAlreadyExistException( $"Try register other default connection for node: {GetType()}" );
+                throw new ConnectionAlreadyExistException( this, connection );
             }
 
             _connections.Add( connection );

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Caching
@@ -90,6 +90,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Caching
         /// controller will add this reference to all references that referenced to this asset.</param>
         /// <returns>Asset with T type</returns>
         /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="AssetTypeMismatchException"></exception>
         public virtual T Get< T >( string assetName, object reference )
         {
             if( string.IsNullOrEmpty( assetName ) )
@@ -105,7 +106,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Caching
             var res = _memCache.Get(assetName);
             if (!(res is T))
             {
-                throw new AssetMemoryCacheException($"Try get asset {assetName} as type {typeof(T)} but actual type is {res.GetType().Name}");
+                throw new AssetTypeMismatchException( assetName, typeof( T ), res.GetType() );
             }
 
             _references[ assetName ].AddReference( reference );
@@ -121,6 +122,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Caching
         /// controller will add this reference to all references that referenced to this asset.</param>
         /// <returns>Asset</returns>
         /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="AssetTypeMismatchException"></exception>
         public virtual Object Get( string assetName, object reference, Type assetType )
         {
             if( string.IsNullOrEmpty( assetName ) )
@@ -136,7 +138,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Caching
             var res = _memCache.Get(assetName);
             if (!(res.GetType().IsSubclassOf(assetType) || res.GetType() == assetType))
             {
-                throw new AssetMemoryCacheException($"Try get asset {assetName} as type {assetType} but actual type is {res.GetType().Name}");
+                throw new AssetTypeMismatchException( assetName, assetType, res.GetType() );
             }
 
             _references[ assetName ].AddReference( reference );
@@ -172,7 +174,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Caching
         /// <param name="assetName"></param>
         /// <param name="reference"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="AssetMemoryCacheException"></exception>
+        /// <exception cref="AssetNotFoundInCacheException"></exception>
         public void ReleaseReference( string assetName, object reference )
         {
             if( string.IsNullOrEmpty( assetName ) )
@@ -187,7 +189,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Caching
 
             if( !_memCache.Contains( assetName ) )
             {
-                throw new AssetMemoryCacheException( $"Cache not contains asset {assetName}" );
+                throw new AssetNotFoundInCacheException( assetName );
             }
 
             if( _references[ assetName ].ContainsReference( reference ) )

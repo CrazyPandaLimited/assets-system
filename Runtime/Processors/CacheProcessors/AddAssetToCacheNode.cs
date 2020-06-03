@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
@@ -31,7 +31,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             }
             else if (_memoryCache.Get(assetName) != (object)body.Asset)
             {
-                header.AddException( new TryOfOverridingCachedObjectException("Can't override cached object"));
+                header.AddException( new CachedObjectOverrideException( this, header, body ) );
                 _exceptionConnection.ProcessMessage( header, new UrlLoadingRequest( body ) );
                 return FlowMessageStatus.Accepted;
             }
