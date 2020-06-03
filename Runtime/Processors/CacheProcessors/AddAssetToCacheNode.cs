@@ -32,7 +32,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             else if (_memoryCache.Get(assetName) != (object)body.Asset)
             {
                 header.AddException( new CachedObjectOverrideException( this, header, body ) );
-                ProcessMessageToExceptionConnection( header, new UrlLoadingRequest( body ) );
+                _exceptionConnection.ProcessMessage( header, new UrlLoadingRequest( body ) );
                 return FlowMessageStatus.Accepted;
             }
             
