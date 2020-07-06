@@ -56,7 +56,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( !isCreatorFounded )
             {
                 header.AddException( new AssetDataCreatorNotFoundException( body.AssetType, this, header, body ) );
-                _exceptionConnection.ProcessMessage( header, body );
+                ProcessMessageToExceptionConnection( header, body );
                 return;
             }
 

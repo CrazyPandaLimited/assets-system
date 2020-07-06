@@ -27,7 +27,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) )
             {
                 header.AddException( new SyncLoadNotSupportedException( this, header, body ) );
-                _exceptionConnection.ProcessMessage( header, body );
+                ProcessMessageToExceptionConnection( header, body );
                 return message;
             }
 
@@ -98,7 +98,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 #endif
             {
                 header.AddException( new WebRequestException( webRequest, this, header, body ) );
-                _exceptionConnection.ProcessMessage( header, body );
+                ProcessMessageToExceptionConnection( header, body );
                 return false;
             }
             return true;

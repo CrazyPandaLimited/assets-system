@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using System.Collections;
 using System.Threading;
+using NSubstitute;
 using NUnit.Framework;
 using UnityCore.MessagesFlow;
 using UnityEngine;
@@ -98,10 +100,21 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [ Test ]
         public void ErrorLoadFromResourceFolderRootResourceSubAssetAsync()
         {
+            AggregateException exception = null;
+            var exceptionConnection = Substitute.For< IInputNode< UrlLoadingRequest > >();
+            exceptionConnection.When( node => node.ProcessMessage( Arg.Any< MessageHeader >(), Arg.Any< UrlLoadingRequest >() ) )
+                               .Do( callInfo =>
+                               {
+                                   var header =(MessageHeader) callInfo[ 0 ];
+                                   exception = header.Exceptions;
+                               });
+
             _body = new UrlLoadingRequest( multipleSpriteAtlasUrl, typeof( Sprite ), new ProgressTracker< float >() );
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
+            _workProcessor.RegisterExceptionConnection( exceptionConnection );
+            
             _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
@@ -112,10 +125,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             metadata.SetMeta( MetaDataReservedKeys.GET_SUB_ASSET, subAssetName );
             var status = _workProcessor.ProcessMessage( new MessageHeader( metadata, CancellationToken.None ), _body );
 
-            Assert.AreEqual( FlowMessageStatus.Rejected, status );
-            
-            Assert.NotNull( _workProcessor.Exception );
+            Assert.AreEqual( FlowMessageStatus.Accepted, status );
+            Assert.Null( _workProcessor.Exception );
             Assert.Null( sendedBody );
+            Assert.NotNull( exception );
         }
         
         
