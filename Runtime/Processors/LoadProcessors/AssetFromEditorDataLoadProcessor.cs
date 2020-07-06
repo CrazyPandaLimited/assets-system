@@ -36,7 +36,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( asset == null )
             {
                 header.AddException( new AssetNotLoadedException( "Asset not loaded", this, header, body ) );
-                _exceptionConnection.ProcessMessage( header, body );
+                ProcessMessageToExceptionConnection( header, body );
                 return FlowMessageStatus.Accepted;
             }
 
