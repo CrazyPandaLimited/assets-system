@@ -84,14 +84,26 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [ Test ]
         public void SyncLoadFail()
         {
+            AggregateException exception = null;
+            var exceptionConnection = Substitute.For< IInputNode< UrlLoadingRequest > >();
+            exceptionConnection.When( node => node.ProcessMessage( Arg.Any< MessageHeader >(), Arg.Any< UrlLoadingRequest >() ) )
+                               .Do( callInfo =>
+                               {
+                                   var header =(MessageHeader) callInfo[ 0 ];
+                                   exception = header.Exceptions;
+                               });
+
             var requestBody = new UrlLoadingRequest( ResourceStorageTestUtils.ConstructTestUrl( "notExistFile.jpg" ), typeof( Texture ), new ProgressTracker< float >() );
 
             WebRequestLoadProcessorTestUtils.MessageHeadersData data = _workProcessor.GetSendedHeaders();
+            _workProcessor.RegisterExceptionConnection( exceptionConnection );
 
             var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
 
-            Assert.AreEqual( FlowMessageStatus.Rejected, processResult );
-            Assert.NotNull( _workProcessor.Exception );
+            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
+
+            Assert.NotNull( exception );
+            Assert.Null( _workProcessor.Exception );
             Assert.Null( data.BaseSendedBody );
             Assert.Null( data.SendedHeader );
         }
