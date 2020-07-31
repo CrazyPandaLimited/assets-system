@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
@@ -6,7 +6,7 @@ using System.Collections;
 using System.Threading;
 using NSubstitute;
 using NUnit.Framework;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -34,15 +34,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _workProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
             };
 
-            var status = _workProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), _body );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), _body );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, status );
             Assert.Null( _workProcessor.Exception );
 
             Assert.NotNull( sendedBody );
@@ -55,15 +54,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _workProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
             };
             
-            var status = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _body );
-
-            Assert.AreEqual( FlowMessageStatus.Accepted, status );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _body );
 
             yield return WaitForTimeOut( sendedBody );
             
@@ -80,7 +77,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _workProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
@@ -88,9 +85,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             var metadata = new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG );
             metadata.SetMeta( MetaDataReservedKeys.GET_SUB_ASSET, subAssetName );
-            var status = _workProcessor.ProcessMessage( new MessageHeader( metadata, CancellationToken.None ), _body );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( metadata, CancellationToken.None ), _body );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, status );
             Assert.Null( _workProcessor.Exception );
 
             Assert.NotNull( sendedBody );
@@ -113,9 +109,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _workProcessor.RegisterExceptionConnection( exceptionConnection );
+            _workProcessor.ExceptionOutput.LinkTo( exceptionConnection );
             
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _workProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = ( AssetLoadingRequest< UnityEngine.Object > ) args.Body;
@@ -123,9 +119,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             
             var metadata = new MetaData();
             metadata.SetMeta( MetaDataReservedKeys.GET_SUB_ASSET, subAssetName );
-            var status = _workProcessor.ProcessMessage( new MessageHeader( metadata, CancellationToken.None ), _body );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( metadata, CancellationToken.None ), _body );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, status );
             Assert.Null( _workProcessor.Exception );
             Assert.Null( sendedBody );
             Assert.NotNull( exception );

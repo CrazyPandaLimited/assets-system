@@ -1,50 +1,36 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class CheckAssetInCacheProcessor : AbstractRequestInputOutputProcessor< UrlLoadingRequest, UrlLoadingRequest >
+    public class CheckAssetInCacheProcessor : AbstractRequestInputProcessor< UrlLoadingRequest >
     {
-        #region Protected Fields
+        private BaseOutput< UrlLoadingRequest > _existInCacheOutput = new BaseOutput< UrlLoadingRequest >( OutputHandlingType.Optional );
+        private BaseOutput< UrlLoadingRequest > _notExistInCacheOutput = new BaseOutput< UrlLoadingRequest >( OutputHandlingType.Optional );
+
         protected ICache _cache;
 
-        protected Dictionary< bool, NodeOutputConnection< UrlLoadingRequest > > _cacheCheckResultOutConnections;
-        #endregion
+        public IOutputNode< UrlLoadingRequest > ExistInCacheOutput => _existInCacheOutput;
+        public IOutputNode< UrlLoadingRequest > NotExistInCacheOutput => _notExistInCacheOutput;
 
-        #region Constructors
         public CheckAssetInCacheProcessor( ICache cache )
         {
-            _cache = cache ?? throw new ArgumentNullException( $"{nameof(cache)} == null" );
-            _cacheCheckResultOutConnections = new Dictionary< bool, NodeOutputConnection< UrlLoadingRequest > >( 2 );
-        }
-        #endregion
-
-        #region Public Members
-        public void RegisterExistInCacheOutConnection( NodeOutputConnection< UrlLoadingRequest > connection )
-        {
-            RegisterConnection( connection );
-            _cacheCheckResultOutConnections.Add( true, connection );
+            _cache = cache ?? throw new ArgumentNullException( nameof( cache ) );
         }
 
-        public void RegisterNotExistInCacheOutConnection( NodeOutputConnection< UrlLoadingRequest > connection )
-        {
-            RegisterConnection( connection );
-            _cacheCheckResultOutConnections.Add( false, connection );
-        }
-        #endregion
-
-        #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             var assetName = body.Url;
             if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
             {
                 assetName = Utils.ConstructAssetWithSubassetName( body.Url, header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET ) );
             }
-            _cacheCheckResultOutConnections[ _cache.Contains(assetName ) ].ProcessMessage( header, body );
-            return FlowMessageStatus.Accepted;
+
+            if( _cache.Contains( assetName ) )
+                _existInCacheOutput.ProcessMessage( header, body );
+            else
+                _notExistInCacheOutput.ProcessMessage( header, body );
         }
-        #endregion
     }
 }

@@ -1,8 +1,8 @@
-using UnityCore.MessagesFlow;
+﻿using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class RequestsQueueEndPoint< TBodyType > : AbstractRequestInputOutputProcessorWithDefaultOutput< TBodyType, TBodyType > where TBodyType : IMessageBody
+    public class RequestsQueueEndPoint< TBodyType > : AbstractRequestInputOutputProcessor< TBodyType, TBodyType > where TBodyType : IMessageBody
     {
         #region Protected Fields
         protected IRequestsQueue _requestsQueue;
@@ -16,11 +16,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, TBodyType body )
+        protected override void InternalProcessMessage( MessageHeader header, TBodyType body )
         {
             _requestsQueue.RequestReachedQueuedEndPoint( header );
-            _defaultConnection.ProcessMessage( header, body );
-            return FlowMessageStatus.Accepted;
+            SendOutput( header, body );
         }
         #endregion
     }

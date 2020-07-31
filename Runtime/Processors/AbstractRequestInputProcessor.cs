@@ -1,93 +1,38 @@
 ﻿using System;
-using UnityCore.MessagesFlow;
+using System.Collections.Generic;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public abstract class AbstractRequestInputProcessor< TInputBodyType > : IInputNode< TInputBodyType >
-        where TInputBodyType : IMessageBody
+    public abstract class AbstractRequestInputProcessor< T > : AbstractRequestProcessor
+        where T : IMessageBody
     {
-        #region Private Fields
-        private FlowNodeStatus _status;
-        #endregion
+        private BaseInput< T > _inHandler;
 
-        #region Properties
-        public FlowNodeStatus Status { get => _status; protected set { _status = value; } }
+        public IInputNode< T > DefaultInput => _inHandler;
 
-        public AbstractProcessorException Exception { get; protected set; }
-        Exception IFlowNode.Exception => Exception;
-
-        #endregion
-
-        #region Events
-        public event EventHandler< FlowNodeStatusChangedEventArgs > OnStatusChanged = delegate { };
-        public event EventHandler< MessageConsumedEventArgs > OnMessageConsumed = delegate { };
-        #endregion
-
-        #region Public Members
-        public FlowMessageStatus ProcessMessage( MessageHeader header, TInputBodyType body )
+        public AbstractRequestInputProcessor()
         {
-            if( Status == FlowNodeStatus.Failed )
+            _inHandler = new BaseInput< T >( OnMessageReceived );
+        }
+
+        protected abstract void InternalProcessMessage( MessageHeader header, T body );
+
+        private void OnMessageReceived( MessageHeader header, T body )
+        {
+            if( Status == FlowNodeStatus.Failed || header.CancellationToken.IsCancellationRequested  )
             {
-                return FlowMessageStatus.Rejected;
+                return;
             }
 
             try
             {
-                OnMessageConsumed.Invoke( this, new MessageConsumedEventArgs( header, body ) );
-
-                if( header.CancellationToken.IsCancellationRequested )
-                {
-                    return FlowMessageStatus.Accepted;
-                }
-
-                return InternalProcessMessage( header, body );
+                InternalProcessMessage( header, body );
             }
             catch( Exception e )
             {
                 ProcessException( header, body, e );
-                return FlowMessageStatus.Rejected;
             }
         }
-
-        public void Restore()
-        {
-            InternalRestore();
-            OnStatusChanged.Invoke( this, new FlowNodeStatusChangedEventArgs( this, Status ) );
-        }
-
-        public void Dispose()
-        {
-            InternalDispose();
-        }
-        #endregion
-
-        #region Protected Members
-        protected void ProcessException( MessageHeader header, IMessageBody body, Exception ex )
-        {
-            if( ex is AbstractProcessorException processorException )
-            {
-                Exception = processorException;
-            }
-            else
-            {
-                Exception = new UnhandledProcessorException( this, header, body, ex );
-            }
-
-            Status = FlowNodeStatus.Failed;
-            OnStatusChanged.Invoke( this, new FlowNodeStatusChangedEventArgs( this, header, body, Status ) );
-        }
-
-        protected abstract FlowMessageStatus InternalProcessMessage( MessageHeader header, TInputBodyType body );
-
-        protected virtual void InternalDispose()
-        {
-        }
-
-        protected virtual void InternalRestore()
-        {
-            Status = FlowNodeStatus.Working;
-            Exception = null;
-        }
-        #endregion
     }
 }

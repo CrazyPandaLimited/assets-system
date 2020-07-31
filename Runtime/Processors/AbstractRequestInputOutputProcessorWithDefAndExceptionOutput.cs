@@ -1,28 +1,21 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public abstract class AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< TInputBodyType, TOutputBodyType,TEceptionOutputBodyType > : AbstractRequestInputOutputProcessorWithDefaultOutput< TInputBodyType, TOutputBodyType > where TInputBodyType : IMessageBody where TOutputBodyType : IMessageBody where TEceptionOutputBodyType:IMessageBody
+    public abstract class AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< TIn, TOut, TError > : AbstractRequestInputOutputProcessor< TIn, TOut >
+        where TIn : IMessageBody
+        where TOut : IMessageBody
+        where TError : IMessageBody
     {
-        #region Protected Fields
-        private NodeOutputConnection< TEceptionOutputBodyType > _exceptionConnection;
-        #endregion
+        private BaseOutput< TError > _excHandler = new BaseOutput< TError >( OutputHandlingType.Optional );
 
-        #region Public Members
-        public void RegisterExceptionConnection( IInputNode< TEceptionOutputBodyType > node )
-        {
-            var connection = new NodeOutputConnection< TEceptionOutputBodyType >( node );
-             RegisterConnection( connection );
-            _exceptionConnection = connection;
-        }
-        #endregion
+        public IOutputNode< TError > ExceptionOutput => _excHandler;
 
-        [ MethodImpl( MethodImplOptions.AggressiveInlining ) ]
-        protected void ProcessMessageToExceptionConnection( MessageHeader header, TEceptionOutputBodyType body )
+        protected void SendException( MessageHeader header, TError body )
         {
-            _exceptionConnection?.ProcessMessage( header, body );
+            _excHandler.ProcessMessage( header, body );
         }
     }
 }

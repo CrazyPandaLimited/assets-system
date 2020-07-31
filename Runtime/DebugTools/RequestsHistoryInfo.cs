@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
@@ -9,12 +9,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 	{
 		public Dictionary<string, RequestHistory> RequestsHistory = new Dictionary< string, RequestHistory >();
 		
-		private List< IFlowNode > AllNodes;
-		private AssetsStorage storageNode;
+		private List< IFlowNode > _allNodes;
+		private AssetsStorage _storageNode;
 
 		public RequestsHistoryInfo(AssetsStorage storageNode, List< IFlowNode > nodes)
 		{
-			AllNodes = new List< IFlowNode >();
+			_allNodes = new List< IFlowNode >();
 			
 			storageNode.OnMessageSended += StorageNodeOnMessageSended;
 			
@@ -25,21 +25,21 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 					continue;
 				}
                 
-				AllNodes.Add( flowNode );
+				_allNodes.Add( flowNode );
 
-				if( flowNode is IInputNode )
-				{
-					((IInputNode)flowNode).OnMessageConsumed += OnMessageConsumed;
+                foreach( var input in flowNode.Inputs)
+                {
+					input.MessageReceived += OnMessageConsumed;
 				}
                 
-				if( flowNode is IOutputNode< IMessageBody > )
+				foreach(var output in flowNode.Outputs)
 				{
-					((IOutputNode< IMessageBody >)flowNode).OnMessageSended += OnMessageSended;
+					output.MessageSent += OnMessageSended;
 				}
 			}
 		}
 
-		private void OnMessageConsumed( object sender, MessageConsumedEventArgs e )
+		private void OnMessageConsumed( object sender, MessageReceivedEventArgs e )
 		{
 			if( !RequestsHistory.ContainsKey( e.Header.Id ) )
 			{
@@ -50,7 +50,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 			RequestsHistory[e.Header.Id].RegisterMessageReachInputNode(sender.ToString());
 		}
 
-		private void OnMessageSended( object sender, MessageSendedOutEventArgs e )
+		private void OnMessageSended( object sender, MessageSentOutEventArgs e )
 		{
 			if( !RequestsHistory.ContainsKey( e.Header.Id ) )
 			{
@@ -61,7 +61,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 			RequestsHistory[e.Header.Id].RegisterMessageReachNodeOut(sender.ToString(), e.Header,e.Body);
 		}
 
-		private void StorageNodeOnMessageSended( object sender, MessageSendedOutEventArgs e )
+		private void StorageNodeOnMessageSended( object sender, MessageSentOutEventArgs e )
 		{
 			if( RequestsHistory.ContainsKey( e.Header.Id ) )
 			{
@@ -74,14 +74,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 	
 	public class RequestHistory
 	{
-		public string id { get; private set; }
+		public string Id { get; private set; }
 		public string AssetName{ get; private set; }
 		public float RequestDuration{ get; private set; }
 		public List< RequestHistoryEntry > History = new List< RequestHistoryEntry >();
 
 		public RequestHistory( MessageHeader header, object body )
 		{
-			id = header.Id;
+			Id = header.Id;
 			AssetName = body is UrlLoadingRequest ? ( ( UrlLoadingRequest ) body ).Url : string.Empty;
 			History.Add( new RequestHistoryEntry()
 			{

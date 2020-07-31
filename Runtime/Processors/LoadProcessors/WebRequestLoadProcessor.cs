@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine.Networking;
 using Object = System.Object;
 
@@ -56,11 +56,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( !isCreatorFounded )
             {
                 header.AddException( new AssetDataCreatorNotFoundException( body.AssetType, this, header, body ) );
-                ProcessMessageToExceptionConnection( header, body );
+                SendException( header, body );
                 return;
             }
 
-            _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< T >( body, ( T ) asset ) );
+            SendOutput( header, new AssetLoadingRequest< T >( body, ( T ) asset ) );
         }
         #endregion
     }

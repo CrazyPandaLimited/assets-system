@@ -1,4 +1,4 @@
-﻿using UnityCore.MessagesFlow;
+﻿using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -7,7 +7,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
     public class ResorcesFolderLoadProcessor : AbstractRequestProcessor< ResourceRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
     {
         #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) )
             {
@@ -34,23 +34,22 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 if( asset == null )
                 {
                     header.AddException( new AssetNotLoadedException( $"Asset not found in project", this, header, body ) );
-                    ProcessMessageToExceptionConnection( header, body );
-                    return FlowMessageStatus.Accepted;
+                    SendException( header, body );
+                    return;
                 }
 
-                _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< Object >( body, asset ) );
-                return FlowMessageStatus.Accepted;
+                SendOutput( header, new AssetLoadingRequest< Object >( body, asset ) );
+                return;
             }
 
             if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
             {
                 header.AddException( new AssetNotLoadedException( $"Async loading for subAssets not supported by Unity3d API", this, header, body ) );
-                ProcessMessageToExceptionConnection( header, body );
-                return FlowMessageStatus.Accepted;
+                SendException( header, body );
+                return;
             }
 
             ConfigureLoadingProcess( new RequestProcessorData( Resources.LoadAsync( body.Url, body.AssetType ), header, body ) );
-            return FlowMessageStatus.Accepted;
         }
 
         protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( InitialProgress );
@@ -60,7 +59,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         protected override void OnLoadingCompleted( RequestProcessorData data )
         {
             data.Body.ProgressTracker.ReportProgress( FinalProgress );
-            _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( data.Body, data.RequestLoadingOperation.asset ) );
+            SendOutput( data.Header, new AssetLoadingRequest< Object >( data.Body, data.RequestLoadingOperation.asset ) );
         }
 
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data )
@@ -68,7 +67,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( data.RequestLoadingOperation.asset == null )
             {
                 data.Header.AddException( new AssetNotLoadedException( "Asset not loaded", this, data.Header, data.Body ) );
-                ProcessMessageToExceptionConnection( data.Header, data.Body );
+                SendException( data.Header, data.Body );
                 return false;
             }
 

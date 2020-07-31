@@ -1,4 +1,4 @@
-using CrazyPanda.UnityCore.AssetsSystem.Tests;
+﻿using CrazyPanda.UnityCore.AssetsSystem.Tests;
 using System.Text;
 using Newtonsoft.Json;
 using System;
@@ -36,11 +36,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var loadFromResourceFolderWithManifestTree = _builder.BuildLoadFromResourceFolderWithManifestTree();
             var loadFromResourceFolderTree = _builder.BuildLoadFromResourceFolderTree();
 
-            _builder.AssetsStorage.RegisterOutConnection( unityAssetFromWebRequestTree );
-            unityAssetFromWebRequestTree.RegisterConditionFailedOutConnection( loadAssetFromBundleTree );
-            loadAssetFromBundleTree.RegisterNotExistOutConnection( loadBundlesFromWebRequestTree );
-            loadBundlesFromWebRequestTree.RegisterNotExistOutConnection( loadFromResourceFolderWithManifestTree );
-            loadFromResourceFolderWithManifestTree.RegisterNotExistOutConnection( loadFromResourceFolderTree );
+            _builder.AssetsStorage.LinkTo( unityAssetFromWebRequestTree.DefaultInput );
+            unityAssetFromWebRequestTree.NotPassedOutput.LinkTo( loadAssetFromBundleTree );
+            loadAssetFromBundleTree.NotExistOutput.LinkTo( loadBundlesFromWebRequestTree );
+            loadBundlesFromWebRequestTree.NotExistOutput.LinkTo( loadFromResourceFolderWithManifestTree );
+            loadFromResourceFolderWithManifestTree.NotExistOutput.LinkTo( loadFromResourceFolderTree );
         }
 
 
@@ -52,7 +52,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var loadFromResourceFolderTree = _builder.BuildLoadFromResourceFolderTree();
             _builder.AddExceptionsHandlingForAllNodes();
 
-            _builder.AssetsStorage.RegisterOutConnection( loadFromResourceFolderTree );
+            _builder.AssetsStorage.LinkTo( loadFromResourceFolderTree.DefaultInput );
             var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
             yield return WaitForPromiseEnging( promise );
 
@@ -69,7 +69,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var loadFromResourceFolderTree = _builder.BuildLoadFromResourceFolderTree();
             _builder.AddExceptionsHandlingForAllNodes();
 
-            _builder.AssetsStorage.RegisterOutConnection( loadFromResourceFolderTree );
+            _builder.AssetsStorage.LinkTo( loadFromResourceFolderTree.DefaultInput );
             var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
             yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
@@ -86,7 +86,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var loadFromResourceFolderTree = _builder.BuildLoadFromResourceFolderTree();
             _builder.AddExceptionsHandlingForAllNodes();
 
-            _builder.AssetsStorage.RegisterOutConnection( loadFromResourceFolderTree );
+            _builder.AssetsStorage.LinkTo( loadFromResourceFolderTree.DefaultInput );
             var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
             yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
@@ -110,7 +110,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var loadFromResourceFolderTree = _builder.BuildLoadFromResourceFolderTree();
             _builder.AddExceptionsHandlingForAllNodes();
 
-            _builder.AssetsStorage.RegisterOutConnection( loadFromResourceFolderTree );
+            _builder.AssetsStorage.LinkTo( loadFromResourceFolderTree.DefaultInput );
             var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
             yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
@@ -133,10 +133,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var unityAssetFromWebRequestTree = _builder.BuildLoadFromWebRequestTree< UrlLoadingRequest, UnityEngine.Object >();
 
             var setExceptionNode = new AddExceptionToMessageProcessor< UrlLoadingRequest >( new Exception( $"Condition failed" ) );
-            setExceptionNode.RegisterDefaultConnection( _builder.GetNewUrlRequestEndpoint() );
-            unityAssetFromWebRequestTree.RegisterConditionFailedOutConnection( setExceptionNode );
+            setExceptionNode.DefaultOutput.LinkTo( _builder.GetNewUrlRequestEndpoint() );
+            unityAssetFromWebRequestTree.NotPassedOutput.LinkTo( setExceptionNode );
 
-            _builder.AssetsStorage.RegisterOutConnection( unityAssetFromWebRequestTree );
+            _builder.AssetsStorage.LinkTo( unityAssetFromWebRequestTree.DefaultInput );
             _builder.AddExceptionsHandlingForAllNodes( setExceptionNode );
 
             var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ) );
@@ -171,12 +171,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var setExceptionNode = new AddExceptionToMessageProcessor< UrlLoadingRequest >( new Exception( $"Condition failed" ) );
 
 
-            _builder.AssetsStorage.RegisterOutConnection( unityAssetFromWebRequestTree );
-            unityAssetFromWebRequestTree.RegisterConditionFailedOutConnection( loadBundlesFromWebRequestTree );
-            loadBundlesFromWebRequestTree.RegisterNotExistOutConnection( loadAssetFromBundleTree );
+            _builder.AssetsStorage.LinkTo( unityAssetFromWebRequestTree.DefaultInput );
+            unityAssetFromWebRequestTree.NotPassedOutput.LinkTo( loadBundlesFromWebRequestTree );
+            loadBundlesFromWebRequestTree.NotExistOutput.LinkTo( loadAssetFromBundleTree );
 
-            loadAssetFromBundleTree.RegisterNotExistOutConnection( setExceptionNode );
-            setExceptionNode.RegisterDefaultConnection( _builder.GetNewUrlRequestEndpoint() );
+            loadAssetFromBundleTree.NotExistOutput.LinkTo( setExceptionNode );
+            setExceptionNode.DefaultOutput.LinkTo( _builder.GetNewUrlRequestEndpoint() );
 
             _builder.AddExceptionsHandlingForAllNodes();
 
@@ -187,7 +187,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             Assert.NotNull( manifestPromise.Result );
 
             var jsonSerializer = new NewtonsoftJsonSerializer( new JsonSerializerSettings { Formatting = Formatting.Indented }, Encoding.UTF8 );
-            var manifest = jsonSerializer.DeserializeString< CrazyPanda.UnityCore.AssetsSystem.AssetBundleManifest >( manifestPromise.Result );
+            var manifest = jsonSerializer.Deserialize<AssetBundleManifest>( manifestPromise.Result );
             _builder.AssetBundleManifest.AddManifestPart( manifest );
 
 
@@ -226,10 +226,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var unityAssetFromWebRequestTree = _builder.BuildLoadFromWebRequestTree< UrlLoadingRequest, UnityEngine.Object >();
 
             var setExceptionNode = new AddExceptionToMessageProcessor< UrlLoadingRequest >( new Exception( $"Condition failed" ) );
-            setExceptionNode.RegisterDefaultConnection( _builder.GetNewUrlRequestEndpoint() );
-            unityAssetFromWebRequestTree.RegisterConditionFailedOutConnection( setExceptionNode );
+            setExceptionNode.DefaultOutput.LinkTo( _builder.GetNewUrlRequestEndpoint() );
+            unityAssetFromWebRequestTree.NotPassedOutput.LinkTo( setExceptionNode );
 
-            _builder.AssetsStorage.RegisterOutConnection( unityAssetFromWebRequestTree );
+            _builder.AssetsStorage.LinkTo( unityAssetFromWebRequestTree.DefaultInput );
             _builder.AddExceptionsHandlingForAllNodes( setExceptionNode );
 
             var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ) );
@@ -264,10 +264,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var unityAssetFromWebRequestTree = _builder.BuildLoadFromWebRequestTree< UrlLoadingRequest, UnityEngine.Object >();
 
             var setExceptionNode = new AddExceptionToMessageProcessor< UrlLoadingRequest >( new Exception( $"Condition failed" ) );
-            setExceptionNode.RegisterDefaultConnection( _builder.GetNewUrlRequestEndpoint() );
-            unityAssetFromWebRequestTree.RegisterConditionFailedOutConnection( setExceptionNode );
+            setExceptionNode.DefaultOutput.LinkTo( _builder.GetNewUrlRequestEndpoint() );
+            unityAssetFromWebRequestTree.NotPassedOutput.LinkTo( setExceptionNode );
 
-            _builder.AssetsStorage.RegisterOutConnection( unityAssetFromWebRequestTree );
+            _builder.AssetsStorage.LinkTo( unityAssetFromWebRequestTree.DefaultInput );
             _builder.AddExceptionsHandlingForAllNodes( setExceptionNode );
 
             CancellationTokenSource cancelTocken = new CancellationTokenSource();
@@ -289,10 +289,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var unityAssetFromWebRequestTree = _builder.BuildLoadFromWebRequestTree< UrlLoadingRequest, UnityEngine.Object >();
 
             var setExceptionNode = new AddExceptionToMessageProcessor< UrlLoadingRequest >( new Exception( $"Condition failed" ) );
-            setExceptionNode.RegisterDefaultConnection( _builder.GetNewUrlRequestEndpoint() );
-            unityAssetFromWebRequestTree.RegisterConditionFailedOutConnection( setExceptionNode );
+            setExceptionNode.DefaultOutput.LinkTo( _builder.GetNewUrlRequestEndpoint() );
+            unityAssetFromWebRequestTree.NotPassedOutput.LinkTo( setExceptionNode );
 
-            _builder.AssetsStorage.RegisterOutConnection( unityAssetFromWebRequestTree );
+            _builder.AssetsStorage.LinkTo( unityAssetFromWebRequestTree.DefaultInput );
             _builder.AddExceptionsHandlingForAllNodes( setExceptionNode );
 
             CancellationTokenSource cancelTocken = new CancellationTokenSource();

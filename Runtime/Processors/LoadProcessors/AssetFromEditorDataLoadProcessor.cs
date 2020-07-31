@@ -1,4 +1,4 @@
-﻿using UnityCore.MessagesFlow;
+﻿using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEditor;
 using UnityEngine;
 using System;
@@ -8,7 +8,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
     public class AssetFromEditorDataLoadProcessor : AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< UrlLoadingRequest, AssetLoadingRequest< UnityEngine.Object >, UrlLoadingRequest >
     {
         #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
 #if UNITY_EDITOR
 
@@ -36,15 +36,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( asset == null )
             {
                 header.AddException( new AssetNotLoadedException( "Asset not loaded", this, header, body ) );
-                ProcessMessageToExceptionConnection( header, body );
-                return FlowMessageStatus.Accepted;
+                SendException( header, body );
+                return;
             }
 
-            _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< UnityEngine.Object >( body.Url, body.AssetType, body.ProgressTracker, asset ) );
-            return FlowMessageStatus.Accepted;
+            SendOutput( header, new AssetLoadingRequest< UnityEngine.Object >( body.Url, body.AssetType, body.ProgressTracker, asset ) );
 #else
             ProcessException( header, body, new AssetNotLoadedException( "Asset not loaded", this, header, body ) );
-            return FlowMessageStatus.Rejected;
 #endif
         }
         #endregion

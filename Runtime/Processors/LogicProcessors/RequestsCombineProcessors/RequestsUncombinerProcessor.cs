@@ -1,9 +1,9 @@
-using System.Collections.Generic;
-using UnityCore.MessagesFlow;
+﻿using System.Collections.Generic;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class RequestsUncombinerProcessor< T > : AbstractRequestInputOutputProcessorWithDefaultOutput< AssetLoadingRequest< T >, AssetLoadingRequest< T > >
+    public class RequestsUncombinerProcessor< T > : AbstractRequestInputOutputProcessor< AssetLoadingRequest< T >, AssetLoadingRequest< T > >
     {
         #region Private Fields
         private Dictionary< string, CombinedRequest > _combinedRequests;
@@ -18,12 +18,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, AssetLoadingRequest< T > body )
+        protected override void InternalProcessMessage( MessageHeader header, AssetLoadingRequest< T > body )
         {
             if( !header.MetaData.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) )
             {
-                _defaultConnection.ProcessMessage( header, body );
-                return FlowMessageStatus.Accepted;
+                SendOutput( header, body );
+                return;
             }
 
             ClearCancelledRequests();
@@ -38,10 +38,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                     request.Key.AddException( header.Exceptions );
                 }
 
-                _defaultConnection.ProcessMessage( request.Key, new AssetLoadingRequest< T >( request.Value, body.Asset ) );
+                SendOutput( request.Key, new AssetLoadingRequest< T >( request.Value, body.Asset ) );
             }
-
-            return FlowMessageStatus.Accepted;
         }
 
         private void ClearCancelledRequests()
@@ -64,7 +62,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
     }
 
-    public class RequestsUncombinerProcessor : AbstractRequestInputOutputProcessorWithDefaultOutput< UrlLoadingRequest, UrlLoadingRequest >
+    public class RequestsUncombinerProcessor : AbstractRequestInputOutputProcessor< UrlLoadingRequest, UrlLoadingRequest >
     {
         #region Private Fields
         private Dictionary< string, CombinedRequest > _combinedRequests;
@@ -79,12 +77,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             if( !header.MetaData.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) )
             {
-                _defaultConnection.ProcessMessage( header, body );
-                return FlowMessageStatus.Accepted;
+                SendOutput( header, body );
             }
 
             ClearCancelledRequests();
@@ -99,10 +96,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                     request.Key.AddException( header.Exceptions );
                 }
 
-                _defaultConnection.ProcessMessage( request.Key, new UrlLoadingRequest( body ) );
+                SendOutput( request.Key, new UrlLoadingRequest( body ) );
             }
-
-            return FlowMessageStatus.Accepted;
         }
 
         private void ClearCancelledRequests()

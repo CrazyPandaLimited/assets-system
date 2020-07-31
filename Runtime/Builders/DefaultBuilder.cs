@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CrazyPanda.UnityCore.AssetsSystem.Caching;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -77,15 +77,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var finishNodeException = new UrlRequestEndPointProcessor( _promiseMap );
             _allProcessors.Add( finishNodeException );
 
-            cacheChecker.RegisterExistCacheOutConnection( getFromCache );
-            getFromCache.RegisterDefaultConnection( finishNode );
-            getFromCache.RegisterExceptionConnection( finishNodeException );
+            cacheChecker.ExistInCacheOutput.LinkTo( getFromCache );
+            getFromCache.DefaultOutput.LinkTo( finishNode );
+            getFromCache.ExceptionOutput.LinkTo( finishNodeException );
 
-            cacheChecker.RegisterNotExistCacheOutConnection( loader );
-            loader.RegisterDefaultConnection( addToCache );
-            loader.RegisterExceptionConnection( finishNodeException );
-            addToCache.RegisterDefaultConnection( finishNode );
-            addToCache.RegisterExceptionConnection( finishNodeException );
+            cacheChecker.NotExistInCacheOutput.LinkTo( loader );
+            loader.DefaultOutput.LinkTo( addToCache );
+            loader.ExceptionOutput.LinkTo( finishNodeException );
+            addToCache.DefaultOutput.LinkTo( finishNode );
+            addToCache.ExceptionOutput.LinkTo( finishNodeException );
 
             return cacheChecker;
         }
@@ -114,22 +114,21 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var finishNodeException = new UrlRequestEndPointProcessor( _promiseMap );
             _allProcessors.Add( finishNodeException );
 
-            manifestChecker.RegisterExistOutConnection( cacheChecker );
-            cacheChecker.RegisterExistCacheOutConnection( getFromCache );
-            getFromCache.RegisterDefaultConnection( finishNode );
-            getFromCache.RegisterExceptionConnection( finishNodeException );
+            manifestChecker.ExistOutput.LinkTo( cacheChecker );
+            cacheChecker.ExistInCacheOutput.LinkTo( getFromCache );
+            getFromCache.DefaultOutput.LinkTo( finishNode );
+            getFromCache.ExceptionOutput.LinkTo( finishNodeException );
 
-
-            cacheChecker.RegisterNotExistCacheOutConnection( loader );
-            loader.RegisterDefaultConnection( addToCache );
-            loader.RegisterExceptionConnection( finishNodeException );
-            addToCache.RegisterDefaultConnection( finishNode );
-            addToCache.RegisterExceptionConnection( finishNodeException );
+            cacheChecker.ExistInCacheOutput.LinkTo( loader );
+            loader.DefaultOutput.LinkTo( addToCache );
+            loader.ExceptionOutput.LinkTo( finishNodeException );
+            addToCache.DefaultOutput.LinkTo( finishNode );
+            addToCache.ExceptionOutput.LinkTo( finishNodeException );
 
             return manifestChecker;
         }
 
-        public ConditionBasedProcessor< TConditionNodeBodyType > BuildLoadFromWebRequestTree< TConditionNodeBodyType, UAssetType >() where TConditionNodeBodyType : UrlLoadingRequest
+        public ConditionBasedProcessor< TConditionNodeBodyType > BuildLoadFromWebRequestTree< TConditionNodeBodyType, TAssetType >() where TConditionNodeBodyType : UrlLoadingRequest
         {
             var isWebAssetChecker = new ConditionBasedProcessor< TConditionNodeBodyType >( ( url,exception, data ) => { return data.Url.Contains( "http://" ) || data.Url.Contains( "https://" ); } );
             _allProcessors.Add( isWebAssetChecker );
@@ -137,29 +136,29 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var cacheChecker = new CheckAssetInCacheWithRefcountProcessor( OtherAssetsCache );
             _allProcessors.Add( cacheChecker );
 
-            var getFromCache = new GetAssetFromCacheWithRefcountProcessor< UAssetType >( OtherAssetsCache );
+            var getFromCache = new GetAssetFromCacheWithRefcountProcessor< TAssetType >( OtherAssetsCache );
             _allProcessors.Add( getFromCache );
 
 
             var dataCreators = new List< IAssetDataCreator > { new StringDataCreator(), new TextureDataCreator() };
 
-            var loader = new WebRequestLoadProcessor< UAssetType >( dataCreators );
+            var loader = new WebRequestLoadProcessor< TAssetType >( dataCreators );
             _allProcessors.Add( loader );
 
-            var addToCache = new AddAssetToCacheWithRefcountProcessor< UAssetType >( OtherAssetsCache );
+            var addToCache = new AddAssetToCacheWithRefcountProcessor< TAssetType >( OtherAssetsCache );
             _allProcessors.Add( addToCache );
 
             var queue = new RequestsQueueProcessor< UrlLoadingRequest >( _requestsQueue );
             _allProcessors.Add( queue );
 
-            var queueEndPoint = new RequestsQueueEndPoint< AssetLoadingRequest< UAssetType > >( _requestsQueue );
+            var queueEndPoint = new RequestsQueueEndPoint< AssetLoadingRequest< TAssetType > >( _requestsQueue );
             _allProcessors.Add( queueEndPoint );
 
             var conbinedREquestDict = new Dictionary< string, CombinedRequest >();
             var combiner = new RequestsCombinerProcessor( conbinedREquestDict );
             _allProcessors.Add( combiner );
 
-            var unCombiner = new RequestsUncombinerProcessor< UAssetType >( conbinedREquestDict );
+            var unCombiner = new RequestsUncombinerProcessor< TAssetType >( conbinedREquestDict );
             _allProcessors.Add( unCombiner );
             
             var unCombinerForExceptions = new RequestsUncombinerProcessor( conbinedREquestDict );
@@ -168,31 +167,31 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var queueEndPointForExceptions = new RequestsQueueEndPoint<UrlLoadingRequest >( _requestsQueue );
             _allProcessors.Add( queueEndPointForExceptions );
 
-            var finishNode = new AssetLoadingRequestEndPointProcessor< UAssetType >( _promiseMap );
+            var finishNode = new AssetLoadingRequestEndPointProcessor< TAssetType >( _promiseMap );
             _allProcessors.Add( finishNode );
             
             var finishNodeException = new UrlRequestEndPointProcessor( _promiseMap );
             _allProcessors.Add( finishNodeException );
 
-            isWebAssetChecker.RegisterConditionPassedOutConnection( cacheChecker );
+            isWebAssetChecker.PassedOutput.LinkTo( cacheChecker );
 
-            cacheChecker.RegisterExistCacheOutConnection( getFromCache );
-            getFromCache.RegisterDefaultConnection( finishNode );
-            getFromCache.RegisterExceptionConnection( finishNodeException );
+            cacheChecker.ExistInCacheOutput.LinkTo( getFromCache );
+            getFromCache.DefaultOutput.LinkTo( finishNode );
+            getFromCache.ExceptionOutput.LinkTo( finishNodeException );
 
-            cacheChecker.RegisterNotExistCacheOutConnection( combiner );
-            combiner.RegisterDefaultConnection( queue );
-            queue.RegisterDefaultConnection( loader );
-            loader.RegisterDefaultConnection( queueEndPoint );
-            queueEndPoint.RegisterDefaultConnection( unCombiner );
-            unCombiner.RegisterDefaultConnection( addToCache );
+            cacheChecker.NotExistInCacheOutput.LinkTo( combiner );
+            combiner.DefaultOutput.LinkTo( queue );
+            queue.DefaultOutput.LinkTo( loader );
+            loader.DefaultOutput.LinkTo( queueEndPoint );
+            queueEndPoint.DefaultOutput.LinkTo( unCombiner );
+            unCombiner.DefaultOutput.LinkTo( addToCache );
             
-            loader.RegisterExceptionConnection( queueEndPointForExceptions  );
-            queueEndPointForExceptions.RegisterDefaultConnection( unCombinerForExceptions );
-            unCombinerForExceptions.RegisterDefaultConnection( finishNodeException );
+            loader.ExceptionOutput.LinkTo( queueEndPointForExceptions  );
+            queueEndPointForExceptions.DefaultOutput.LinkTo( unCombinerForExceptions );
+            unCombinerForExceptions.DefaultOutput.LinkTo( finishNodeException );
             
-            addToCache.RegisterDefaultConnection( finishNode );
-            addToCache.RegisterExceptionConnection( finishNodeException );
+            addToCache.DefaultOutput.LinkTo( finishNode );
+            addToCache.ExceptionOutput.LinkTo( finishNodeException );
 
             return isWebAssetChecker;
         }
@@ -241,26 +240,26 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             _allProcessors.Add( finishNodeException );
 
 
-            manifestChecker.RegisterExistOutConnection( cacheChecker );
+            manifestChecker.ExistOutput.LinkTo( cacheChecker );
 
-            cacheChecker.RegisterExistCacheOutConnection( getFromCache );
-            getFromCache.RegisterDefaultConnection( finishNode );
-            getFromCache.RegisterExceptionConnection( finishNodeException );
+            cacheChecker.ExistInCacheOutput.LinkTo( getFromCache );
+            getFromCache.DefaultOutput.LinkTo( finishNode );
+            getFromCache.ExceptionOutput.LinkTo( finishNodeException );
 
-            cacheChecker.RegisterNotExistCacheOutConnection( combiner );
+            cacheChecker.NotExistInCacheOutput.LinkTo( combiner );
 
-            combiner.RegisterDefaultConnection( queue );
-            queue.RegisterDefaultConnection( loader );
-            loader.RegisterDefaultConnection( queueEndPoint );
-            queueEndPoint.RegisterDefaultConnection( unCombiner );
-            unCombiner.RegisterDefaultConnection( addToCache );
+            combiner.DefaultOutput.LinkTo( queue );
+            queue.DefaultOutput.LinkTo( loader );
+            loader.DefaultOutput.LinkTo( queueEndPoint );
+            queueEndPoint.DefaultOutput.LinkTo( unCombiner );
+            unCombiner.DefaultOutput.LinkTo( addToCache );
             
-            loader.RegisterExceptionConnection( queueEndPointForExceptions );
-            queueEndPointForExceptions.RegisterDefaultConnection( unCombinerForExceptions );
-            unCombinerForExceptions.RegisterDefaultConnection( finishNodeException );
+            loader.ExceptionOutput.LinkTo( queueEndPointForExceptions );
+            queueEndPointForExceptions.DefaultOutput.LinkTo( unCombinerForExceptions );
+            unCombinerForExceptions.DefaultOutput.LinkTo( finishNodeException );
             
-            addToCache.RegisterDefaultConnection( finishNode );
-            addToCache.RegisterExceptionConnection( finishNodeException );
+            addToCache.DefaultOutput.LinkTo( finishNode );
+            addToCache.ExceptionOutput.LinkTo( finishNodeException );
 
             return manifestChecker;
         }
@@ -291,21 +290,21 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var finishNodeException = new UrlRequestEndPointProcessor( _promiseMap );
             _allProcessors.Add( finishNodeException );
 
-            manifestChecker.RegisterExistOutConnection( cacheChecker );
-            cacheChecker.RegisterExistCacheOutConnection( getFromCache );
-            getFromCache.RegisterDefaultConnection( finishNode );
-            getFromCache.RegisterExceptionConnection( finishNodeException );
+            manifestChecker.ExistOutput.LinkTo( cacheChecker );
+            cacheChecker.ExistInCacheOutput.LinkTo( getFromCache );
+            getFromCache.DefaultOutput.LinkTo( finishNode );
+            getFromCache.ExceptionOutput.LinkTo( finishNodeException );
 
-            cacheChecker.RegisterNotExistCacheOutConnection( bundlesWithDepsLoader );
+            cacheChecker.NotExistInCacheOutput.LinkTo( bundlesWithDepsLoader );
 
-            bundlesWithDepsLoader.RegisterDefaultConnection( assetFromBundleLoader );
-            bundlesWithDepsLoader.RegisterExceptionConnection( finishNodeException );
+            bundlesWithDepsLoader.DefaultOutput.LinkTo( assetFromBundleLoader );
+            bundlesWithDepsLoader.ExceptionOutput.LinkTo( finishNodeException );
             
-            assetFromBundleLoader.RegisterDefaultConnection( addToCache );
-            assetFromBundleLoader.RegisterExceptionConnection( finishNodeException );
+            assetFromBundleLoader.DefaultOutput.LinkTo( addToCache );
+            assetFromBundleLoader.ExceptionOutput.LinkTo( finishNodeException );
             
-            addToCache.RegisterDefaultConnection( finishNode );
-            addToCache.RegisterExceptionConnection( finishNodeException );
+            addToCache.DefaultOutput.LinkTo( finishNode );
+            addToCache.ExceptionOutput.LinkTo( finishNodeException );
             
             return manifestChecker;
         }
@@ -316,9 +315,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             PrintExceptionForNodes( additionalNodes );
         }
 
-        public AssetLoadingRequestEndPointProcessor< BodyType > GetNewAssetLoadingRequestEndpoint< BodyType >()
+        public AssetLoadingRequestEndPointProcessor< TBodyType > GetNewAssetLoadingRequestEndpoint< TBodyType >()
         {
-            var processor = new AssetLoadingRequestEndPointProcessor< BodyType >( _promiseMap );
+            var processor = new AssetLoadingRequestEndPointProcessor< TBodyType >( _promiseMap );
             _allProcessors.Add( processor );
             return processor;
         }

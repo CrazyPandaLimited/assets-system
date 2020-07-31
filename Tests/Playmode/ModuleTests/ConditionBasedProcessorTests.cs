@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using NSubstitute;
 using NUnit.Framework;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
@@ -38,13 +38,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             int trueConnectionMessagesCount = 0;
             int falseConnectionMessagesCount = 0;
 
-            processor.RegisterConditionPassedOutConnection( outProcessorTrue );
-            processor.RegisterConditionFailedOutConnection( outProcessorFalse );
+            processor.PassedOutput.LinkTo( outProcessorTrue );
+            processor.NotPassedOutput.LinkTo( outProcessorFalse );
 
-            processor.GetOutputs().ElementAt( 0 ).OnMessageSended += ( sender, args ) => { trueConnectionMessagesCount++; };
-            processor.GetOutputs().ElementAt( 1 ).OnMessageSended += ( sender, args ) => { falseConnectionMessagesCount++; };
+            processor.PassedOutput.MessageSent += ( sender, args ) => { trueConnectionMessagesCount++; };
+            processor.NotPassedOutput.MessageSent += ( sender, args ) => { falseConnectionMessagesCount++; };
 
-            processor.ProcessMessage( _header, _LoadingRequest );
+            processor.DefaultInput.ProcessMessage( _header, _LoadingRequest );
 
             Assert.AreEqual( expectedResult ? 1 : 0, trueConnectionMessagesCount );
             Assert.AreEqual( expectedResult ? 0 : 1, falseConnectionMessagesCount );
@@ -57,13 +57,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             int trueConnectionMessagesCount = 0;
             int falseConnectionMessagesCount = 0;
 
-            processor.RegisterConditionPassedOutConnection( outProcessorTrue );
-            processor.RegisterConditionFailedOutConnection( outProcessorFalse );
+            processor.PassedOutput.LinkTo( outProcessorTrue );
+            processor.NotPassedOutput.LinkTo( outProcessorFalse );
 
-            processor.GetOutputs().ElementAt( 0 ).OnMessageSended += ( sender, args ) => { trueConnectionMessagesCount++; };
-            processor.GetOutputs().ElementAt( 1 ).OnMessageSended += ( sender, args ) => { falseConnectionMessagesCount++; };
+            processor.PassedOutput.MessageSent += ( sender, args ) => { trueConnectionMessagesCount++; };
+            processor.NotPassedOutput.MessageSent += ( sender, args ) => { falseConnectionMessagesCount++; };
 
-            processor.ProcessMessage( _header, _LoadingRequest );
+            processor.DefaultInput.ProcessMessage( _header, _LoadingRequest );
 
             Assert.AreEqual( 0, trueConnectionMessagesCount );
             Assert.AreEqual( 0, falseConnectionMessagesCount );

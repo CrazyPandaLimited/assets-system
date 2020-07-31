@@ -10,7 +10,7 @@ using System.Threading;
 using CrazyPanda.UnityCore.AssetsSystem.Tests;
 using NSubstitute;
 using NUnit.Framework;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -32,11 +32,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var requestBody = new UrlLoadingRequest( ExistingFileOnServerUrl, typeof( Texture ), new ProgressTracker< float >() );
 
             WebRequestLoadProcessorTestUtils.MessageHeadersData data = _workProcessor.GetSendedHeaders();
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
             yield return WaitForTimeOut( BaseSendedBody );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
 
             Assert.NotNull( data.BaseSendedBody );
@@ -47,15 +46,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [ UnityTest ]
         public IEnumerator FailIfWrongURL()
         {
-            _workProcessor.RegisterExceptionConnection( Substitute.For< IInputNode< UrlLoadingRequest > >() );
             var requestBody = new UrlLoadingRequest( ResourceStorageTestUtils.ConstructTestUrl( "notExistFile.jpg" ), typeof( Texture ), new ProgressTracker< float >() );
             WebRequestLoadProcessorTestUtils.MessageHeadersData data = _workProcessor.GetSendedHeaders();
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
             yield return WaitForTimeOut( BaseSendedBody );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
             Assert.NotNull( data.BaseSendedBody );
             Assert.Null( data.AssetSendedBody );
@@ -70,13 +67,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             WebRequestLoadProcessorTestUtils.MessageHeadersData data = _workProcessor.GetSendedHeaders();
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), cancelTocken.Token ), requestBody );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), cancelTocken.Token ), requestBody );
 
             cancelTocken.Cancel();
 
             yield return WaitForTimeOut( BaseSendedBody );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
             Assert.Null( data.BaseSendedBody );
         }
@@ -96,31 +92,25 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var requestBody = new UrlLoadingRequest( ResourceStorageTestUtils.ConstructTestUrl( "notExistFile.jpg" ), typeof( Texture ), new ProgressTracker< float >() );
 
             WebRequestLoadProcessorTestUtils.MessageHeadersData data = _workProcessor.GetSendedHeaders();
-            _workProcessor.RegisterExceptionConnection( exceptionConnection );
+            _workProcessor.ExceptionOutput.LinkTo( exceptionConnection );
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
-
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
-
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
+            
             Assert.NotNull( exception );
             Assert.Null( _workProcessor.Exception );
-            Assert.Null( data.BaseSendedBody );
-            Assert.Null( data.SendedHeader );
         }
 
         [ UnityTest ]
         public IEnumerator FailWithAssetCreatorNotFound()
         {
-            _workProcessor.RegisterExceptionConnection( Substitute.For< IInputNode< UrlLoadingRequest > >() );
             var requestBody = new UrlLoadingRequest( ResourceStorageTestUtils.ConstructTestUrl( "logo_test.jpg" ), typeof( GameObject ), new ProgressTracker< float >() );
 
             WebRequestLoadProcessorTestUtils.MessageHeadersData data = _workProcessor.GetSendedHeaders();
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
             yield return WaitForTimeOut( BaseSendedBody );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
             Assert.That( data.SendedHeader.Exceptions.InnerExceptions, Has.Some.Matches< Exception >( e => e is AssetDataCreatorNotFoundException ) );
             Assert.NotNull( data.SendedHeader );
@@ -134,12 +124,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var requestBody = new UrlLoadingRequest( ExistingFileOnServerUrl, typeof( Texture ), new ProgressTracker< float >() );
             requestBody.ProgressTracker.OnProgressChanged += ( sender, args ) => currentDownloadProgress = args.progress;
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
             yield return WaitForTimeOut( BaseSendedBody );
 
             Assert.AreEqual( MaxDownloadProgress, currentDownloadProgress );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
         }
     }
@@ -150,10 +139,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         {
             MessageHeadersData data = new MessageHeadersData();
 
-            var outputs = workProcessor.GetOutputs();
+            var outputs = workProcessor.Outputs;
             foreach( var output in outputs )
             {
-                output.OnMessageSended += ( sender, args ) =>
+                output.MessageSent += ( sender, args ) =>
                 {
                     data.SendedHeader = args.Header;
                     data.AssetSendedBody = args.Body as AssetLoadingRequest< Object >;

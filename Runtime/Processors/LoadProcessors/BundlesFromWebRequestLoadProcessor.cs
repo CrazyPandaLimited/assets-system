@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -60,7 +60,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             void OnAssetBundleLoaded( AsyncOperation operation )
             {
                 assetBundleCreateRequest.completed -= OnAssetBundleLoaded;
-                _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< AssetBundle >( body, assetBundleCreateRequest.assetBundle ) );
+                SendOutput( header, new AssetLoadingRequest< AssetBundle >( body, assetBundleCreateRequest.assetBundle ) );
                 webRequest.Dispose();
             }
         }

@@ -1,9 +1,9 @@
-using System;
-using UnityCore.MessagesFlow;
+﻿using System;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class GetAssetFromCacheProcessor< T > : AbstractRequestInputOutputProcessorWithDefaultOutput< UrlLoadingRequest, AssetLoadingRequest< T > >
+    public class GetAssetFromCacheProcessor< T > : AbstractRequestInputOutputProcessor< UrlLoadingRequest, AssetLoadingRequest< T > >
     {
         #region Protected Fields
         protected ICache _cache;
@@ -17,15 +17,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             var assetName = body.Url;
             if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
             {
                 assetName = Utils.ConstructAssetWithSubassetName( body.Url, header.MetaData.GetMeta< string >( MetaDataReservedKeys.GET_SUB_ASSET ) );
             }
-            _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< T >( body, ( T ) _cache.Get( assetName ) ) );
-            return FlowMessageStatus.Accepted;
+            SendOutput( header, new AssetLoadingRequest< T >( body, ( T ) _cache.Get( assetName ) ) );
         }
         #endregion
     }

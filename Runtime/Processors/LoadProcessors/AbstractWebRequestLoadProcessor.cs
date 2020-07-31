@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using JetBrains.Annotations;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -20,19 +20,16 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         #region Protected Members
         protected abstract UnityWebRequest GetRequestData(MessageHeader header, UrlLoadingRequest body );
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
-            var message = FlowMessageStatus.Accepted;
-
             if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) )
             {
                 header.AddException( new SyncLoadNotSupportedException( this, header, body ) );
-                ProcessMessageToExceptionConnection( header, body );
-                return message;
+                SendException( header, body );
+                return;
             }
 
             BuildAndSendWebRequest( GetRequestData(header, body ), header, body );
-            return message;
         }
 
         protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( InitialProgress );
@@ -81,7 +78,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             webRequest.timeout = Mathf.RoundToInt( webRequestSettings.Timeout );
             webRequest.redirectLimit = webRequestSettings.RedirectsLimit;
-            webRequest.chunkedTransfer = webRequestSettings.ChunkTransfer;
         }
 
         private bool RequestFinishedWithoutErrors( UnityWebRequest webRequest, MessageHeader header, UrlLoadingRequest body )
@@ -98,7 +94,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 #endif
             {
                 header.AddException( new WebRequestException( webRequest, this, header, body ) );
-                ProcessMessageToExceptionConnection( header, body );
+                SendException( header, body );
                 return false;
             }
             return true;

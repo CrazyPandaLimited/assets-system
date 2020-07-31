@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using CrazyPanda.UnityCore.PandaTasks;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
@@ -22,16 +22,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             _assetsStorage = assetsStorage ?? throw new ArgumentNullException( nameof(assetsStorage) );
         }
 
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
-            if( _defaultConnection == null )
-            {
-                return FlowMessageStatus.Rejected;
-            }
-
             LoadBundles( header, body );
-
-            return FlowMessageStatus.Accepted;
         }
 
         private IEnumerable< string > GetAssetBundlesNamesToLoad( string assetPath ) => _manifest.AssetInfos.TryGetValue( assetPath, out var assetInfo ) ? assetInfo.Dependencies : Enumerable.Empty< string >();
@@ -60,7 +53,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             void InvokeDownloadFinishedEvent()
             {
                 body.ProgressTracker.ReportProgress( FinalProgress );
-                _defaultConnection.ProcessMessage( header, body );
+                SendOutput( header, body );
             }
         }
 

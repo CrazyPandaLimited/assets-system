@@ -16,7 +16,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         public WebRequestMethod Method;
         public float Timeout;
         public int RedirectsLimit = 32;
-        public bool ChunkTransfer = true;
         #endregion
     }
 }

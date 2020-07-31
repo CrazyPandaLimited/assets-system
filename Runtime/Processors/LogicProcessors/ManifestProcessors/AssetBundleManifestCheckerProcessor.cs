@@ -1,18 +1,20 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class AssetBundleManifestCheckerProcessor : AbstractRequestInputOutputProcessor< UrlLoadingRequest, UrlLoadingRequest >
+    public class AssetBundleManifestCheckerProcessor : AbstractRequestInputProcessor< UrlLoadingRequest >
     {
-        #region Protected Fields
         protected AssetBundleManifest _manifest;
         protected bool _checkInBundles;
-        protected Dictionary< bool, NodeOutputConnection< UrlLoadingRequest > > _checkResultOutConnections = new Dictionary< bool, NodeOutputConnection< UrlLoadingRequest > >( 2 );
-        #endregion
 
-        #region Constructors
+        private BaseOutput< UrlLoadingRequest > _existOutput = new BaseOutput< UrlLoadingRequest >( OutputHandlingType.Optional );
+        private BaseOutput< UrlLoadingRequest > _notExistOutput = new BaseOutput< UrlLoadingRequest >( OutputHandlingType.Optional );
+
+        public IOutputNode< UrlLoadingRequest > ExistOutput => _existOutput;
+        public IOutputNode< UrlLoadingRequest > NotExistOutput => _notExistOutput;
+
         public AssetBundleManifestCheckerProcessor( AssetBundleManifest manifest, bool checkInBundles, bool checkInAssets )
         {
             if( checkInBundles && checkInAssets || !checkInBundles && !checkInAssets )
@@ -20,33 +22,18 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 throw new InvalidOperationException( "Invalid" );
             }
 
-            _manifest = manifest ?? throw new ArgumentNullException( $"{nameof(manifest)} == null" );
+            _manifest = manifest ?? throw new ArgumentNullException( nameof( manifest ) );
             _checkInBundles = checkInBundles;
         }
-        #endregion
 
-        #region Public Members
-        public void RegisterExistOutConnection( IInputNode< UrlLoadingRequest > node )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
-            var connection = new NodeOutputConnection< UrlLoadingRequest >( node );
-            RegisterConnection( connection );
-            _checkResultOutConnections.Add( true, connection );
-        }
+            var exists = _checkInBundles ? _manifest.ContainsBundle( body.Url ) : _manifest.ContainsAsset( body.Url );
 
-        public void RegisterNotExistOutConnection( IInputNode< UrlLoadingRequest > node )
-        {
-            var connection = new NodeOutputConnection< UrlLoadingRequest >( node );
-            RegisterConnection( connection );
-            _checkResultOutConnections.Add( false, connection );
+            if( exists )
+                _existOutput.ProcessMessage( header, body );
+            else
+                _notExistOutput.ProcessMessage( header, body );
         }
-        #endregion
-
-        #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
-        {
-            _checkResultOutConnections[ _checkInBundles ? _manifest.ContainsBundle( body.Url ) : _manifest.ContainsAsset( body.Url ) ].ProcessMessage( header, body );
-            return FlowMessageStatus.Accepted;
-        }
-        #endregion
     }
 }

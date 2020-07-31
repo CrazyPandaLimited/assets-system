@@ -1,6 +1,6 @@
-using System.Linq;
+﻿using System.Linq;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using System;
 using System.Collections;
@@ -43,17 +43,16 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< AssetBundle > sendedBody = null;
 
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _workProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = ( AssetLoadingRequest< AssetBundle > ) args.Body;
             };
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
             
             yield return base.WaitForTimeOut(sendedBody);
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
 
             Assert.NotNull( sendedBody );
@@ -68,15 +67,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< AssetBundle > sendedBody = null;
 
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _workProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = ( AssetLoadingRequest< AssetBundle > ) args.Body;
             };
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(MetaDataReservedKeys.SYNC_REQUEST_FLAG), CancellationToken.None ), requestBody );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(MetaDataReservedKeys.SYNC_REQUEST_FLAG), CancellationToken.None ), requestBody );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
 
             Assert.NotNull( sendedBody );
@@ -92,14 +90,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var requestBody = new UrlLoadingRequest( bundleName, typeof( AssetBundle ), new ProgressTracker< float >() );
 
             bool outCalled = false;
-            _workProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) => { outCalled = true; };
+            _workProcessor.DefaultOutput.MessageSent += ( sender, args ) => { outCalled = true; };
 
-            var processResult = _workProcessor.ProcessMessage( new MessageHeader( new MetaData(), cancelTocken.Token ), requestBody );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), cancelTocken.Token ), requestBody );
             
             cancelTocken.Cancel();
 
             yield return base.WaitForTimeOut();
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _workProcessor.Exception );
             Assert.IsFalse( outCalled );
         }

@@ -1,4 +1,4 @@
-using CrazyPanda.UnityCore.PandaTasks.Progress;
+﻿using CrazyPanda.UnityCore.PandaTasks.Progress;
 using System.Linq;
 using System.Threading;
 using UnityEngine.TestTools;
@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using NUnit.Framework;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
@@ -49,8 +49,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             var bundleLoader = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/Systems/Tests/ResourcesSystem/Bundle", _manifest );
 
-            nodesBuilder.AssetsStorage.RegisterOutConnection( bundleLoader );
-            bundleLoader.RegisterDefaultConnection( nodesBuilder.GetNewAssetLoadingRequestEndpoint< AssetBundle >() );
+            nodesBuilder.AssetsStorage.LinkTo( bundleLoader.DefaultInput );
+            bundleLoader.DefaultOutput.LinkTo( nodesBuilder.GetNewAssetLoadingRequestEndpoint< AssetBundle >() );
 
             _assetBundleLoaderProcessor = nodesBuilder.BuildLoadAssetFromBundleTree();
             
@@ -66,13 +66,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _assetLoaderProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _assetLoaderProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = args.Body as AssetLoadingRequest< UnityEngine.Object >;
             };
 
-            var processResult = _assetBundleLoaderProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
+            _assetBundleLoaderProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
             var timeoutTime = DateTime.Now.AddSeconds( _defaultWaitTimeout );
             while( sendedBody == null && DateTime.Now < timeoutTime )
@@ -80,7 +80,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
                 yield return null;
             }
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _assetLoaderProcessor.Exception );
 
             Assert.NotNull( sendedBody );
@@ -96,15 +95,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _assetLoaderProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _assetLoaderProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = args.Body as AssetLoadingRequest< UnityEngine.Object >;
             };
 
-            var processResult = _assetBundleLoaderProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
+            _assetBundleLoaderProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.Null( _assetLoaderProcessor.Exception );
 
             Assert.NotNull( sendedBody );
@@ -131,13 +129,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _assetLoaderProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _assetLoaderProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = args.Body as AssetLoadingRequest< UnityEngine.Object >;
             };
 
-            var processResult = _assetBundleLoaderProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
+            _assetBundleLoaderProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 
             var timeoutTime = DateTime.Now.AddSeconds( _defaultWaitTimeout );
             while( sendedBody == null && DateTime.Now < timeoutTime )
@@ -169,13 +167,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             AssetLoadingRequest< UnityEngine.Object > sendedBody = null;
 
-            _assetLoaderProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _assetLoaderProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = args.Body as AssetLoadingRequest< UnityEngine.Object >;
             };
 
-            var processResult = _assetBundleLoaderProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
+            _assetBundleLoaderProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
 
             var loadedBundles = AssetBundle.GetAllLoadedAssetBundles();
             Assert.NotNull( loadedBundles.First( c => c.name == bundleName.Replace( ".bundle", "" ) ) );

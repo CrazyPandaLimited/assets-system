@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class RequestsCombinerProcessor : AbstractRequestInputOutputProcessorWithDefaultOutput< UrlLoadingRequest, UrlLoadingRequest >
+    public class RequestsCombinerProcessor : AbstractRequestInputOutputProcessor< UrlLoadingRequest, UrlLoadingRequest >
     {
         #region Constants
         public const string IS_COMBINED_REQUEST_METADATA_FLAG = "requestCombined";
@@ -25,15 +25,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             //if sync request, don't combine it
             //if request with sub assets, don't combine it
             if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) ||
                 header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ))
             {
-                _defaultConnection.ProcessMessage( header, body );
-                return FlowMessageStatus.Accepted;
+                SendOutput( header, body );
+                return;
             }
 
             ClearCancelledRequests();
@@ -41,7 +41,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( _combinedRequests.ContainsKey( body.Url ) )
             {
                 _combinedRequests[ body.Url ].AddRequest( header, body );
-                return FlowMessageStatus.Accepted;
+                return;
             }
 
             var cancelTocken = new CancellationTokenSource();
@@ -57,8 +57,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             combinedRequest.AddRequest( header, body );
             _combinedRequests.Add( body.Url, combinedRequest );
 
-            _defaultConnection.ProcessMessage( combinedHeader, combinedBody );
-            return FlowMessageStatus.Accepted;
+            SendOutput( combinedHeader, combinedBody );
         }
 
         private void ClearCancelledRequests()

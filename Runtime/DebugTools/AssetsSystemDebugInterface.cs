@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools

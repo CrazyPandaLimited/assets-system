@@ -7,7 +7,7 @@ using CrazyPanda.UnityCore.PandaTasks;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
 using NSubstitute;
 using NUnit.Framework;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 using Object = UnityEngine.Object;
 

@@ -1,5 +1,5 @@
 ﻿using System;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
@@ -17,7 +17,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, AssetLoadingRequest< T > body )
+        protected override void InternalProcessMessage( MessageHeader header, AssetLoadingRequest< T > body )
         {
             var assetName = body.Url;
             if( header.MetaData.IsMetaExist( MetaDataReservedKeys.GET_SUB_ASSET ) )
@@ -32,12 +32,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             else if (_memoryCache.Get(assetName) != (object)body.Asset)
             {
                 header.AddException( new CachedObjectOverrideException( this, header, body ) );
-                ProcessMessageToExceptionConnection( header, new UrlLoadingRequest( body ) );
-                return FlowMessageStatus.Accepted;
+                SendException( header, new UrlLoadingRequest( body ) );
+                return;
             }
             
-            _defaultConnection.ProcessMessage( header, body );
-            return FlowMessageStatus.Accepted;
+            SendOutput( header, body );
         }
         #endregion
     }

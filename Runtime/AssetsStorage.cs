@@ -3,23 +3,20 @@ using System.Collections.Generic;
 using System.Threading;
 using CrazyPanda.UnityCore.PandaTasks;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem
 {
-    public class AssetsStorage : IOutputNode< UrlLoadingRequest >, IAssetsStorage
+    public class AssetsStorage : IAssetsStorage
     {
-        #region Protected Fields
-        protected NodeOutputConnection< UrlLoadingRequest > _outputConnection;
-        #endregion
-
         #region Private Fields
         private bool _isDisposed;
         private RequestToPromiseMap _requestToPromiseMap;
+        private IInputNode<UrlLoadingRequest> _linkedNode;
         #endregion
 
         #region Events
-        public event EventHandler< MessageSendedOutEventArgs > OnMessageSended;
+        public event EventHandler< MessageSentOutEventArgs > OnMessageSended;
         #endregion
 
         #region Constructors
@@ -31,17 +28,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         #endregion
 
         #region Public Members
-        public void RegisterOutConnection( IInputNode< UrlLoadingRequest > outputConnection )
-        {
-            _outputConnection = new NodeOutputConnection< UrlLoadingRequest >( outputConnection );
-        }
-
-        public IEnumerable< IBaseOutputConnection > GetOutputs()
-        {
-            yield return _outputConnection;
-        }
-
-
         /// <summary>
         /// Sync load Asset
         /// </summary>
@@ -146,6 +132,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 throw new AssetUrlEmptyException( "Asset url can not be null or empty" );
             }
 
+            if( _linkedNode == null )
+            {
+                throw new InvalidOperationException( $"{nameof( AssetsStorage )} is not fully built" );
+            }
+
             var header = new MessageHeader( metaData, tocken );
             var body = new UrlLoadingRequest( url, typeof( AssetType ), tracker == null ? new ProgressTracker< float >() : tracker );
 
@@ -167,10 +158,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             } );
 
             _requestToPromiseMap.Add( header.Id, internalTask );
-            OnMessageSended?.Invoke( this, new MessageSendedOutEventArgs( header, body ) );
+
             try
             {
-                _outputConnection.ProcessMessage( header, body );
+                OnMessageSended?.Invoke( this, new MessageSentOutEventArgs( header, body ) );
+                _linkedNode.ProcessMessage( header, body );
             }
             catch( Exception exception )
             {
@@ -181,6 +173,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             }
 
             return resultTask.ResultTask;
+        }
+
+        public void LinkTo( IInputNode< UrlLoadingRequest > input )
+        {
+            _linkedNode = input;
         }
 
         /// <summary>

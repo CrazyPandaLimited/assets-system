@@ -1,4 +1,4 @@
-﻿using UnityCore.MessagesFlow;
+﻿using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine.Networking;
 
 namespace CrazyPanda.UnityCore.AssetsSystem

@@ -1,45 +1,30 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class ManifestCheckerProcessor : AbstractRequestInputOutputProcessor< UrlLoadingRequest, UrlLoadingRequest >
+    public class ManifestCheckerProcessor : AbstractRequestInputProcessor< UrlLoadingRequest >
     {
-        #region Protected Fields
         protected IManifest _manifest;
-        protected Dictionary< bool, NodeOutputConnection< UrlLoadingRequest > > _checkResultOutConnections = new Dictionary< bool, NodeOutputConnection< UrlLoadingRequest > >( 2 );
-        #endregion
 
-        #region Constructors
+        private BaseOutput< UrlLoadingRequest > _existOutput = new BaseOutput<UrlLoadingRequest>( OutputHandlingType.Optional );
+        private BaseOutput< UrlLoadingRequest > _notExistOutput = new BaseOutput<UrlLoadingRequest>( OutputHandlingType.Optional );
+
+        public IOutputNode< UrlLoadingRequest > ExistOutput => _existOutput;
+        public IOutputNode< UrlLoadingRequest > NotExistOutput => _notExistOutput;
+
         public ManifestCheckerProcessor( IManifest manifest )
         {
-            _manifest = manifest ?? throw new ArgumentNullException( $"{nameof(manifest)} == null" );
-        }
-        #endregion
-
-        #region Public Members
-        public void RegisterExistOutConnection( IInputNode< UrlLoadingRequest > node )
-        {
-            var connection = new NodeOutputConnection< UrlLoadingRequest >( node );
-            RegisterConnection( connection );
-            _checkResultOutConnections.Add( true, connection );
+            _manifest = manifest ?? throw new ArgumentNullException( nameof( manifest ) );
         }
 
-        public void RegisterNotExistOutConnection( IInputNode< UrlLoadingRequest > node )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
-            var connection = new NodeOutputConnection< UrlLoadingRequest >( node );
-            RegisterConnection( connection );
-            _checkResultOutConnections.Add( false, connection );
+            if( _manifest.ContainsAsset( body.Url ) )
+                _existOutput.ProcessMessage( header, body );
+            else
+                _notExistOutput.ProcessMessage( header, body );
         }
-        #endregion
-
-        #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
-        {
-            _checkResultOutConnections[ _manifest.ContainsAsset( body.Url ) ].ProcessMessage( header, body );
-            return FlowMessageStatus.Accepted;
-        }
-        #endregion
     }
 }

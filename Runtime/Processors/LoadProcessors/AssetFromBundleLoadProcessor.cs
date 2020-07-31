@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -19,10 +19,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             _assetsStorage = assetsStorage ?? throw new ArgumentNullException( nameof(assetsStorage) );
         }
 
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
+        protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             StartToLoadMainBundle( header, body );
-            return FlowMessageStatus.Accepted;
         }
         
         protected override void OnLoadingStarted( MessageHeader header, UrlLoadingRequest body ) => body.ProgressTracker.ReportProgress( InitialProgress );
@@ -33,7 +32,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         {
             ReportFinalProgress( data.Body );
             var finalAsset = GetFinalAsset( data.Header, () => data.RequestLoadingOperation.allAssets, () => data.RequestLoadingOperation.asset );
-            _defaultConnection.ProcessMessage( data.Header, new AssetLoadingRequest< Object >( GetAssetNameToLoad( data.Body ), data.Body.AssetType, data.Body.ProgressTracker, finalAsset ) );
+            SendOutput( data.Header, new AssetLoadingRequest< Object >( GetAssetNameToLoad( data.Body ), data.Body.AssetType, data.Body.ProgressTracker, finalAsset ) );
         }
 
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data )
@@ -41,7 +40,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( data.RequestLoadingOperation.asset == null )
             {
                 data.Header.AddException( new AssetNotLoadedException( "Asset not loaded", this, data.Header, data.Body ) );
-                ProcessMessageToExceptionConnection( data.Header, new AssetLoadingRequest< Object >( GetAssetNameToLoad( data.Body ), data.Body.AssetType, data.Body.ProgressTracker, data.RequestLoadingOperation.asset ) );
+                SendException( data.Header, new AssetLoadingRequest< Object >( GetAssetNameToLoad( data.Body ), data.Body.AssetType, data.Body.ProgressTracker, data.RequestLoadingOperation.asset ) );
                 return false;
             }
 
@@ -108,11 +107,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             if( asset == null )
             {
                 header.AddException( new AssetNotLoadedException( "Asset not loaded", this, header, body ) );
-                ProcessMessageToExceptionConnection( header, new AssetLoadingRequest< Object >( assetNameToLoad, assetTypeToLoad, body.ProgressTracker, null ) );
+                SendException( header, new AssetLoadingRequest< Object >( assetNameToLoad, assetTypeToLoad, body.ProgressTracker, null ) );
                 return;
             }
 
-            _defaultConnection.ProcessMessage( header, new AssetLoadingRequest< Object >( assetNameToLoad, assetTypeToLoad, body.ProgressTracker, asset ) );
+            SendOutput( header, new AssetLoadingRequest< Object >( assetNameToLoad, assetTypeToLoad, body.ProgressTracker, asset ) );
         }
 
         private Object GetFinalAsset( MessageHeader header, Func< IReadOnlyCollection< Object > > getSubAssets, Func< Object > getDefaultAsset )

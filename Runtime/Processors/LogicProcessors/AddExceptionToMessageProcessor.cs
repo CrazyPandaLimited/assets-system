@@ -1,9 +1,9 @@
 using System;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class AddExceptionToMessageProcessor< TBodyType > : AbstractRequestInputOutputProcessorWithDefaultOutput< TBodyType, TBodyType > where TBodyType : TrackProgressLoadingRequest
+    public class AddExceptionToMessageProcessor< TBodyType > : AbstractRequestInputOutputProcessor< TBodyType, TBodyType > where TBodyType : TrackProgressLoadingRequest
     {
         #region Protected Fields
         protected Exception _exception;
@@ -17,11 +17,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, TBodyType body )
+        protected override void InternalProcessMessage( MessageHeader header, TBodyType body )
         {
             header.AddException( _exception );
-            _defaultConnection.ProcessMessage( header, body );
-            return FlowMessageStatus.Accepted;
+            SendOutput( header, body );
         }
         #endregion
     }

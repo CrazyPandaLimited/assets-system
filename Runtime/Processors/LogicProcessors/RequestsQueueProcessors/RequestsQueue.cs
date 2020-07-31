@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using CrazyPanda.UnityCore.Collections;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {

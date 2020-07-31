@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using NSubstitute;
 using NUnit.Framework;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
@@ -39,10 +39,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
 
             var outProcessor1 = Substitute.For< IInputNode< UrlLoadingRequest > >();
-            _combinerProcessor.RegisterDefaultConnection( outProcessor1 );
+            _combinerProcessor.DefaultOutput.LinkTo( outProcessor1 );
 
             var outProcessor2 = Substitute.For< IInputNode< AssetLoadingRequest< object > > >();
-            _uncombinerProcessor.RegisterDefaultConnection( outProcessor2 );
+            _uncombinerProcessor.DefaultOutput.LinkTo( outProcessor2 );
         }
 
         [ Test ]
@@ -51,15 +51,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             UrlLoadingRequest sendedBody = null;
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _combinerProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = ( UrlLoadingRequest ) args.Body;
             };
 
-            var processResult = _combinerProcessor.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), _requestFirstFile1 );
+            _combinerProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), _requestFirstFile1 );
 
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
             Assert.AreSame( _requestFirstFile1, sendedBody );
         }
 
@@ -70,16 +69,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             MessageHeader sendedHeader = null;
             UrlLoadingRequest sendedBody = null;
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _combinerProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader = args.Header;
                 sendedBody = ( UrlLoadingRequest ) args.Body;
             };
 
-            var processResult = _combinerProcessor.ProcessMessage( new MessageHeader( sourceMeta, CancellationToken.None ), _requestFirstFile1 );
-
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
-
+            _combinerProcessor.DefaultInput.ProcessMessage( new MessageHeader( sourceMeta, CancellationToken.None ), _requestFirstFile1 );
+            
             Assert.AreNotSame( _requestFirstFile1, sendedBody );
             Assert.IsTrue( sendedHeader.MetaData.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) );
             Assert.IsFalse( sourceMeta.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) );
@@ -91,17 +88,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List< MessageHeader > sendedHeader = new List< MessageHeader >();
             List< UrlLoadingRequest > sendedBody = new List< UrlLoadingRequest >();
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _combinerProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader.Add( args.Header );
                 sendedBody.Add( ( UrlLoadingRequest ) args.Body );
             };
 
-            var processResult = _combinerProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _requestFirstFile1 );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
+            _combinerProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _requestFirstFile1 );
 
-            processResult = _combinerProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _requestFirstFile2 );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
+            _combinerProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _requestFirstFile2 );
 
 
             Assert.AreEqual( 1, sendedBody.Count );
@@ -116,18 +111,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List< MessageHeader > sendedHeader = new List< MessageHeader >();
             List< UrlLoadingRequest > sendedBody = new List< UrlLoadingRequest >();
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _combinerProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader.Add( args.Header );
                 sendedBody.Add( ( UrlLoadingRequest ) args.Body );
             };
 
-            var processResult = _combinerProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _requestFirstFile1 );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
+            _combinerProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _requestFirstFile1 );
 
-            processResult = _combinerProcessor.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _requestSecondFile1 );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
-
+            _combinerProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), _requestSecondFile1 );
 
             Assert.AreEqual( 2, sendedBody.Count );
             Assert.AreEqual( 2, _combinedRequests.Count );
@@ -147,7 +139,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List<MessageHeader> sendedHeader = new List<MessageHeader>();
             List<UrlLoadingRequest> sendedBody = new List<UrlLoadingRequest>();
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += (sender, args) =>
+            _combinerProcessor.DefaultOutput.MessageSent += (sender, args) =>
             {
                 sendedHeader.Add(args.Header);
                 sendedBody.Add((UrlLoadingRequest)args.Body);
@@ -155,7 +147,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             var header = new MessageHeader(new MetaData(), tokenSource.Token);
-            _combinerProcessor.ProcessMessage(header, _requestFirstFile1);
+            _combinerProcessor.DefaultInput.ProcessMessage(header, _requestFirstFile1);
 
             //_requestFirstFile1.RequestCancel();
             tokenSource.Cancel();
@@ -167,7 +159,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.AreEqual(1, _combinedRequests.Count);
 
-            _combinerProcessor.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile1);
+            _combinerProcessor.DefaultInput.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile1);
 
             Assert.AreEqual(1, _combinedRequests.Count);
         }
@@ -178,7 +170,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List<MessageHeader> sendedHeader = new List<MessageHeader>();
             List<UrlLoadingRequest> sendedBody = new List<UrlLoadingRequest>();
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += (sender, args) =>
+            _combinerProcessor.DefaultOutput.MessageSent += (sender, args) =>
             {
                 sendedHeader.Add(args.Header);
                 sendedBody.Add((UrlLoadingRequest)args.Body);
@@ -186,8 +178,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             var header = new MessageHeader(new MetaData(), tokenSource.Token);
-            _combinerProcessor.ProcessMessage(header, _requestFirstFile1);
-            _combinerProcessor.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestFirstFile2);            
+            _combinerProcessor.DefaultInput.ProcessMessage(header, _requestFirstFile1);
+            _combinerProcessor.DefaultInput.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestFirstFile2);            
 
             Assert.AreEqual(1, sendedHeader.Count);
 
@@ -210,7 +202,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List<MessageHeader> sendedHeader = new List<MessageHeader>();
             List<UrlLoadingRequest> sendedBody = new List<UrlLoadingRequest>();
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += (sender, args) =>
+            _combinerProcessor.DefaultOutput.MessageSent += (sender, args) =>
             {
                 sendedHeader.Add(args.Header);
                 sendedBody.Add((UrlLoadingRequest)args.Body);
@@ -218,11 +210,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             CancellationTokenSource tokenSource1 = new CancellationTokenSource();
             var header1 = new MessageHeader(new MetaData(), tokenSource1.Token);
-            _combinerProcessor.ProcessMessage(header1, _requestFirstFile1);
+            _combinerProcessor.DefaultInput.ProcessMessage(header1, _requestFirstFile1);
 
             CancellationTokenSource tokenSource2 = new CancellationTokenSource();
             var header2 = new MessageHeader(new MetaData(), tokenSource2.Token);
-            _combinerProcessor.ProcessMessage(header2, _requestFirstFile2);
+            _combinerProcessor.DefaultInput.ProcessMessage(header2, _requestFirstFile2);
 
             Assert.AreEqual(1, sendedHeader.Count);
 
@@ -241,7 +233,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.AreEqual(1, _combinedRequests.Count);
             Assert.AreEqual(0, _combinedRequests.Values.First().SourceRequests.Count);
 
-            _combinerProcessor.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile1);
+            _combinerProcessor.DefaultInput.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile1);
             Assert.AreEqual(1, _combinedRequests.Count);
         }
 
@@ -252,7 +244,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List<MessageHeader> sendedHeader = new List<MessageHeader>();
             List<UrlLoadingRequest> sendedBody = new List<UrlLoadingRequest>();
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += (sender, args) =>
+            _combinerProcessor.DefaultOutput.MessageSent += (sender, args) =>
             {
                 sendedHeader.Add(args.Header);
                 sendedBody.Add((UrlLoadingRequest)args.Body);
@@ -260,14 +252,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             CancellationTokenSource tokenSource1 = new CancellationTokenSource();
             var header1 = new MessageHeader(new MetaData(), tokenSource1.Token);
-            _combinerProcessor.ProcessMessage(header1, _requestFirstFile1);
+            _combinerProcessor.DefaultInput.ProcessMessage(header1, _requestFirstFile1);
 
             CancellationTokenSource tokenSource2 = new CancellationTokenSource();
             var header2 = new MessageHeader(new MetaData(), tokenSource2.Token);
-            _combinerProcessor.ProcessMessage(header2, _requestFirstFile2);
+            _combinerProcessor.DefaultInput.ProcessMessage(header2, _requestFirstFile2);
 
-            _combinerProcessor.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile1);
-            _combinerProcessor.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile2);
+            _combinerProcessor.DefaultInput.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile1);
+            _combinerProcessor.DefaultInput.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile2);
 
             Assert.AreEqual(2, sendedHeader.Count);
 
@@ -289,7 +281,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.AreEqual(0, _combinedRequests.Values.First().SourceRequests.Count);
             Assert.AreEqual(2, _combinedRequests.Values.ElementAt(1).SourceRequests.Count);
 
-            _combinerProcessor.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile1);
+            _combinerProcessor.DefaultInput.ProcessMessage(new MessageHeader(new MetaData(), CancellationToken.None), _requestSecondFile1);
             Assert.AreEqual(1, _combinedRequests.Count);
 
             //     _combinerProcessor.ProcessRequest< Object >( _requestFirstFile1 );
@@ -354,17 +346,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List< MessageHeader > sendedHeader = new List< MessageHeader >();
             List< UrlLoadingRequest > sendedBody = new List< UrlLoadingRequest >();
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _combinerProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader.Add( args.Header );
                 sendedBody.Add( ( UrlLoadingRequest ) args.Body );
             };
 
-            var processResult = _combinerProcessor.ProcessMessage( sourceHeader1, _requestFirstFile1 );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
+            _combinerProcessor.DefaultInput.ProcessMessage( sourceHeader1, _requestFirstFile1 );
 
-            processResult = _combinerProcessor.ProcessMessage( sourceHeader2, _requestFirstFile2 );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
+            _combinerProcessor.DefaultInput.ProcessMessage( sourceHeader2, _requestFirstFile2 );
 
             Assert.AreEqual( 1, sendedHeader.Count );
             Assert.AreEqual( 1, sendedBody.Count );
@@ -373,15 +363,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List< MessageHeader > uncombinedHeader = new List< MessageHeader >();
             List< AssetLoadingRequest< object > > uncombinedBody = new List< AssetLoadingRequest< object > >();
 
-            _uncombinerProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _uncombinerProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 uncombinedHeader.Add( args.Header );
                 uncombinedBody.Add( ( AssetLoadingRequest< object > ) args.Body );
             };
 
-            processResult = _uncombinerProcessor.ProcessMessage( sendedHeader[ 0 ], new AssetLoadingRequest< object >( sendedBody[ 0 ], sourceAssset ) );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
-
+            _uncombinerProcessor.DefaultInput.ProcessMessage( sendedHeader[ 0 ], new AssetLoadingRequest< object >( sendedBody[ 0 ], sourceAssset ) );
 
             Assert.AreEqual( 2, uncombinedHeader.Count );
             Assert.AreEqual( 2, uncombinedBody.Count );
@@ -407,17 +395,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List< MessageHeader > sendedHeader = new List< MessageHeader >();
             List< UrlLoadingRequest > sendedBody = new List< UrlLoadingRequest >();
 
-            _combinerProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _combinerProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 sendedHeader.Add( args.Header );
                 sendedBody.Add( ( UrlLoadingRequest ) args.Body );
             };
 
-            var processResult = _combinerProcessor.ProcessMessage( sourceHeader1, _requestFirstFile1 );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
+            _combinerProcessor.DefaultInput.ProcessMessage( sourceHeader1, _requestFirstFile1 );
 
-            processResult = _combinerProcessor.ProcessMessage( sourceHeader2, _requestFirstFile2 );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
+            _combinerProcessor.DefaultInput.ProcessMessage( sourceHeader2, _requestFirstFile2 );
 
             Assert.AreEqual( 1, sendedHeader.Count );
             Assert.AreEqual( 1, sendedBody.Count );
@@ -426,7 +412,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             List< MessageHeader > uncombinedHeader = new List< MessageHeader >();
             List< AssetLoadingRequest< object > > uncombinedBody = new List< AssetLoadingRequest< object > >();
 
-            _uncombinerProcessor.GetOutputs().First().OnMessageSended += ( sender, args ) =>
+            _uncombinerProcessor.DefaultOutput.MessageSent += ( sender, args ) =>
             {
                 uncombinedHeader.Add( args.Header );
                 uncombinedBody.Add( ( AssetLoadingRequest< object > ) args.Body );
@@ -434,9 +420,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             sendedHeader[ 0 ].AddException( new Exception(exceptionMessage) );
             
-            processResult = _uncombinerProcessor.ProcessMessage( sendedHeader[ 0 ], new AssetLoadingRequest< object >( sendedBody[ 0 ], sourceAssset ) );
-            Assert.AreEqual( FlowMessageStatus.Accepted, processResult );
-
+            _uncombinerProcessor.DefaultInput.ProcessMessage( sendedHeader[ 0 ], new AssetLoadingRequest< object >( sendedBody[ 0 ], sourceAssset ) );
 
             Assert.AreEqual( 2, uncombinedHeader.Count );
             Assert.AreEqual( 2, uncombinedBody.Count );

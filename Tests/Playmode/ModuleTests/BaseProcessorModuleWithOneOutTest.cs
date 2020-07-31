@@ -1,29 +1,32 @@
-using System;
+﻿using System;
 using System.Collections;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using NSubstitute;
 using NUnit.Framework;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
-    public abstract class BaseProcessorModuleWithOneOutTest< ProcessorType, InputNodeBodyType, OutNodeBodyType > where ProcessorType : AbstractRequestInputOutputProcessorWithDefaultOutput< InputNodeBodyType, OutNodeBodyType > where InputNodeBodyType : IMessageBody where OutNodeBodyType : IMessageBody
+    public abstract class BaseProcessorModuleWithOneOutTest< TProcessorType, TInputNodeBodyType, TOutNodeBodyType >
+        where TProcessorType : AbstractRequestInputOutputProcessor< TInputNodeBodyType, TOutNodeBodyType >
+        where TInputNodeBodyType : IMessageBody
+        where TOutNodeBodyType : IMessageBody
     {
         protected const float RemoteLoadingTimeoutSec = 5f;
-        protected ProcessorType _workProcessor;
-        protected IInputNode< OutNodeBodyType > outProcessor;
+        protected TProcessorType _workProcessor;
+        protected IInputNode< TOutNodeBodyType > outProcessor;
 
         [ SetUp ]
         public void Setup()
         {
             InternalSetup();
-            outProcessor = Substitute.For< IInputNode< OutNodeBodyType > >();
-            _workProcessor.RegisterDefaultConnection( outProcessor );
+            outProcessor = Substitute.For< IInputNode< TOutNodeBodyType > >();
+            _workProcessor.DefaultOutput.LinkTo( outProcessor );
         }
 
         protected abstract void InternalSetup();
 
-        protected IEnumerator WaitForTimeOut( InputNodeBodyType sendedBody )
+        protected IEnumerator WaitForTimeOut( TInputNodeBodyType sendedBody )
         {
             var timeoutTime = DateTime.Now.AddSeconds( RemoteLoadingTimeoutSec );
             while( sendedBody == null && DateTime.Now < timeoutTime )

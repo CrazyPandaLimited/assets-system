@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using CrazyPanda.UnityCore.PandaTasks;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem
 {

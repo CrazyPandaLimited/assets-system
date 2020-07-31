@@ -1,47 +1,31 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class ConditionBasedProcessor< TBodyType > : AbstractRequestInputOutputProcessor< TBodyType, TBodyType > where TBodyType : TrackProgressLoadingRequest
+    public class ConditionBasedProcessor< TBodyType > : AbstractRequestInputProcessor< TBodyType >
+        where TBodyType : TrackProgressLoadingRequest
     {
-        #region Protected Fields
         protected Func< MetaData, Exception, TBodyType, bool > _conditionDelegate;
 
-        protected Dictionary< bool, NodeOutputConnection< TBodyType > > _conditionOutConnections;
-        #endregion
+        private BaseOutput< TBodyType > _passedOutput = new BaseOutput< TBodyType >( OutputHandlingType.Optional );
+        private BaseOutput< TBodyType > _notPassedOutput = new BaseOutput< TBodyType >( OutputHandlingType.Optional );
 
-        #region Constructors
-        public ConditionBasedProcessor( Func< MetaData,Exception, TBodyType, bool > conditionDelegate )
-        {
-            _conditionDelegate = conditionDelegate ?? throw new ArgumentNullException( $"{nameof(conditionDelegate)} can not be null!" );
-            _conditionOutConnections = new Dictionary< bool, NodeOutputConnection< TBodyType > >( 2 );
-        }
-        #endregion
+        public IOutputNode< TBodyType > PassedOutput => _passedOutput;
+        public IOutputNode< TBodyType > NotPassedOutput => _notPassedOutput;
 
-        #region Public Members
-        public void RegisterConditionPassedOutConnection( IInputNode< TBodyType > node )
+        public ConditionBasedProcessor( Func< MetaData, Exception, TBodyType, bool > conditionDelegate )
         {
-            var connection = new NodeOutputConnection< TBodyType >( node );
-            RegisterConnection( connection );
-            _conditionOutConnections.Add( true, connection );
+            _conditionDelegate = conditionDelegate ?? throw new ArgumentNullException( nameof( conditionDelegate ) );
         }
 
-        public void RegisterConditionFailedOutConnection( IInputNode< TBodyType > node )
+        protected override void InternalProcessMessage( MessageHeader header, TBodyType body )
         {
-            var connection = new NodeOutputConnection< TBodyType >( node );
-            RegisterConnection( connection );
-            _conditionOutConnections.Add( false, connection );
+            if( _conditionDelegate( header.MetaData, header.Exceptions, body ) )
+                _passedOutput.ProcessMessage( header, body );
+            else
+                _notPassedOutput.ProcessMessage( header, body );
         }
-        #endregion
-
-        #region Protected Members
-        protected override FlowMessageStatus InternalProcessMessage( MessageHeader header, TBodyType body )
-        {
-            _conditionOutConnections[ _conditionDelegate( header.MetaData, header.Exceptions, body ) ].ProcessMessage( header, body );
-            return FlowMessageStatus.Accepted;
-        }
-        #endregion
     }
 }

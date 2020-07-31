@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,7 +8,7 @@ using CrazyPanda.UnityCore.PandaTasks.Progress;
 using NSubstitute;
 using NSubstitute.Core;
 using NUnit.Framework;
-using UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.MessagesFlow;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
@@ -47,12 +47,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             });
 
             var inputOutNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
-            _processor.RegisterRetryConnection(inputOutNode);
+            //_processor.RetryOutput.LinkTo(inputOutNode);
+            _processor.RetryOutput.LinkTo(inputOutNode);
             
-            var msgStatus = _processor.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
+            _processor.DefaultInput.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
 
-            Assert.True(msgStatus == FlowMessageStatus.Accepted);
-            
             yield return WaitResults();
             
             var rCalls = new List<ICall>(inputOutNode.ReceivedCalls());
@@ -76,7 +75,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             });
 
             var inputOutNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
-            _processor.RegisterRetryConnection(inputOutNode);
+            _processor.RetryOutput.LinkTo(inputOutNode);
 
             var metaData = new MetaData();
             metaData.SetMeta(RequestRetryProcessor<Object>.RETRY_METADATA_KEY, 1);
@@ -84,9 +83,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             //var loadingRequest = new UnityAssetLoadingRequest("1", metaData, _taskSource, CancellationToken.None, null);
             _messageHeaderFirstFile1 = new MessageHeader(metaData, CancellationToken.None);
 
-            var msgStatus = _processor.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
-
-            Assert.True(msgStatus == FlowMessageStatus.Accepted);
+            _processor.DefaultInput.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
 
             yield return WaitResults();
             
@@ -112,13 +109,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             });
 
             var inputRetryNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
-            _processor.RegisterRetryConnection(inputRetryNode);
+            _processor.RetryOutput.LinkTo(inputRetryNode);
 
             var inputOutNode = Substitute.For<IInputNode<AssetLoadingRequest<Object>>>();
-            _processor.RegisterOutputConnection(inputOutNode);
+            _processor.DefaultOutput.LinkTo(inputOutNode);
             
             var inputRetryExceptionNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
-            _processor.RegisterAllRetrysFailedConnection(inputRetryExceptionNode);
+            _processor.AllRetrysFailedOutput.LinkTo(inputRetryExceptionNode);
 
             var metaData = new MetaData();
             metaData.SetMeta(RequestRetryProcessor<Object>.RETRY_METADATA_KEY, 1);
@@ -126,21 +123,19 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             _messageHeaderFirstFile1 = new MessageHeader(metaData, CancellationToken.None);
 
             //var loadingRequest = new UnityAssetLoadingRequest("1", metaData, _taskSource, CancellationToken.None, null);
-            var msgStatus = _processor.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
+            _processor.DefaultInput.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
 
             //_processor.ProcessRequest<Object>(loadingRequest);
-
-            Assert.True(msgStatus == FlowMessageStatus.Accepted);
 
             yield return WaitResults();
             
             var rCallsRetry = new List<ICall>(inputRetryNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
-            Assert.AreEqual(0,rCallsRetry.Count);
+            Assert.AreEqual( 0, rCallsRetry.Count );
 
             var rCallsOut = new List<ICall>(inputRetryExceptionNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
-            Assert.AreEqual(2,rCallsOut.Count);
+            Assert.AreEqual( 1, rCallsOut.Count );
 
             Assert.True(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
             Assert.AreEqual(1, _messageHeaderFirstFile1.MetaData.GetMeta<int>(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
@@ -157,17 +152,17 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         {
             _processor = new RequestRetryProcessor<Object>(new Dictionary<int, float>()
             {
-                {1, 0.5f}
+                {1, 0.1f}
             },
             (header, request) => {
                 return true;
             });
 
             var inputRetryNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
-            _processor.RegisterRetryConnection(inputRetryNode);
+            _processor.RetryOutput.LinkTo(inputRetryNode);
 
             var inputOutNode = Substitute.For<IInputNode<AssetLoadingRequest<Object>>>();
-            _processor.RegisterOutputConnection(inputOutNode);
+            _processor.DefaultOutput.LinkTo(inputOutNode);
             //var metaData = new MetaData();
 
             //var loadingRequest = new UnityAssetLoadingRequest("1", metaData, _taskSource, CancellationToken.None, null);
@@ -175,9 +170,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             _messageHeaderFirstFile1 = new MessageHeader(new MetaData(), tokenSource.Token);
 
-            var msgStatus = _processor.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
-
-            Assert.True(msgStatus == FlowMessageStatus.Accepted);
+            _processor.DefaultInput.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
 
             tokenSource.Cancel();
 
@@ -189,7 +182,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             var rCallsOut = new List<ICall>(inputOutNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
-            Assert.True(rCallsRetry.Count == 0);
+            Assert.True(rCallsOut.Count == 0);
 
             Assert.True(_messageHeaderFirstFile1.CancellationToken.IsCancellationRequested);
             Assert.False(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
