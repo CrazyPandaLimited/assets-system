@@ -1,0 +1,25 @@
+{
+    "name": "UnityCore.ResourcesSystem.Tests",
+    "references": [
+        "UnityCore.ResourcesSystem",
+        "UnityCore.MessagesFlow",
+        "UnityCore.Promises",
+        "UnityCore.NewtonsoftJSON",
+        "UnityCore.OrderedNotifySet",
+        "UnityCore.ResourcesSystem.JsonSupport"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "Newtonsoft.Json.dll",
+        "NSubstitute.dll",
+        "System.Threading.Tasks.Extensions.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

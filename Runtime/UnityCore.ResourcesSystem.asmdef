@@ -1,0 +1,16 @@
+{
+    "name": "UnityCore.ResourcesSystem",
+    "references": [
+        "UnityCore.Promises",
+        "UnityCore.MessagesFlow",
+        "UnityCore.OrderedNotifySet"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "noEngineReferences": false
+}

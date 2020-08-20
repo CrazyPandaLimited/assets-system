@@ -1,0 +1,19 @@
+{
+    "name": "UnityCore.ResourcesSystem.Editor",
+    "references": [
+        "UnityCore.ResourcesSystem",
+        "UnityCore.MessagesFlow",
+        "UnityCore.Promises",
+        "UnityCore.OrderedNotifySet"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "noEngineReferences": false
+}
