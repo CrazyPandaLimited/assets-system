@@ -8,12 +8,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem
     public class AssetBundleManifest
     {
         #region Public Fields
-        public readonly Dictionary< string, BundleInfo > BundleInfos = new Dictionary< string, BundleInfo >();
-        public readonly Dictionary< string, AssetInBundleInfo > AssetInfos = new Dictionary< string, AssetInBundleInfo >();
+        public readonly Dictionary< string, BundleInfo > BundleInfos = new Dictionary< string, BundleInfo >( StringComparer.OrdinalIgnoreCase );
+        public readonly Dictionary< string, AssetInBundleInfo > AssetInfos = new Dictionary< string, AssetInBundleInfo >( StringComparer.OrdinalIgnoreCase );
         #endregion
 
         #region Private Fields
-        private Dictionary< string, BundleInfo > _bundleInfoByAssetNameCache = new Dictionary< string, BundleInfo >();
+        private Dictionary< string, BundleInfo > _bundleInfoByAssetNameCache = new Dictionary< string, BundleInfo >( StringComparer.OrdinalIgnoreCase );
         #endregion
 
         #region Public Members
