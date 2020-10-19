@@ -1,3 +1,17 @@
+<<<<<<< HEAD:OpenSource/Runtime/AssetsStorage.cs.meta
+fileFormatVersion: 2
+guid: d69f2b1c42659f04ca14af332e5dbf31
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+=======
 ﻿fileFormatVersion: 2
 guid: 358fca986f8541f7b45ae09d26a9be80
 timeCreated: 1561389700
+>>>>>>> develop:Runtime/OpenSource/AssetsStorage.cs.meta

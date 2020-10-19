@@ -1,10 +1,13 @@
 {
-    "name": "UnityCore.ResourcesSystem.Editor",
+    "name": "UnityCore.ResourcesSystem.TestsEditor",
     "references": [
         "UnityCore.ResourcesSystem",
         "UnityCore.MessagesFlow",
         "UnityCore.Promises",
+        "UnityCore.NewtonsoftJSON",
         "UnityCore.OrderedNotifySet",
+        "UnityCore.ResourcesSystem.JsonSupport",
+        "UnityCore.ResourcesSystem.Editor",
         "UnityCore.NodeEditor",
         "UnityCore.NodeEditor.Editor"
     ],
@@ -15,13 +18,18 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
+        "nunit.framework.dll",
+        "Newtonsoft.Json.dll",
+        "NSubstitute.dll",
+        "System.Threading.Tasks.Extensions.dll",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.dll",
         "System.Collections.Immutable.dll",
         "System.Reflection.Metadata.dll",
-        "Newtonsoft.Json.dll"
+        "System.Runtime.CompilerServices.Unsafe.dll"
     ],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
+    "versionDefines": [],
     "noEngineReferences": false
 }

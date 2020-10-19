@@ -1,0 +1,17 @@
+#exception-message {
+    color: rgb(255,0,0);
+    display: none;
+    white-space: normal;
+    font-size: 12;
+    max-width: 300;
+    padding: 0,6,2,6;
+}
+
+.has-exception #node-border {
+    border-color: rgb(220,0,0);
+    border-width: 1;
+}
+
+.has-exception #exception-message {
+    display: flex;
+}

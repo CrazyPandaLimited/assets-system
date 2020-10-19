@@ -10,9 +10,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 		public Dictionary<string, RequestHistory> RequestsHistory = new Dictionary< string, RequestHistory >();
 		
 		private List< IFlowNode > _allNodes;
-		private AssetsStorage _storageNode;
+		private BaseAssetsStorage _storageNode;
 
-		public RequestsHistoryInfo(AssetsStorage storageNode, List< IFlowNode > nodes)
+		public RequestsHistoryInfo(BaseAssetsStorage storageNode, List< IFlowNode > nodes)
 		{
 			_allNodes = new List< IFlowNode >();
 			
@@ -20,7 +20,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
 			
 			foreach( var flowNode in nodes )
 			{
-				if( flowNode is AssetsStorage )
+				if( flowNode is BaseAssetsStorage )
 				{
 					continue;
 				}

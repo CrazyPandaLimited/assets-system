@@ -17,7 +17,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
         /// <param name="promiseMap"></param>
         /// <param name="allNodes"></param>
         /// <param name="requestsQueue"></param>
-        public static void Setup(AssetsStorage assetsStorage, RequestToPromiseMap promiseMap, List< IFlowNode > allNodes )
+        public static void Setup(BaseAssetsStorage assetsStorage, RequestToPromiseMap promiseMap, List< IFlowNode > allNodes )
         {
             if( instance == null )
             {
@@ -76,7 +76,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
         public Dictionary< string, Dictionary< string, CombinedRequest > > MessageCombineNodesInfos = new Dictionary< string, Dictionary< string, CombinedRequest > >();
     
         
-        public AssetsSystemDebugInfo(AssetsStorage assetsStorage, RequestToPromiseMap promiseMap, List< IFlowNode > allNodes )
+        public AssetsSystemDebugInfo(BaseAssetsStorage assetsStorage, RequestToPromiseMap promiseMap, List< IFlowNode > allNodes )
         {
             PromiseMap = promiseMap;
             RequestsHistoryInfo = new RequestsHistoryInfo(assetsStorage, allNodes );
