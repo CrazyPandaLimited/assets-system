@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using CrazyPanda.UnityCore.NodeEditor;
 using Newtonsoft.Json;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace CrazyPanda.UnityCore.AssetsSystem
@@ -56,7 +58,18 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
         private static VisualElement CreateVisualItem( string label, object value, Action< object > setter )
         {
-            return ObjectPropertiesField.CreateFieldEditor< TextField, string >( label, value.ToString(), s => setter( new TypeProvider( ( string )s ) ) );
+            var view = ObjectPropertiesField.CreateFieldEditor< TextField, string >( label, value.ToString(), s => setter( new TypeProvider( ( string )s ) ) );
+
+            var typeSelectionButton = new Button( () =>
+            {
+                var windowProvider = ScriptableObject.CreateInstance< SearchTypesWindowProvider >();
+                windowProvider.OnTypeSelected += type => view.value = type.FullName;
+                SearchWindow.Open( new SearchWindowContext( GUIUtility.GUIToScreenPoint( view.worldBound.center ) ), windowProvider );
+            } ) { name = "type-selection-button", text = " Choose Type " };
+            
+            view.Add( typeSelectionButton );
+
+            return view;
         }
     }
 }
