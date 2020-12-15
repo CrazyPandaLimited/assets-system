@@ -1,5 +1,6 @@
 ﻿using CrazyPanda.UnityCore.AssetsSystem.Tests;
 using System.Text;
+using Newtonsoft.Json;
 using System;
 using UnityEngine.TestTools;
 using Object = System.Object;
@@ -9,6 +10,7 @@ using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using CrazyPanda.UnityCore.PandaTasks;
 using NUnit.Framework;
 using UnityEngine;
+using CrazyPanda.UnityCore.Serialization;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 {
