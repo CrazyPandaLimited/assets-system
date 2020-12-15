@@ -4,9 +4,7 @@
         "UnityCore.ResourcesSystem",
         "UnityCore.MessagesFlow",
         "UnityCore.Promises",
-        "UnityCore.NewtonsoftJSON",
-        "UnityCore.OrderedNotifySet",
-        "UnityCore.ResourcesSystem.JsonSupport"
+        "UnityCore.OrderedNotifySet"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -14,9 +12,9 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll",
-        "Newtonsoft.Json.dll",
         "NSubstitute.dll",
-        "System.Threading.Tasks.Extensions.dll"
+        "System.Threading.Tasks.Extensions.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
