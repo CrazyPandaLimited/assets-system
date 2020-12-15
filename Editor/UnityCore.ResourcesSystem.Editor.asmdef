@@ -4,9 +4,7 @@
         "UnityCore.ResourcesSystem",
         "UnityCore.MessagesFlow",
         "UnityCore.Promises",
-        "UnityCore.OrderedNotifySet",
-        "UnityCore.NodeEditor",
-        "UnityCore.NodeEditor.Editor"
+        "UnityCore.OrderedNotifySet"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,13 +12,7 @@
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
-    "precompiledReferences": [
-        "Microsoft.CodeAnalysis.CSharp.dll",
-        "Microsoft.CodeAnalysis.dll",
-        "System.Collections.Immutable.dll",
-        "System.Reflection.Metadata.dll",
-        "Newtonsoft.Json.dll"
-    ],
+    "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
     "noEngineReferences": false
