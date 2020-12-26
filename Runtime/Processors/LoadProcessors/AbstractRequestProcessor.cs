@@ -36,7 +36,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         {
             OnLoadingStarted( data.Header, data.Body );
             var operationCancelled = false;
-            data.Header.CancellationToken.Register( () =>
+            data.Header.CancellationToken.RegisterIfCanBeCanceled( () =>
             {
                 operationCancelled = true;
                 data.RequestLoadingOperation.completed -= OnOperationFinished;

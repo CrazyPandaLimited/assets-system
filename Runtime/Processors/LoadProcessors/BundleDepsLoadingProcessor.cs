@@ -34,7 +34,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             var cancelToken = new CancellationTokenSource();
             var downloadableData = CreateDownloadableData( GetAssetBundlesNamesToLoad( body.Url ), MetaDataFactory.CreateMetadata( header ), cancelToken.Token );
 
-            header.CancellationToken.Register( () => { cancelToken.Cancel(); } );
+            header.CancellationToken.RegisterIfCanBeCanceled( () => { cancelToken.Cancel(); } );
 
             var compositeProgressTracker = new CompositeProgressTracker( downloadableData.progressTrackers );
             compositeProgressTracker.OnProgressChanged += ( sender, args ) => { body.ProgressTracker.ReportProgress( args.progress ); };

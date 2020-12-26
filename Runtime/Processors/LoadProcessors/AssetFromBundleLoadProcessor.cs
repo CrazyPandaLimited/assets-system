@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using CrazyPanda.UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.PandaTasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -50,7 +51,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         private void StartToLoadMainBundle( MessageHeader header, UrlLoadingRequest body )
         {
             var cancelToken = new CancellationTokenSource();
-            header.CancellationToken.Register( () => { cancelToken.Cancel(); } );
+            header.CancellationToken.RegisterIfCanBeCanceled( () => { cancelToken.Cancel(); } );
 
             var mainBundleLoader = _assetsStorage.LoadAssetAsync< AssetBundle >( GetMainBundleName( body ), BundleDepsLoadingProcessor.MetaDataFactory.CreateMetadata( header ), cancelToken.Token, body.ProgressTracker );
             mainBundleLoader.Done( mainBundle => StartToLoadAssetFromBundle( mainBundle, header, body ) ).Fail( header.AddException );

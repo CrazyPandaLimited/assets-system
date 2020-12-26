@@ -135,6 +135,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 throw new InvalidOperationException( $"{nameof( BaseAssetsStorage )} is not fully built" );
             }
 
+            if( tocken.IsCancellationRequested )
+            {
+                return PandaTasksUtilitys.GetCanceledTask< AssetType >();
+            }
+            
             var header = new MessageHeader( metaData, tocken );
             var body = new UrlLoadingRequest( url, typeof( AssetType ), tracker == null ? new ProgressTracker< float >() : tracker );
 
@@ -145,7 +150,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 .Done( o => { resultTask.SetValue( ( AssetType ) o ); } )
                 .Fail( exception => { resultTask.SetError( exception ); } );
 
-            tocken.Register( () =>
+            tocken.RegisterIfCanBeCanceled( () =>
             {
                 if( !_requestToPromiseMap.Has( header.Id ) )
                 {

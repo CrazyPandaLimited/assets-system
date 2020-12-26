@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
 using CrazyPanda.UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.PandaTasks;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
@@ -36,7 +37,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         public void AddRequest( MessageHeader header, UrlLoadingRequest body )
         {
             SourceRequests.Add( header, body );
-            header.CancellationToken.Register( () => OnCancelRequested( header ) );
+            header.CancellationToken.RegisterIfCanBeCanceled( () => OnCancelRequested( header ) );
         }
         #endregion
 
