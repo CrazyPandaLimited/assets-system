@@ -6,7 +6,8 @@
         "UnityCore.Promises",
         "UnityCore.NewtonsoftJSON",
         "UnityCore.OrderedNotifySet",
-        "UnityCore.ResourcesSystem.JsonSupport"
+        "UnityCore.ResourcesSystem.JsonSupport",
+        "UnityCore.Promises.AsyncTestsSupport"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

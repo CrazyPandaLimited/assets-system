@@ -10,7 +10,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         #endregion
 
         #region Constructors
-        public AssetsMemoryCache( int startCapacity = 200 )
+        public AssetsMemoryCache() : this( 200 )
+        {
+            
+        }
+
+        public AssetsMemoryCache( int startCapacity )
         {
             _assets = new Dictionary< string, object >( startCapacity );
         }
