@@ -17,7 +17,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.DebugTools
         /// <param name="promiseMap"></param>
         /// <param name="allNodes"></param>
         /// <param name="requestsQueue"></param>
-        public static void Setup(BaseAssetsStorage assetsStorage, RequestToPromiseMap promiseMap, List< IFlowNode > allNodes )
+        public static void Initialize(BaseAssetsStorage assetsStorage, RequestToPromiseMap promiseMap, List< IFlowNode > allNodes )
         {
             if( instance == null )
             {
