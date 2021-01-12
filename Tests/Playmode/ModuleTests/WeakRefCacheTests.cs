@@ -120,7 +120,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         private async Task RunFullGCCollectAsync()
         {
             GC.Collect();
-            await Task.Delay( TimeSpan.FromSeconds( 5 ) );
+            await Task.Delay( TimeSpan.FromSeconds( 10 ) );
         }
         
         private void CheckThatCacheContainsTestValue() => Assert.True( _memoryCache.Contains( testObjectName ) );
