@@ -6,9 +6,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     [NUnit.Framework.Category("ModuleTests")]
     [NUnit.Framework.Category("LocalTests")]
-    public abstract class ICacheTests< TCache > where TCache : ICache, new()
+    public abstract class BaseCacheTests< TCache > where TCache : ICache, new()
     {
-        protected TCache _assetsMemoryCache { get; private set; }
+        protected TCache _memoryCache { get; private set; }
 
         protected readonly object testObject1 = new object();
         protected string testObjectName => nameof(testObject1);        
@@ -16,40 +16,40 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [SetUp]
         public void Setup()
         {
-            _assetsMemoryCache = new TCache();
+            _memoryCache = new TCache();
         }
 
         [Test]
         public void AddAndContainsTest()
         {            
-            _assetsMemoryCache.Add(testObjectName, testObject1);            
-            Assert.True(_assetsMemoryCache.Contains(testObjectName));
+            _memoryCache.Add(testObjectName, testObject1);            
+            Assert.True(_memoryCache.Contains(testObjectName));
         }
 
         [Test]
         public void ContainsFalseTest()
         {
-            _assetsMemoryCache.Add(testObjectName, testObject1);
-            Assert.False(_assetsMemoryCache.Contains("noname"));
+            _memoryCache.Add(testObjectName, testObject1);
+            Assert.False(_memoryCache.Contains("noname"));
         }
 
         [Test]
         public void ContainsEmptyTest()
         {            
-            Assert.Throws<ArgumentNullException>(()=> { _assetsMemoryCache.Contains(""); });
+            Assert.Throws<ArgumentNullException>(()=> { _memoryCache.Contains(""); });
         }
 
         [Test]
         public void ContainsNullTest()
         {
-            Assert.Throws<ArgumentNullException>(() => { _assetsMemoryCache.Contains(null); });
+            Assert.Throws<ArgumentNullException>(() => { _memoryCache.Contains(null); });
         }
 
         [Test]
         public void AddTest()
         {
-            _assetsMemoryCache.Add(testObjectName, testObject1);
-            Assert.True(_assetsMemoryCache.Contains(testObjectName));
+            _memoryCache.Add(testObjectName, testObject1);
+            Assert.True(_memoryCache.Contains(testObjectName));
         }
 
         [Test]
@@ -58,14 +58,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [TestCase("key", null)]
         public void AddNullOrEmptyTest(string key, object asset)
         {
-            Assert.Throws<ArgumentNullException>(()=> { _assetsMemoryCache.Add(key, asset); });
+            Assert.Throws<ArgumentNullException>(()=> { _memoryCache.Add(key, asset); });
         }
 
         [Test]
         public void GetTest()
         {
-            _assetsMemoryCache.Add(testObjectName, testObject1);
-            Assert.AreEqual(testObject1, _assetsMemoryCache.Get(testObjectName));
+            _memoryCache.Add(testObjectName, testObject1);
+            Assert.AreEqual(testObject1, _memoryCache.Get(testObjectName));
         }
 
         [Test]
@@ -73,7 +73,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [TestCase(null)]        
         public void GetNullOrEmptyTest(string key)
         {
-            Assert.Throws<ArgumentNullException>(() => { _assetsMemoryCache.Get(key); });
+            Assert.Throws<ArgumentNullException>(() => { _memoryCache.Get(key); });
         }
 
         [ Test ]
@@ -82,11 +82,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [Test]
         public void RemoveTest()
         {
-            _assetsMemoryCache.Add(testObjectName, testObject1);
-            Assert.AreEqual(testObject1, _assetsMemoryCache.Get(testObjectName));
+            _memoryCache.Add(testObjectName, testObject1);
+            Assert.AreEqual(testObject1, _memoryCache.Get(testObjectName));
 
-            _assetsMemoryCache.Remove(testObjectName);
-            Assert.False(_assetsMemoryCache.Contains(testObjectName));
+            _memoryCache.Remove(testObjectName);
+            Assert.False(_memoryCache.Contains(testObjectName));
         }
 
         [Test]
@@ -94,31 +94,31 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [TestCase(null)]
         public void RemoveNullorEmptyKeyTest(string key)
         {
-            Assert.Throws<ArgumentNullException>(() => { _assetsMemoryCache.Remove(key); });
+            Assert.Throws<ArgumentNullException>(() => { _memoryCache.Remove(key); });
         }
 
         [Test]        
         public void RemoveNotExistedTest()
         {
-            Assert.Throws<KeyNotFoundException>(() => { _assetsMemoryCache.Remove("none"); });
+            Assert.Throws<KeyNotFoundException>(() => { _memoryCache.Remove("none"); });
         }
 
         [Test]
         public void GetAllAssetsNamesTest()
         {
-            var emptyNames = _assetsMemoryCache.GetAllAssetsNames();
+            var emptyNames = _memoryCache.GetAllAssetsNames();
             Assert.AreEqual(0, emptyNames.Count);
 
-            _assetsMemoryCache.Add("1", 1);
-            _assetsMemoryCache.Add("2", 1);
-            var someNames1 = _assetsMemoryCache.GetAllAssetsNames();
+            _memoryCache.Add("1", 1);
+            _memoryCache.Add("2", 1);
+            var someNames1 = _memoryCache.GetAllAssetsNames();
             Assert.AreEqual(2, someNames1.Count);
             Assert.True(someNames1.Contains("1"));
             Assert.True(someNames1.Contains("2"));
 
-            _assetsMemoryCache.Remove("2");
+            _memoryCache.Remove("2");
 
-            var someNames2 = _assetsMemoryCache.GetAllAssetsNames();
+            var someNames2 = _memoryCache.GetAllAssetsNames();
             Assert.AreEqual(1, someNames2.Count);
             Assert.True(someNames2.Contains("1"));
             Assert.False(someNames2.Contains("2"));
@@ -128,14 +128,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [Test]
         public void ClearCacheTest()
         {
-            _assetsMemoryCache.Add("1", 1);
-            _assetsMemoryCache.Add("2", 1);
-            var someNames1 = _assetsMemoryCache.GetAllAssetsNames();
+            _memoryCache.Add("1", 1);
+            _memoryCache.Add("2", 1);
+            var someNames1 = _memoryCache.GetAllAssetsNames();
             Assert.AreEqual(2, someNames1.Count);
 
-            _assetsMemoryCache.ClearCache();
+            _memoryCache.ClearCache();
 
-            var someNames2 = _assetsMemoryCache.GetAllAssetsNames();
+            var someNames2 = _memoryCache.GetAllAssetsNames();
             Assert.AreEqual(0, someNames2.Count);
             Assert.False(someNames2.Contains("1"));
             Assert.False(someNames2.Contains("2"));
