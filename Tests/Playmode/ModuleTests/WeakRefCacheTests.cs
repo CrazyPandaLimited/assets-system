@@ -119,8 +119,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         
         private async Task RunFullGCCollectAsync()
         {
+            WeakReference weakReference = new WeakReference( new object() );
+            
             GC.Collect();
-            await Task.Delay( TimeSpan.FromSeconds( 15 ) );
+
+            while( weakReference.IsAlive )
+            {
+                await Task.Yield();
+            }
         }
         
         private void CheckThatCacheContainsTestValue() => Assert.True( _memoryCache.Contains( testObjectName ) );
