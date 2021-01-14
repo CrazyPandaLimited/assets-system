@@ -119,11 +119,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         
         private async Task RunFullGCCollectAsync()
         {
-            WeakReference weakReference = new WeakReference( new object() );
+            var objectReference = new object();
+            WeakReference weakReference = new WeakReference( objectReference );
             
             GC.Collect();
 
-            while( weakReference.IsAlive )
+            while( weakReference.Target != null )
             {
                 await Task.Yield();
             }
