@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using CrazyPanda.UnityCore.PandaTasks;
 using NUnit.Framework;
@@ -11,7 +10,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     public sealed class WeakRefCacheTests : BaseCacheTests< WeakCache >
     {
-        private const int TestsTimeoutSeconds = 20;
+        private const int TestsTimeoutSeconds = 30;
 
         [ Test ]
         public override void GetNotExistedElementTest()
@@ -119,8 +118,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         
         private async Task RunFullGCCollectAsync()
         {
-            var objectReference = new object();
-            WeakReference weakReference = new WeakReference( objectReference );
+            WeakReference weakReference = new WeakReference( new object() );
             
             GC.Collect();
 
