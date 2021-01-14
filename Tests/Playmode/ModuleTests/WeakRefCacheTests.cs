@@ -119,8 +119,18 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         
         private async Task RunFullGCCollectAsync()
         {
+            Stopwatch stopwatch = new Stopwatch();
+            
             GC.Collect();
-            await Task.Delay( TimeSpan.FromSeconds( 10 ) );
+
+            stopwatch.Start();
+
+            while( stopwatch.Elapsed.Seconds <= 10 )
+            {
+                await Task.Yield();
+            }
+
+            stopwatch.Stop();
         }
         
         private void CheckThatCacheContainsTestValue() => Assert.True( _memoryCache.Contains( testObjectName ) );
