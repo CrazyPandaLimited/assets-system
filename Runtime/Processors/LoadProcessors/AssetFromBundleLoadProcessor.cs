@@ -51,7 +51,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         private void StartToLoadMainBundle( MessageHeader header, UrlLoadingRequest body )
         {
             var cancelToken = new CancellationTokenSource();
-            header.CancellationToken.RegisterIfCanBeCanceled( () => { cancelToken.Cancel(); } );
+
+            if( header.CancellationToken.CanBeCanceled )
+            {
+                header.CancellationToken.Register( () => { cancelToken.Cancel(); } );
+            }
 
             var mainBundleLoader = _assetsStorage.LoadAssetAsync< AssetBundle >( GetMainBundleName( body ), BundleDepsLoadingProcessor.MetaDataFactory.CreateMetadata( header ), cancelToken.Token, body.ProgressTracker );
             mainBundleLoader.Done( mainBundle => StartToLoadAssetFromBundle( mainBundle, header, body ) ).Fail( header.AddException );

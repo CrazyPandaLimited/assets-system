@@ -37,7 +37,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         public void AddRequest( MessageHeader header, UrlLoadingRequest body )
         {
             SourceRequests.Add( header, body );
-            header.CancellationToken.RegisterIfCanBeCanceled( () => OnCancelRequested( header ) );
+
+            if( header.CancellationToken.CanBeCanceled )
+            {
+                header.CancellationToken.Register( () => OnCancelRequested( header ) );
+            }
         }
         #endregion
 

@@ -36,12 +36,16 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         {
             OnLoadingStarted( data.Header, data.Body );
             var operationCancelled = false;
-            data.Header.CancellationToken.RegisterIfCanBeCanceled( () =>
+
+            if( data.Header.CancellationToken.CanBeCanceled )
             {
-                operationCancelled = true;
-                data.RequestLoadingOperation.completed -= OnOperationFinished;
-                OnOperationCancelled( data );
-            } );
+                data.Header.CancellationToken.Register( () =>
+                {
+                    operationCancelled = true;
+                    data.RequestLoadingOperation.completed -= OnOperationFinished;
+                    OnOperationCancelled( data );
+                } );
+            }
 
             StartToTrackLoadingProgress( data );
             data.RequestLoadingOperation.completed += OnOperationFinished;

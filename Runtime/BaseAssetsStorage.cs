@@ -150,16 +150,19 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 .Done( o => { resultTask.SetValue( ( AssetType ) o ); } )
                 .Fail( exception => { resultTask.SetError( exception ); } );
 
-            tocken.RegisterIfCanBeCanceled( () =>
+            if( tocken.CanBeCanceled )
             {
-                if( !_requestToPromiseMap.Has( header.Id ) )
+                tocken.Register( () =>
                 {
-                    return;
-                }
+                    if( !_requestToPromiseMap.Has( header.Id ) )
+                    {
+                        return;
+                    }
 
-                _requestToPromiseMap.Get( header.Id ).SetError( new OperationCanceledException() );
-            } );
-
+                    _requestToPromiseMap.Get( header.Id ).SetError( new OperationCanceledException() );
+                } );
+            }
+            
             _requestToPromiseMap.Add( header.Id, internalTask );
 
             try
