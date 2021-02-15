@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using CrazyPanda.UnityCore.PandaTasks.Progress;
 using CrazyPanda.UnityCore.MessagesFlow;
@@ -57,11 +57,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #endregion
 
         #region Private Members
-        private void ProgressTrackerOnProgressChanged( object sender, ProgressChangedEventArgs< float > e )
+        private void ProgressTrackerOnProgressChanged( float progress )
         {
             foreach( var request in SourceRequests )
             {
-                request.Value.ProgressTracker.ReportProgress( e.progress );
+                request.Value.ProgressTracker.ReportProgress( progress );
             }
         }
         #endregion

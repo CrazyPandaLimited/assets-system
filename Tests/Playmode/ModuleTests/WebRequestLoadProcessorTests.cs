@@ -121,7 +121,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         {
             var currentDownloadProgress = 0f;
             var requestBody = new UrlLoadingRequest( ExistingFileOnServerUrl, typeof( Texture ), new ProgressTracker< float >() );
-            requestBody.ProgressTracker.OnProgressChanged += ( sender, args ) => currentDownloadProgress = args.progress;
+            requestBody.ProgressTracker.OnProgressChanged += ( progress ) => currentDownloadProgress = progress;
 
             _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
 

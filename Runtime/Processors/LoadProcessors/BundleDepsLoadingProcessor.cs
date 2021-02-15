@@ -40,7 +40,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             }
 
             var compositeProgressTracker = new CompositeProgressTracker( downloadableData.progressTrackers );
-            compositeProgressTracker.OnProgressChanged += ( sender, args ) => { body.ProgressTracker.ReportProgress( args.progress ); };
+            compositeProgressTracker.OnProgressChanged += ( progress ) => { body.ProgressTracker.ReportProgress( progress ); };
 
             var thereIsNoAnyBundleToLoad = downloadableData.loadingTasks.Count == 0;
 
