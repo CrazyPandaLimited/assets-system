@@ -47,7 +47,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         #region Private Members
         private void BuildAndSendWebRequest( UnityWebRequest webRequest, MessageHeader header, UrlLoadingRequest body )
         {
-            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.downloadHandler = webRequest.downloadHandler ?? new DownloadHandlerBuffer();
             ConfigureWebRequest( webRequest, _webRequestSettings );
 
 #if UNITY_2017_2_OR_NEWER
