@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using CrazyPanda.UnityCore.MessagesFlow;
@@ -45,8 +45,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 uriWithAnticache = AntiCacheUrlResolver.ResolveURL( ServerUrl, bundleInfo.Name );
             }
 
-            return bundleInfo.CRC == null || bundleInfo.Hash == null ? UnityWebRequestAssetBundle.GetAssetBundle( uriWithAnticache ) :
+            var webRequest = bundleInfo.CRC == null || bundleInfo.Hash == null ? UnityWebRequestAssetBundle.GetAssetBundle( uriWithAnticache ) :
                        UnityWebRequestAssetBundle.GetAssetBundle( uriWithAnticache, Hash128.Parse( bundleInfo.Hash ), uint.Parse( bundleInfo.CRC ) );
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            return webRequest;
         }
 
         protected override void OnLoadingCompleted( RequestProcessorData data )
