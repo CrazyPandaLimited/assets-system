@@ -31,8 +31,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected virtual void OnOperationCancelled( RequestProcessorData data)
         {
-            data.Header.AddException( new AsyncOperationCancelledException( data.RequestLoadingOperation, this, data.Header, data.Body ) );
-            SendException( data.Header,data.Body );
         }
 
         protected void ConfigureLoadingProcess( RequestProcessorData data )
@@ -47,6 +45,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                     operationCancelled = true;
                     data.RequestLoadingOperation.completed -= OnOperationFinished;
                     OnOperationCancelled( data );
+                    OnErrorLoading( data );
                 } );
             }
 

@@ -40,11 +40,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data ) => RequestFinishedWithoutErrors( data.RequestLoadingOperation.webRequest, data.Header, data.Body );
 
-        protected override void OnOperationCancelled( RequestProcessorData data )
-        {
-            data.RequestLoadingOperation.webRequest.Dispose(); 
-            base.OnOperationCancelled( data );
-        }
+        protected override void OnOperationCancelled( RequestProcessorData data ) => data.RequestLoadingOperation.webRequest.Dispose(); 
 
         #endregion
 
