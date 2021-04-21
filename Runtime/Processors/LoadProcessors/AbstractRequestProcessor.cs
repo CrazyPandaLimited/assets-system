@@ -68,8 +68,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 }
                 catch( Exception e )
                 {
-                    OnErrorLoading( data );
                     base.ProcessException( data.Header, data.Body, e );
+                    OnErrorLoading( data );
                 }
             }
         }

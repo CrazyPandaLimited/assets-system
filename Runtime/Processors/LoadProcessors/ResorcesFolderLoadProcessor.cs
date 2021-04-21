@@ -73,6 +73,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             return true;
         }
+
+        protected override void OnErrorLoading( RequestProcessorData data )
+        {
+            if( Exception != null && Status == FlowNodeStatus.Failed )
+            {
+                data.Header.AddException( Exception );
+                SendException( data.Header, data.Body );
+            }
+        }
         #endregion
     }
 }
