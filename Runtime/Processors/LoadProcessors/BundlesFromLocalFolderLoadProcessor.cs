@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class BundlesFromLocalFolderLoadProcessor : AbstractRequestProcessor< AssetBundleCreateRequest, UrlLoadingRequest, AssetLoadingRequest< AssetBundle>, UrlLoadingRequest >
+    public class BundlesFromLocalFolderLoadProcessor : AbstractRequestProcessor< AssetBundleCreateRequest, UrlLoadingRequest, AssetLoadingRequest< AssetBundle > >
     {
         #region Protected Fields
         protected readonly string _localFolder;

@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public abstract class AbstractWebRequestLoadProcessor< T > : AbstractRequestProcessor< UnityWebRequestAsyncOperation, UrlLoadingRequest, AssetLoadingRequest< T >, UrlLoadingRequest >
+    public abstract class AbstractWebRequestLoadProcessor< T > : AbstractRequestProcessor< UnityWebRequestAsyncOperation, UrlLoadingRequest, AssetLoadingRequest< T > >
     {
         #region Private Fields
         private readonly WebRequestSettings _webRequestSettings;
@@ -39,9 +39,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         protected override void OnLoadingCompleted( RequestProcessorData data ) => data.Body.ProgressTracker.ReportProgress( FinalProgress );
 
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data ) => RequestFinishedWithoutErrors( data.RequestLoadingOperation.webRequest, data.Header, data.Body );
-        
-        protected override void OnOperationCancelled( RequestProcessorData data ) => data.RequestLoadingOperation.webRequest.Dispose();
-        
+
+        protected override void OnOperationCancelled( RequestProcessorData data )
+        {
+            data.RequestLoadingOperation.webRequest.Dispose(); 
+            base.OnOperationCancelled( data );
+        }
+
         #endregion
 
         #region Private Members

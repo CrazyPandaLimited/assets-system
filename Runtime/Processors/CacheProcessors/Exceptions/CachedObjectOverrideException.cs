@@ -2,6 +2,7 @@
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
+
     public class CachedObjectOverrideException : AbstractProcessorException
     {
         #region Constructors

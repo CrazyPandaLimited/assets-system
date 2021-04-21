@@ -6,9 +6,8 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public abstract class AbstractRequestProcessor<TAsyncOperation, TInputBodyType, TOutputBodyType, TEceptionOutputBodyType > :
-        AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< TInputBodyType, TOutputBodyType, TEceptionOutputBodyType >
-        where TEceptionOutputBodyType : IMessageBody
+    public abstract class AbstractRequestProcessor<TAsyncOperation, TInputBodyType, TOutputBodyType > :
+        AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< TInputBodyType, TOutputBodyType, TInputBodyType > 
         where TOutputBodyType : IMessageBody
         where TInputBodyType : IMessageBody
         where TAsyncOperation : AsyncOperation
@@ -23,13 +22,17 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected abstract bool LoadingFinishedWithoutErrors( RequestProcessorData data );
         
+        
         protected virtual void OnErrorLoading( RequestProcessorData data )
         {
-            
+            data.Header.AddException( Exception ?? new AsyncOperationFailedException( data.RequestLoadingOperation, this, data.Header, data.Body ) );
+            SendException( data.Header,data.Body );
         }
 
         protected virtual void OnOperationCancelled( RequestProcessorData data)
         {
+            data.Header.AddException( new AsyncOperationCancelledException( data.RequestLoadingOperation, this, data.Header, data.Body ) );
+            SendException( data.Header,data.Body );
         }
 
         protected void ConfigureLoadingProcess( RequestProcessorData data )

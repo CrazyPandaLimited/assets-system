@@ -4,7 +4,7 @@ using Object = UnityEngine.Object;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public class ResorcesFolderLoadProcessor : AbstractRequestProcessor< ResourceRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
+    public class ResorcesFolderLoadProcessor : AbstractRequestProcessor< ResourceRequest, UrlLoadingRequest, AssetLoadingRequest< Object > >
     {
         #region Protected Members
         protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
@@ -64,21 +64,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data )
         {
-            if( data.RequestLoadingOperation.asset == null )
-            {
-                data.Header.AddException( new AssetNotLoadedException( "Asset not loaded", this, data.Header, data.Body ) );
-                SendException( data.Header, data.Body );
-                return false;
-            }
-
-            return true;
+            return data.RequestLoadingOperation.asset != null;
         }
 
         protected override void OnErrorLoading( RequestProcessorData data )
         {
-            if( Exception != null && Status == FlowNodeStatus.Failed )
+            if( !LoadingFinishedWithoutErrors( data ) )
             {
-                data.Header.AddException( Exception );
+                data.Header.AddException( new AssetNotLoadedException( "Asset not loaded", this, data.Header, data.Body ) );
                 SendException( data.Header, data.Body );
             }
         }

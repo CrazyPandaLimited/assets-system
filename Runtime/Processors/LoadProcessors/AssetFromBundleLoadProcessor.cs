@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public sealed class AssetFromBundleLoadProcessor : AbstractRequestProcessor< AssetBundleRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
+    public sealed class AssetFromBundleLoadProcessor : AbstractRequestProcessor< AssetBundleRequest, UrlLoadingRequest, AssetLoadingRequest< Object > >
     {
         private readonly AssetBundleManifest _manifest;
         private readonly IAssetsStorage _assetsStorage;
