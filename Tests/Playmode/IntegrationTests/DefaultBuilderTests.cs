@@ -219,6 +219,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
         [ UnityTest ]
         public IEnumerator FailLoadAssetFromWebThenSuccess()
         {
+            UnityEngine.Debug.unityLogger.logEnabled = false;
+            
             var url = ResourceStorageTestUtils.ConstructTestUrl( "logo_test_notExist.jpg" );
             Object owner = new object();
             Object owner2 = new object();
