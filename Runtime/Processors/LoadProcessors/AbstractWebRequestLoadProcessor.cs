@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
-    public abstract class AbstractWebRequestLoadProcessor< T > : AbstractRequestProcessor< UnityWebRequestAsyncOperation, UrlLoadingRequest, AssetLoadingRequest< T > >
+    public abstract class AbstractWebRequestLoadProcessor< T > : AbstractRequestProcessor< UnityWebRequestAsyncOperation, UrlLoadingRequest, AssetLoadingRequest< T > ,UrlLoadingRequest>
     {
         #region Private Fields
         private readonly WebRequestSettings _webRequestSettings;
