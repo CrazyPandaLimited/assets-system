@@ -73,7 +73,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             yield return WaitForTimeOut( BaseSendedBody );
 
             Assert.Null( _workProcessor.Exception );
-            Assert.Null( data.BaseSendedBody );
+            Assert.NotNull( data.BaseSendedBody );
         }
 
         [ Test ]
