@@ -5,18 +5,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class AddAssetToCacheNode< T > : AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< AssetLoadingRequest< T >, AssetLoadingRequest< T >, UrlLoadingRequest >
     {
-        #region Private Fields
         private ICache _memoryCache;
-        #endregion
 
-        #region Constructors
         public AddAssetToCacheNode( ICache memoryCache )
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException( $"{nameof(memoryCache)} == null" );
         }
-        #endregion
 
-        #region Protected Members
         protected override void InternalProcessMessage( MessageHeader header, AssetLoadingRequest< T > body )
         {
             var assetName = body.Url;
@@ -38,6 +33,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             
             SendOutput( header, body );
         }
-        #endregion
     }
 }

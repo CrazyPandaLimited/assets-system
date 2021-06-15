@@ -2,7 +2,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class AssetFileInfo
     {
-        #region Public Fields
         /// <summary>
         /// File name without extension
         /// </summary>
@@ -17,16 +16,12 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         /// File extension like .png
         /// </summary>
         public string ext;
-        #endregion
 
-        #region Properties
         /// <summary>
         /// Get or sets CRC32 Hash
         /// </summary>
         public string CRC { get; set; }
-        #endregion
 
-        #region Public Members
         /// <summary>
         /// Return file name with extension and actual version
         /// </summary>
@@ -54,6 +49,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             return result;
         }
-        #endregion
     }
 }

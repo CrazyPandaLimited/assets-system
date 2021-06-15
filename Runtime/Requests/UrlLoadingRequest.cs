@@ -5,12 +5,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class UrlLoadingRequest : TrackProgressLoadingRequest
     {
-        #region Properties
         public string Url { get; protected set; }
         public Type AssetType { get; protected set; }
-        #endregion
 
-        #region Constructors
         public UrlLoadingRequest( string url, Type assetType, IProgressTracker< float > progressTracker ) : base( progressTracker )
         {
             Url = url;
@@ -27,6 +24,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             return $"UrlLoadingRequest Url:{Url} AssetType:{AssetType.ToString()}";
         }
-        #endregion
     }
 }

@@ -8,21 +8,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class CombinedRequest
     {
-        #region Public Fields
         public MessageHeader CombinedHeader;
         public UrlLoadingRequest CombinedBody;
-        #endregion
 
-        #region Protected Fields
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;
         protected CancellationTokenSource _cancellationTokenSource;
-        #endregion
 
-        #region Properties
         public Dictionary< MessageHeader, UrlLoadingRequest > SourceRequests { get; private set; }
-        #endregion
 
-        #region Constructors
         public CombinedRequest( MessageHeader combinedHeader, UrlLoadingRequest combinedBody, CancellationTokenSource cancellationTokenSource )
         {
             SourceRequests = new Dictionary< MessageHeader, UrlLoadingRequest >();
@@ -31,9 +24,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             _cancellationTokenSource = cancellationTokenSource;
             CombinedBody.ProgressTracker.OnProgressChanged += ProgressTrackerOnProgressChanged;
         }
-        #endregion
 
-        #region Public Members
         public void AddRequest( MessageHeader header, UrlLoadingRequest body )
         {
             SourceRequests.Add( header, body );
@@ -43,9 +34,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 header.CancellationToken.Register( () => OnCancelRequested( header ) );
             }
         }
-        #endregion
 
-        #region Protected Members
         protected void OnCancelRequested( MessageHeader header )
         {
             SourceRequests.Remove(header);
@@ -54,9 +43,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 _cancellationTokenSource.Cancel();
             }
         }
-        #endregion
 
-        #region Private Members
         private void ProgressTrackerOnProgressChanged( float progress )
         {
             foreach( var request in SourceRequests )
@@ -64,6 +51,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 request.Value.ProgressTracker.ReportProgress( progress );
             }
         }
-        #endregion
     }
 }

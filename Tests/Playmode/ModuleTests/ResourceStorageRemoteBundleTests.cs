@@ -26,7 +26,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
         private AssetBundleManifest _manifest;
 
-        #region Public Members
         protected override void InternalSetup()
         {
             AssetBundle.UnloadAllAssetBundles( true );
@@ -111,6 +110,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.Null( _workProcessor.Exception );
             Assert.IsTrue( outCalled );
         }
-        #endregion
     }
 }

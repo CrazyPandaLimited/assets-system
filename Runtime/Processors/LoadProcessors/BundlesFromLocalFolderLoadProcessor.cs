@@ -7,15 +7,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class BundlesFromLocalFolderLoadProcessor : AbstractRequestProcessor< AssetBundleCreateRequest, UrlLoadingRequest, AssetLoadingRequest< AssetBundle >, UrlLoadingRequest >
     {
-        #region Protected Fields
         protected readonly string _localFolder;
-        #endregion
 
-        #region Properties
         public AssetBundleManifest Manifest { get; }
-        #endregion
 
-        #region Constructors
         public BundlesFromLocalFolderLoadProcessor( string localFolder, AssetBundleManifest manifest )
         {
             _localFolder = localFolder ?? throw new ArgumentNullException( nameof(localFolder) );
@@ -29,9 +24,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 Manifest = manifest;
             }
         }
-        #endregion
 
-        #region Protected Members
         protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             if( !Manifest.BundleInfos.ContainsKey( body.Url ) )
@@ -75,7 +68,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             return true;
         }
-        
-        #endregion
     }
 }

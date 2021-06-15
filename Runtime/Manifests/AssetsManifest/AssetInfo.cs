@@ -2,7 +2,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class AssetInfo
     {
-        #region Public Fields
         /// <summary>
         /// File name without extension
         /// </summary>
@@ -12,6 +11,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         /// File extension like .png
         /// </summary>
         public string ext;
-        #endregion
     }
 }

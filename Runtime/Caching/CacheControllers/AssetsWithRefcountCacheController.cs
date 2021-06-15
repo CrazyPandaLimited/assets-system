@@ -8,20 +8,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Caching
     /// </summary>
     public class AssetsWithRefcountCacheController : ICacheControllerWithAssetReferences
     {
-        #region Private Fields
         private readonly AssetsMemoryCache _memCache;
         private readonly Dictionary< string, AssetReferenceInfo > _references;
-        #endregion
 
-        #region Constructors
         public AssetsWithRefcountCacheController( int startCapacity = 200 )
         {
             _references = new Dictionary< string, AssetReferenceInfo >( startCapacity );
             _memCache = new AssetsMemoryCache( startCapacity );
         }
-        #endregion
 
-        #region Public Members
         public bool Contains( string assetName )
         {
             if( string.IsNullOrEmpty( assetName ) )
@@ -253,9 +248,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Caching
                 Remove( assetsName, false, destroy );
             }
         }
-        #endregion
 
-        #region Protected Members
         protected virtual void DestroyFromMemory( string assetName, object asset )
         {
             if( asset is UnityEngine.Object )
@@ -265,6 +258,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Caching
 #endif
             }
         }
-        #endregion
     }
 }

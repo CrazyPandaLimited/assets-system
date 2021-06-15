@@ -5,7 +5,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public interface ICacheControllerWithAssetReferences
     {
-        #region Public Members
         /// <summary>
         /// 
         /// </summary>
@@ -29,6 +28,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
         List< string > GetAllAssetsNames();
         List< object > GetReferencesByAssetName( string assetName );
-        #endregion
     }
 }

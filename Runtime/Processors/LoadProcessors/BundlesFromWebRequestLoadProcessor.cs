@@ -9,13 +9,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class BundlesFromWebRequestLoadProcessor : AbstractWebRequestLoadProcessor< AssetBundle >
     {
-        #region Properties
         public AssetBundleManifest Manifest { get; }
         public IAntiCacheUrlResolver AntiCacheUrlResolver { get; protected set; }
         public virtual string ServerUrl { get; set; }
-        #endregion
 
-        #region Constructors
         public BundlesFromWebRequestLoadProcessor( string serverUrl, AssetBundleManifest manifest, WebRequestSettings webRequestSettings = null, IAntiCacheUrlResolver antiCacheUrlResolver = null ) : base( webRequestSettings )
         {
             ServerUrl = serverUrl ?? throw new ArgumentNullException( nameof(serverUrl) );
@@ -31,9 +28,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             AntiCacheUrlResolver = antiCacheUrlResolver;
         }
-        #endregion
 
-        #region Protected Members
 
 
         protected override UnityWebRequest GetRequestData(MessageHeader header, UrlLoadingRequest body )
@@ -67,6 +62,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             }
         }
         
-        #endregion
     }
 }

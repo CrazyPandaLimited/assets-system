@@ -6,18 +6,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class AssetReferenceInfo
     {
-        #region Properties
         public HashSet< WeakReference > References { get; private set; }
-        #endregion
 
-        #region Constructors
         public AssetReferenceInfo()
         {
             References = new HashSet< WeakReference >();
         }
-        #endregion
 
-        #region Public Members
         public bool ContainsReference( object reference )
         {
             return References.Any( weakReference => weakReference.Target == reference );
@@ -44,9 +39,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             ClearNullReferences();
             return References.Count > 0;
         }
-        #endregion
 
-        #region Protected Members
         protected void ClearNullReferences()
         {
             var removedOwners = new List< WeakReference >();
@@ -63,6 +56,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 References.Remove( weakReference );
             }
         }
-        #endregion
     }
 }

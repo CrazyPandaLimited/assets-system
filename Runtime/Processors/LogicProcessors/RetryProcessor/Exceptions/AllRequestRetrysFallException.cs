@@ -4,7 +4,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class AllRequestRetrysFallException : Exception
     {
-        #region Constructors
         public AllRequestRetrysFallException()
         {
         }
@@ -12,6 +11,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         public AllRequestRetrysFallException( string message ) : base( message )
         {
         }
-        #endregion
     }
 }

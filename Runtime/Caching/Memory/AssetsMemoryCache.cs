@@ -5,11 +5,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class AssetsMemoryCache : ICache
     {
-        #region Private Fields
         private readonly Dictionary< string, object > _assets;
-        #endregion
 
-        #region Constructors
         public AssetsMemoryCache() : this( 200 )
         {
             
@@ -19,9 +16,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             _assets = new Dictionary< string, object >( startCapacity );
         }
-        #endregion
 
-        #region Public Members
         /// <summary>
         /// Check if cache contains element
         /// </summary>
@@ -110,6 +105,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             _assets.Clear();
         }
-        #endregion
     }
 }

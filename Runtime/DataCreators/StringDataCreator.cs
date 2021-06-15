@@ -5,7 +5,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class StringDataCreator : IAssetDataCreator
     {
-        #region Public Members
         public bool Supports( Type requestedAssetType )
         {
             return requestedAssetType == typeof( String );
@@ -20,6 +19,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             return Create< string >( data );
         }
-        #endregion
     }
 }

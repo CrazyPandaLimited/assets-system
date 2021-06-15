@@ -4,12 +4,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class DefaultAntiCacheUrlResolver : IAntiCacheUrlResolver
     {
-        #region Private Fields
         private Dictionary< string, string > _perResourceAntiCache = new Dictionary< string, string >();
         private string _defaultAnticache;
-        #endregion
 
-        #region Public Members
         public void UpdateDefault( string anticache )
         {
             _defaultAnticache = anticache;
@@ -48,6 +45,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             throw new AnticacheNotFoundException( uri, anticacheAssetKey );
         }
-        #endregion
     }
 }

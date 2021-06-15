@@ -20,7 +20,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         private string url = "Cube";
         private string multipleSpriteAtlasUrl = "MultipleSpritesAtlas";
         private string subAssetName = "MultipleSpritesAtlas_0";
-        #region Public Members
         
         protected override void InternalSetup()
         {
@@ -127,6 +126,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         }
         
         
-        #endregion
     }
 }

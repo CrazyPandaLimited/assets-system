@@ -10,8 +10,6 @@ namespace Experimental.RelativeLinkToObject.Editor
     [CustomPropertyDrawer(typeof(RelativeLinkToObject))]
     public class RelativeLinkToObjectDrawer : PropertyDrawer
     {
-        #region Public Members
-
         private const string PROPERTY_ASSET_PATH_NAME = "_assetPath";
         private const string PROPERTY_ASSET_TYPE = "_assetType";
         private const string PROPERTY_ASSET_INTO_RESOURCES_NAME = "_assetIntoResourcesFolder";
@@ -146,10 +144,6 @@ namespace Experimental.RelativeLinkToObject.Editor
             EditorGUI.EndProperty();
         }
 
-        #endregion
-
-        #region Private Members
-
         private void SerializePath(Object prefabGameObject, SerializedProperty prefabProperty)
         {
             var path = AssetDatabase.GetAssetPath(prefabGameObject);
@@ -191,6 +185,5 @@ namespace Experimental.RelativeLinkToObject.Editor
             prefabProperty.FindPropertyRelative(PROPERTY_ASSET_TYPE).enumValueIndex = (int) assetType;
         }
 
-        #endregion
     }
 }

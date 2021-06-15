@@ -7,7 +7,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class AssetFromEditorDataLoadProcessor : AbstractRequestInputOutputProcessorWithDefAndExceptionOutput< UrlLoadingRequest, AssetLoadingRequest< UnityEngine.Object >, UrlLoadingRequest >
     {
-        #region Protected Members
         protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
 #if UNITY_EDITOR
@@ -45,6 +44,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             ProcessException( header, body, new AssetNotLoadedException( "Asset not loaded", this, header, body ) );
 #endif
         }
-        #endregion
     }
 }

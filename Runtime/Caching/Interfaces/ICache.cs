@@ -4,7 +4,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public interface ICache
     {
-        #region Public Members
         /// <summary>
         /// Determines whether [contains] [the specified key].
         /// </summary>
@@ -44,6 +43,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         /// Clear all assets from cache
         /// </summary>
         void ClearCache();
-        #endregion
     }
 }

@@ -7,16 +7,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class AssetBundleManifest
     {
-        #region Public Fields
         public readonly Dictionary< string, BundleInfo > BundleInfos = new Dictionary< string, BundleInfo >( StringComparer.OrdinalIgnoreCase );
         public readonly Dictionary< string, AssetInBundleInfo > AssetInfos = new Dictionary< string, AssetInBundleInfo >( StringComparer.OrdinalIgnoreCase );
-        #endregion
 
-        #region Private Fields
         private Dictionary< string, BundleInfo > _bundleInfoByAssetNameCache = new Dictionary< string, BundleInfo >( StringComparer.OrdinalIgnoreCase );
-        #endregion
 
-        #region Public Members
         /// <exception cref="BundleInfoDuplicateException"></exception>
         /// <exception cref="AssetInBundleInfoDuplicateException"></exception>
         public void AddManifestPart( AssetBundleManifest manifestPart, bool allowOverrides = false )
@@ -180,6 +175,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             return GetBundleByAssetName( assetName ) != null;
         }
-        #endregion
     }
 }

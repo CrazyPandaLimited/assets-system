@@ -6,7 +6,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class ResorcesFolderLoadProcessor : AbstractRequestProcessor< ResourceRequest, UrlLoadingRequest, AssetLoadingRequest< Object >, UrlLoadingRequest >
     {
-        #region Protected Members
         protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             if( header.MetaData.HasFlag( MetaDataReservedKeys.SYNC_REQUEST_FLAG ) )
@@ -75,6 +74,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 SendException( data.Header, data.Body );
             }
         }
-        #endregion
     }
 }

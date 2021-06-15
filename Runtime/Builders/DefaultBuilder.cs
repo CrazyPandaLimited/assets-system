@@ -11,16 +11,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class DefaultBuilder
     {
-        #region Protected Fields
         protected RequestsQueue _requestsQueue;
         protected RequestToPromiseMap _promiseMap;
-        #endregion
 
-        #region Private Fields
         private List< IFlowNode > _allProcessors;
-        #endregion
 
-        #region Properties
         //Caches
         public AssetsWithRefcountCacheController OtherAssetsCache { get; private set; }
         public AssetsFromBundlesWithRefcountCacheController AssetsFromBundlesCache { get; private set; }
@@ -31,9 +26,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         public AssetBundleManifest AssetBundleManifest { get; private set; }
 
         public AssetsStorage AssetsStorage { get; private set; }
-        #endregion
 
-        #region Constructors
         public DefaultBuilder( int maxWorkingRequests )
         {
             _requestsQueue = new RequestsQueue( maxWorkingRequests );
@@ -50,9 +43,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             AssetsStorage = new AssetsStorage( _promiseMap );
             _allProcessors = new List< IFlowNode >();
         }
-        #endregion
 
-        #region Public Members
         /// <summary>
         ///Always should be last tree part because we don't have instruments to check contains asset in Resources folder or not
         /// </summary>
@@ -334,7 +325,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             _allProcessors.Add( processor );
             return processor;
         }
-        #endregion
 
         private void PrintExceptionForNodes( IEnumerable< IFlowNode > nodes )
         {

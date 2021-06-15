@@ -3,7 +3,6 @@
 //[CreateAssetMenu(fileName = "RSDebugToolResources", menuName = "Asset system/Debug tool resources", order = 1)]
 public class AssetsSystemDebugToolAssets : ScriptableObject
 {
-    #region Public Fields
     [ Header( "Edit mode settings" ) ] public Rect EditorModeTextPositionOffset;
     public Rect EditorModeImagePositionOffset;
     public string EditorModeRunOnlyRuntimeString;
@@ -90,5 +89,4 @@ public class AssetsSystemDebugToolAssets : ScriptableObject
     public GUIStyle PlayMode_Queue_CacheElement_Style2;
 
     [ Space ] public string PlayMode_Queue_Togle_TitleTemplate_Execution;
-    #endregion
 }

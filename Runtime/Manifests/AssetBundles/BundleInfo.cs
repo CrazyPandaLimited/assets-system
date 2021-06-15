@@ -5,7 +5,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class BundleInfo
     {
-        #region Properties
         /// <summary>
         /// Gets or sets the URI.
         /// </summary>
@@ -62,9 +61,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         /// The custom infos.
         /// </value>
         public Dictionary< string, string > CustomInfo { get; set; }
-        #endregion
 
-        #region Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="BundleInfo"/> class.
         /// </summary>
@@ -82,9 +79,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             Name = name;
         }
-        #endregion
 
-        #region Public Members
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -102,6 +97,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             return sb.ToString();
         }
-        #endregion
     }
 }

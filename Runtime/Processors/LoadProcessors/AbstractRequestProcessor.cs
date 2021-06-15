@@ -13,7 +13,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         where TInputBodyType : IMessageBody
         where TAsyncOperation : AsyncOperation
     {
-        #region Protected Members
         protected const float InitialProgress = 0.0f;
         protected const float FinalProgress = 1.0f;
 
@@ -78,7 +77,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 }
             }
         }
-        #endregion
 
         private void StartToTrackLoadingProgress( RequestProcessorData data )
         {

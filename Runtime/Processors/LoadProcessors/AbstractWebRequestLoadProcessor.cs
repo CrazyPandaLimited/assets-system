@@ -10,15 +10,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public abstract class AbstractWebRequestLoadProcessor< T > : AbstractRequestProcessor< UnityWebRequestAsyncOperation, UrlLoadingRequest, AssetLoadingRequest< T > ,UrlLoadingRequest>
     {
-        #region Private Fields
         private readonly WebRequestSettings _webRequestSettings;
-        #endregion
 
-        #region Constructors
         protected AbstractWebRequestLoadProcessor([CanBeNull] WebRequestSettings webRequestSettings ) => _webRequestSettings = webRequestSettings;
-        #endregion
 
-        #region Protected Members
         protected abstract UnityWebRequest GetRequestData(MessageHeader header, UrlLoadingRequest body );
         protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
@@ -42,9 +37,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected override void OnOperationCancelled( RequestProcessorData data ) => data.RequestLoadingOperation.webRequest.Dispose(); 
 
-        #endregion
 
-        #region Private Members
         private void BuildAndSendWebRequest( UnityWebRequest webRequest, MessageHeader header, UrlLoadingRequest body )
         {
             webRequest.downloadHandler = webRequest.downloadHandler ?? new DownloadHandlerBuffer();
@@ -99,6 +92,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             }
             return true;
         }
-        #endregion
     }
 }

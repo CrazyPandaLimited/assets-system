@@ -5,7 +5,6 @@
     /// </summary>
     public class GameAssetType
     {
-        #region Properties
         /// <summary>
         /// Gets or sets the tag.
         /// </summary>
@@ -13,9 +12,7 @@
         /// The tag.
         /// </value>
         public string Tag { get; set; }
-        #endregion
 
-        #region Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="GameAssetType"/> class.
         /// </summary>
@@ -31,6 +28,5 @@
         public GameAssetType() : this( string.Empty )
         {
         }
-        #endregion
     }
 }

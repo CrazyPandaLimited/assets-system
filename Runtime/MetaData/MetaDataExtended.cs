@@ -4,7 +4,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class MetaDataExtended : MetaData
     {
-        #region Constructors
         public MetaDataExtended()
         {
         }
@@ -13,6 +12,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             SetMeta( MetaDataReservedKeys.OWNER_REFERENCE_RESERVED_KEY, ownerReference );
         }
-        #endregion
     }
 }

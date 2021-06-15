@@ -5,19 +5,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class RequestsUncombinerProcessor< T > : AbstractRequestInputOutputProcessor< AssetLoadingRequest< T >, AssetLoadingRequest< T > >
     {
-        #region Private Fields
         private Dictionary< string, CombinedRequest > _combinedRequests;
         private List< string > _keysToDelete = new List< string >();
-        #endregion
 
-        #region Constructors
         public RequestsUncombinerProcessor( Dictionary< string, CombinedRequest > combinedRequests )
         {
             _combinedRequests = combinedRequests;
         }
-        #endregion
 
-        #region Protected Members
         protected override void InternalProcessMessage( MessageHeader header, AssetLoadingRequest< T > body )
         {
             if( !header.MetaData.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) )
@@ -59,24 +54,18 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 _combinedRequests.Remove( key );
             }
         }
-        #endregion
     }
 
     public class RequestsUncombinerProcessor : AbstractRequestInputOutputProcessor< UrlLoadingRequest, UrlLoadingRequest >
     {
-        #region Private Fields
         private Dictionary< string, CombinedRequest > _combinedRequests;
         private List< string > _keysToDelete = new List< string >();
-        #endregion
 
-        #region Constructors
         public RequestsUncombinerProcessor( Dictionary< string, CombinedRequest > combinedRequests )
         {
             _combinedRequests = combinedRequests;
         }
-        #endregion
 
-        #region Protected Members
         protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             if( !header.MetaData.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) )
@@ -117,6 +106,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 _combinedRequests.Remove( key );
             }
         }
-        #endregion
     }
 }

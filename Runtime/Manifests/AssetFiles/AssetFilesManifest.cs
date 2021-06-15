@@ -4,11 +4,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class AssetFilesManifest : IManifest
     {
-        #region Public Fields
         public Dictionary< string, AssetFileInfo > _assetsInfos = new Dictionary< string, AssetFileInfo >();
-        #endregion
 
-        #region Public Members
         public void AddManifestPart( AssetFilesManifest manifestPart )
         {
             foreach( var part in manifestPart._assetsInfos )
@@ -31,6 +28,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             return _assetsInfos[ name ];
         }
-        #endregion
     }
 }

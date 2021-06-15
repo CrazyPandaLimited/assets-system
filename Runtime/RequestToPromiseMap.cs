@@ -5,11 +5,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class RequestToPromiseMap
     {
-        #region Protected Fields
         protected Dictionary< string, PandaTaskCompletionSource< object > > _map = new Dictionary< string, PandaTaskCompletionSource< object > >();
-        #endregion
 
-        #region Public Members
         public void Add( string id, PandaTaskCompletionSource< object > promise )
         {
             _map.Add( id, promise );
@@ -37,6 +34,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             return result;
         }
-        #endregion
     }
 }

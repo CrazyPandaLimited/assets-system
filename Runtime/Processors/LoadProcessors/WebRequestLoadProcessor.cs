@@ -8,20 +8,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class WebRequestLoadProcessor< T > : AbstractWebRequestLoadProcessor< T >
     {
-        #region Protected Fields
         protected readonly IAntiCacheUrlResolver _antiCacheUrlResolver;
         protected readonly List< IAssetDataCreator > _assetTypeDataCreators;
-        #endregion
 
-        #region Constructors
         public WebRequestLoadProcessor( List< IAssetDataCreator > assetTypeDataCreators, WebRequestSettings webRequestSettings = null, IAntiCacheUrlResolver antiCacheUrlResolver = null ) : base( webRequestSettings )
         {
             _assetTypeDataCreators = assetTypeDataCreators ?? throw new ArgumentNullException( nameof(assetTypeDataCreators) );
             _antiCacheUrlResolver = antiCacheUrlResolver;
         }
-        #endregion
 
-        #region Protected Members
         
         protected override UnityWebRequest GetRequestData( MessageHeader header, UrlLoadingRequest body )
         {
@@ -62,6 +57,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             SendOutput( header, new AssetLoadingRequest< T >( body, ( T ) asset ) );
         }
-        #endregion
     }
 }

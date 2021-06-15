@@ -6,16 +6,13 @@ namespace Experimental.RelativeLinkToObject
     [ Serializable ]
     public class RelativeLinkToObject
     {
-        #region Private Fields
         /// <summary>
         ///     Don't rename, is used in editor.
         /// </summary>
         [ SerializeField ] private string _assetPath;
         [ SerializeField ] private AssetType _assetType;
         [ SerializeField ] private bool _assetIntoResourcesFolder;
-        #endregion
 
-        #region Properties
 #if UNITY_EDITOR
         /// <summary>
         /// Only for editor functionality
@@ -28,7 +25,6 @@ namespace Experimental.RelativeLinkToObject
 #else
         public string AssetPath =>  _assetPath;
 #endif
-        #endregion
     }
 
     public enum AssetType

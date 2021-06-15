@@ -8,23 +8,16 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class RequestsCombinerProcessor : AbstractRequestInputOutputProcessor< UrlLoadingRequest, UrlLoadingRequest >
     {
-        #region Constants
         public const string IS_COMBINED_REQUEST_METADATA_FLAG = "requestCombined";
-        #endregion
 
-        #region Private Fields
         private Dictionary< string, CombinedRequest > _combinedRequests;
         private List<string> _keysToDelete = new List<string>();
-        #endregion
 
-        #region Constructors
         public RequestsCombinerProcessor( Dictionary< string, CombinedRequest > combinedRequests )
         {
             _combinedRequests = combinedRequests;
         }
-        #endregion
 
-        #region Protected Members
         protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
             //if sync request, don't combine it
@@ -77,6 +70,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
                 _combinedRequests.Remove(key);
             }
         }
-        #endregion
     }
 }

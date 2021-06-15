@@ -5,7 +5,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class AssetInBundleInfo
     {
-        #region Properties
         /// <summary>
         /// Gets or sets the type of the game asset.
         /// </summary>
@@ -37,9 +36,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         /// The custom infos.
         /// </value>
         public Dictionary< string, string > CustomInfo { get; set; }
-        #endregion
 
-        #region Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="AssetInBundleInfo"/> class.
         /// </summary>
@@ -57,9 +54,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             Name = name;
         }
-        #endregion
 
-        #region Public Members
         public string ToString( string prefix )
         {
             var sb = new StringBuilder();
@@ -77,6 +72,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             return ToString( "" );
         }
-        #endregion
     }
 }

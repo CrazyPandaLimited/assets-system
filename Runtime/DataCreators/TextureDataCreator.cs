@@ -5,7 +5,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class TextureDataCreator : IAssetDataCreator
     {
-        #region Public Members
         public bool Supports( Type requestedAssetType )
         {
             return requestedAssetType == typeof( Texture ) || requestedAssetType == typeof( Texture2D );
@@ -22,6 +21,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         {
             return Create< Texture2D >( data );
         }
-        #endregion
     }
 }

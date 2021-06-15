@@ -11,11 +11,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
     public class WebRequestSettings
     {
-        #region Public Fields
         public Dictionary< string, string > Headers = new Dictionary< string, string >();
         public WebRequestMethod Method;
         public float Timeout;
         public int RedirectsLimit = 32;
-        #endregion
     }
 }

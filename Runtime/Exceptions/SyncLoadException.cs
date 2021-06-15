@@ -5,12 +5,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class SyncLoadException : AssetsSystemException
     {
-        #region Properties
         public string Url { get; }
         public MetaData MetaData { get; }
-        #endregion
 
-        #region Constructors
         public SyncLoadException( string url, MetaData metaData, Exception innerException )
             : base( $"Operation could not be completed synchronously!!! InputInfo: url:{url} {metaData}", innerException )
         {
@@ -22,6 +19,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             : this( url, metaData, null )
         {
         }
-        #endregion
     }
 }
