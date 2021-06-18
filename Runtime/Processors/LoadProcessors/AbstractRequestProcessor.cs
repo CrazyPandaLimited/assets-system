@@ -80,7 +80,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         private void StartToTrackLoadingProgress( RequestProcessorData data )
         {
-            PandaTasksUtilitys.WaitWhile( () =>
+            PandaTasksUtilities.WaitWhile( () =>
             {
                 if( data.RequestLoadingOperation.isDone )
                 {

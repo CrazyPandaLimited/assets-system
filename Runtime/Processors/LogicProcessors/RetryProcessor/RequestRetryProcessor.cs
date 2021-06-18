@@ -63,7 +63,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         private void NextTryWait( MessageHeader header, AssetLoadingRequest< T > body, int nextRetryIdx )
         {
-            PandaTasksUtilitys.Delay( TimeSpan.FromSeconds( _retryMap[ nextRetryIdx ] ) )
+            PandaTasksUtilities.Delay( TimeSpan.FromSeconds( _retryMap[ nextRetryIdx ] ) )
                 .Done( () =>
                 {
                     if( header.CancellationToken.IsCancellationRequested )

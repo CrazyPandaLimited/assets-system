@@ -137,7 +137,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
             if( tocken.IsCancellationRequested )
             {
-                return PandaTasksUtilitys.GetCanceledTask< AssetType >();
+                return PandaTasksUtilities.GetCanceledTask< AssetType >();
             }
             
             var header = new MessageHeader( metaData, tocken );
