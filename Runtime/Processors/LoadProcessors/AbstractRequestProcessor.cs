@@ -98,13 +98,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
             } );
         }
         
-        protected class RequestProcessorData
+        public class RequestProcessorData
         {
             public TAsyncOperation RequestLoadingOperation { get; }
             public MessageHeader Header { get; }
             public TInputBodyType Body { get; }
 
-            protected internal RequestProcessorData( TAsyncOperation requestLoadingOperation, MessageHeader header, TInputBodyType body )
+            public RequestProcessorData( TAsyncOperation requestLoadingOperation, MessageHeader header, TInputBodyType body )
             {
                 RequestLoadingOperation = requestLoadingOperation ?? throw new ArgumentNullException(nameof(requestLoadingOperation));
                 Header = header ?? throw new ArgumentNullException(nameof(header));

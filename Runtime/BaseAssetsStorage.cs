@@ -147,8 +147,21 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var internalTask = new PandaTaskCompletionSource< object >();
 
             internalTask.ResultTask
-                .Done( o => { resultTask.SetValue( ( AssetType ) o ); } )
-                .Fail( exception => { resultTask.SetError( exception ); } );
+                .Done( o =>
+                {
+                    AssetType res;
+                    try
+                    {
+                        res = ( AssetType )o;
+                    }
+                    catch( Exception e )
+                    {                        
+                        resultTask.SetError( e );
+                        return;
+                    }                    
+                    resultTask.SetValue( res );                    
+                } )
+                .Fail( resultTask.SetError );
 
             if( tocken.CanBeCanceled )
             {
