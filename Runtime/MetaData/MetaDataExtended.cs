@@ -1,16 +1,19 @@
-using CrazyPanda.UnityCore.MessagesFlow;
+﻿using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem
 {
-    public class MetaDataExtended : MetaData
+    public static class MetaDataExtended 
     {
-        public MetaDataExtended()
+        public static MetaData CreateMetaDataWithOwner( object ownerReference )
         {
+            var res = new MetaData();
+            res.SetOwner( ownerReference );
+            return res;
         }
 
-        public MetaDataExtended( object ownerReference )
+        public static void SetOwner(this MetaData md, object ownerReference)
         {
-            SetMeta( MetaDataReservedKeys.OWNER_REFERENCE_RESERVED_KEY, ownerReference );
+            md.SetMeta( MetaDataReservedKeys.OWNER_REFERENCE_RESERVED_KEY, ownerReference );
         }
     }
 }

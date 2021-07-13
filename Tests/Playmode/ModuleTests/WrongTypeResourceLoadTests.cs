@@ -32,7 +32,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             testBuilder.AssetsStorage.LinkTo( loadFromResourceFolderTree.DefaultInput );
             
-            var promise = testBuilder.AssetsStorage.LoadAssetAsync<Texture>( url, new MetaDataExtended( owner ) );
+            var promise = testBuilder.AssetsStorage.LoadAssetAsync<Texture>( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             yield return WaitForPromiseEnging( promise );            
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
             Assert.NotNull( promise.Error );

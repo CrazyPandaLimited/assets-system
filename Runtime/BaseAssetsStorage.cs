@@ -144,37 +144,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var body = new UrlLoadingRequest( url, typeof( AssetType ), tracker == null ? new ProgressTracker< float >() : tracker );
 
             var resultTask = new PandaTaskCompletionSource< AssetType >();
-            var internalTask = new PandaTaskCompletionSource< object >();
-
-            internalTask.ResultTask
-                .Done( o =>
-                {
-                    AssetType res;
-                    try
-                    {
-                        res = ( AssetType )o;
-                    }
-                    catch( Exception e )
-                    {                        
-                        resultTask.SetError( e );
-                        return;
-                    }                    
-                    resultTask.SetValue( res );                    
-                } )
-                .Fail( resultTask.SetError );
-
-            if( tocken.CanBeCanceled )
-            {
-                tocken.Register( () =>
-                {
-                    if( !_requestToPromiseMap.Has( header.Id ) )
-                    {
-                        return;
-                    }
-
-                    _requestToPromiseMap.Get( header.Id ).SetError( new OperationCanceledException() );
-                } );
-            }
+            var internalTask = new PandaTaskCompletionSource< object >();            
             
             _requestToPromiseMap.Add( header.Id, internalTask );
 
@@ -182,17 +152,73 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             {
                 OnMessageSended?.Invoke( this, new MessageSentOutEventArgs( header, body ) );
                 _linkedNode.ProcessMessage( header, body );
-            }
+            }                                            
             catch( Exception exception )
             {
-                if( resultTask.ResultTask.Status == PandaTaskStatus.Pending )
+                if( internalTask.ResultTask.Status == PandaTaskStatus.Pending )
                 {
-                    resultTask.SetError( exception );
+                    internalTask.SetError( exception );
+                }
+            }
+
+            switch( internalTask.ResultTask.Status )
+            {
+                case PandaTaskStatus.Resolved:
+                {
+                    //если загрузили синхронно, то не подписываемся
+                    SetCastedResult( internalTask.ResultTask.Result, resultTask );
+                    break;
+                }
+                case PandaTaskStatus.Rejected:
+                {
+                    //если сразу получили ошибку - тоже не подписываемся
+                    resultTask.SetError( internalTask.ResultTask.Error );
+                    break;
+                }
+                case PandaTaskStatus.Pending:
+                {
+                    //если загрузка идет не синхронно - подписываемся и ждем окончания
+                    internalTask.ResultTask
+                       .Done( o => SetCastedResult( o, resultTask ) )
+                       .Fail( resultTask.SetError );
+
+                    if( tocken.CanBeCanceled )
+                    {
+                        tocken.Register( () =>
+                        {
+                            if( _requestToPromiseMap.Has( header.Id ) )
+                            {
+                                _requestToPromiseMap.Get( header.Id ).CancelTask();
+                            }
+                        } );
+                    }
+                    break;
+                }
+                default:
+                {
+                    resultTask.SetError( new InvalidOperationException() );
+                    break;
                 }
             }
 
             return resultTask.ResultTask;
         }
+
+        private void SetCastedResult<TAssetType>(object o, PandaTaskCompletionSource<TAssetType> resultTask )
+        {
+            TAssetType res;
+            try
+            {
+                res = ( TAssetType )o;
+            }
+            catch( InvalidCastException e )
+            {
+                resultTask.SetError( e );
+                return;
+            }
+            resultTask.SetValue( res );            
+        }
+            
 
         /// <summary>
         /// Dispose system

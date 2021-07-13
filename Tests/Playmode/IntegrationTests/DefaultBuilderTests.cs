@@ -53,7 +53,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             _builder.AddExceptionsHandlingForAllNodes();
 
             _builder.AssetsStorage.LinkTo( loadFromResourceFolderTree.DefaultInput );
-            var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
+            var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             yield return WaitForPromiseEnging( promise );
 
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
@@ -70,7 +70,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             _builder.AddExceptionsHandlingForAllNodes();
 
             _builder.AssetsStorage.LinkTo( loadFromResourceFolderTree.DefaultInput );
-            var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
+            var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
             Assert.Catch( () => { Debug.Log( promise.Result ); } );
@@ -87,7 +87,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             _builder.AddExceptionsHandlingForAllNodes();
 
             _builder.AssetsStorage.LinkTo( loadFromResourceFolderTree.DefaultInput );
-            var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
+            var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
             Assert.Catch( () => { Debug.Log( promise.Result ); } );
@@ -95,7 +95,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             Assert.IsFalse( _builder.OtherAssetsCache.Contains( url ) );
 
             url = "Cube";
-            promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
+            promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.NotNull( promise.Result );
@@ -111,7 +111,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             _builder.AddExceptionsHandlingForAllNodes();
 
             _builder.AssetsStorage.LinkTo( loadFromResourceFolderTree.DefaultInput );
-            var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, new MetaDataExtended( owner ) );
+            var promise = _builder.AssetsStorage.LoadAssetAsync< GameObject >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.NotNull( promise.Result );
@@ -139,8 +139,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             _builder.AssetsStorage.LinkTo( unityAssetFromWebRequestTree.DefaultInput );
             _builder.AddExceptionsHandlingForAllNodes( setExceptionNode );
 
-            var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ) );
-            var promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner2 ) );
+            var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
+            var promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner2 ) );
             yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise2.Status );
@@ -149,7 +149,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             Assert.AreSame( promise.Result, promise2.Result );
             Assert.True( _builder.OtherAssetsCache.Contains( url ) );
 
-            var cachedAsset = _builder.AssetsStorage.LoadAssetSync< Texture >( url, new MetaDataExtended( owner3 ) );
+            var cachedAsset = _builder.AssetsStorage.LoadAssetSync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner3 ) );
             Assert.NotNull( cachedAsset );
             Assert.AreSame( promise.Result, cachedAsset );
         }
@@ -181,7 +181,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             _builder.AddExceptionsHandlingForAllNodes();
 
             //Load manifest
-            var manifestPromise = _builder.AssetsStorage.LoadAssetAsync< string >( manifestUrl, new MetaDataExtended( owner ) );
+            var manifestPromise = _builder.AssetsStorage.LoadAssetAsync< string >( manifestUrl, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             yield return WaitForPromiseEnging( manifestPromise );
             Assert.AreEqual( PandaTaskStatus.Resolved, manifestPromise.Status );
             Assert.NotNull( manifestPromise.Result );
@@ -192,7 +192,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
 
             //load asset
-            var assetPromise = _builder.AssetsStorage.LoadAssetAsync< Texture >( assetName, new MetaDataExtended( owner ) );
+            var assetPromise = _builder.AssetsStorage.LoadAssetAsync< Texture >( assetName, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             yield return WaitForPromiseEnging( assetPromise );
             Assert.AreEqual( PandaTaskStatus.Resolved, assetPromise.Status );
             Assert.NotNull( assetPromise.Result );
@@ -203,7 +203,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             Assert.False( _builder.OtherAssetsCache.Contains( BundleName ) );
 
             //check get from cache
-            var syncLoadAssetFromCachedBundle = _builder.AssetsStorage.LoadAssetSync< Texture >( assetName, new MetaDataExtended( owner ) );
+            var syncLoadAssetFromCachedBundle = _builder.AssetsStorage.LoadAssetSync< Texture >( assetName, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             Assert.NotNull( syncLoadAssetFromCachedBundle );
             Assert.True( _builder.AssetsFromBundlesCache.Contains( assetName ) );
 
@@ -211,7 +211,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             syncLoadAssetFromCachedBundle = null;
             _builder.AssetsFromBundlesCache.Remove( assetName, false, false );
             Assert.False( _builder.AssetsFromBundlesCache.Contains( assetName ) );
-            syncLoadAssetFromCachedBundle = _builder.AssetsStorage.LoadAssetSync< Texture >( assetName, new MetaDataExtended( owner ) );
+            syncLoadAssetFromCachedBundle = _builder.AssetsStorage.LoadAssetSync< Texture >( assetName, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             Assert.NotNull( syncLoadAssetFromCachedBundle );
             Assert.True( _builder.AssetsFromBundlesCache.Contains( assetName ) );
         }
@@ -234,8 +234,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             _builder.AssetsStorage.LinkTo( unityAssetFromWebRequestTree.DefaultInput );
             _builder.AddExceptionsHandlingForAllNodes( setExceptionNode );
 
-            var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ) );
-            var promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner2 ) );
+            var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
+            var promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner2 ) );
             yield return WaitForPromiseEnging( promise );
 
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
@@ -243,8 +243,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             Assert.False( _builder.OtherAssetsCache.Contains( url ) );
 
             url = ResourceStorageTestUtils.ConstructTestUrl( "logo_test.jpg" );
-            promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ) );
-            promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner2 ) );
+            promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
+            promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner2 ) );
             yield return WaitForPromiseEnging( promise );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise2.Status );
@@ -253,7 +253,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             Assert.AreSame( promise.Result, promise2.Result );
             Assert.True( _builder.OtherAssetsCache.Contains( url ) );
 
-            var cachedAsset = _builder.AssetsStorage.LoadAssetSync< Texture >( url, new MetaDataExtended( owner3 ) );
+            var cachedAsset = _builder.AssetsStorage.LoadAssetSync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner3 ) );
             Assert.NotNull( cachedAsset );
             Assert.AreSame( promise.Result, cachedAsset );
         }
@@ -274,7 +274,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             CancellationTokenSource cancelTocken = new CancellationTokenSource();
 
-            var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ), cancelTocken.Token );
+            var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ), cancelTocken.Token );
 
             cancelTocken.Cancel();
 
@@ -299,7 +299,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             CancellationTokenSource cancelTocken = new CancellationTokenSource();
 
-            var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, new MetaDataExtended( owner ), cancelTocken.Token );
+            var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ), cancelTocken.Token );
             yield return WaitForPromiseEnging( promise );
 
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
