@@ -12,7 +12,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         public bool IsNetworkError { get; }
 
         public WebRequestException( UnityWebRequest request, IFlowNode flowNode, MessageHeader messageHeader, IMessageBody messageBody )
-            : base( $"WebRequestError: {request.responseCode} {request.url} - {request.error}", flowNode, messageHeader, messageBody )
+            : base( $"WebRequestError: {request.responseCode} {request.url} - {request.error}", flowNode, messageBody )
         {
             Url = request.url;
             StatusCode = request.responseCode;

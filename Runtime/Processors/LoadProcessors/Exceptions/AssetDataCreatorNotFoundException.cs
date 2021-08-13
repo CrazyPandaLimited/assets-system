@@ -8,7 +8,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
         public Type AssetType { get; }
 
         public AssetDataCreatorNotFoundException( Type assetType, IFlowNode flowNode, MessageHeader messageHeader, IMessageBody messageBody )
-            : base( $"IAssetDataCreator not found for type {assetType}", flowNode, messageHeader, messageBody )
+            : base( $"IAssetDataCreator not found for type {assetType}", flowNode, messageBody )
         {
             AssetType = assetType;
         }

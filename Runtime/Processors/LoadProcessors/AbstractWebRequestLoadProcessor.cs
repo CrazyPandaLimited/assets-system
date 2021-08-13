@@ -31,27 +31,18 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected override void OnLoadingProgressUpdated( UrlLoadingRequest body, float currentProgress ) => body.ProgressTracker.ReportProgress( currentProgress );
 
-        protected override void OnOperationCancelled( RequestProcessorData data ) => data.RequestLoadingOperation.webRequest.Dispose(); 
-        
-        protected override void OnLoadingCompleted( RequestProcessorData data )
-        {
-            data.Body.ProgressTracker.ReportProgress( FinalProgress );
-            data.RequestLoadingOperation.webRequest.Dispose();
-        }
+        protected override void OnLoadingCompleted( RequestProcessorData data ) => data.Body.ProgressTracker.ReportProgress( FinalProgress );
 
         protected override bool LoadingFinishedWithoutErrors( RequestProcessorData data ) => RequestFinishedWithoutErrors( data.RequestLoadingOperation.webRequest, data.Header, data.Body );
 
-        protected override void OnErrorLoading( RequestProcessorData data )
-        {
-            data.RequestLoadingOperation.webRequest.Dispose(); 
-            base.OnErrorLoading( data );
-        }
+        protected override void OnOperationCancelled( RequestProcessorData data ) => data.RequestLoadingOperation.webRequest.Dispose(); 
+
 
         private void BuildAndSendWebRequest( UnityWebRequest webRequest, MessageHeader header, UrlLoadingRequest body )
         {
             webRequest.downloadHandler = webRequest.downloadHandler ?? new DownloadHandlerBuffer();
             ConfigureWebRequest( webRequest, _webRequestSettings );
-            
+
 #if UNITY_2017_2_OR_NEWER
             var webRequestInProgressTask = webRequest.SendWebRequest();
 #else

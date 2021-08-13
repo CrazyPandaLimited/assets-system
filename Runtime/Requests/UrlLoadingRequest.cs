@@ -22,7 +22,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 
         public override string ToString()
         {
-            return $"UrlLoadingRequest Url:{Url} AssetType:{AssetType.ToString()}";
+            return $"UrlLoadingRequest AssetUrl:{Url} AssetType:{AssetType.ToString()}";
         }
     }
 }
