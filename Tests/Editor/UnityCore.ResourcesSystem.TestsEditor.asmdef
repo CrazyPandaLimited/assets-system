@@ -1,5 +1,5 @@
 {
-    "name": "UnityCore.ResourcesSystem.Tests",
+    "name": "UnityCore.ResourcesSystem.TestsEditor",
     "references": [
         "UnityCore.ResourcesSystem",
         "UnityCore.MessagesFlow",
@@ -7,9 +7,11 @@
         "UnityCore.NewtonsoftJSON",
         "UnityCore.OrderedNotifySet",
         "UnityCore.ResourcesSystem.JsonSupport",
-        "UnityCore.Promises.AsyncTestsSupport"
+        "UnityCore.ResourcesSystem.Editor"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
