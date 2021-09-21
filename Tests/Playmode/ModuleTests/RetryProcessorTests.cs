@@ -18,7 +18,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
     [NUnit.Framework.Category("LocalTests")]
     public class RetryProcessorTests
     {
-        private RequestRetryProcessor<Object> _processor;
+        private RequestRetryProcessor _processor;
         PandaTaskCompletionSource<Object> _taskSource;
 
         private AssetLoadingRequest<Object> _messageBodyFirstFile1;        
@@ -38,7 +38,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [UnityTest]
         public IEnumerator SuccessFirstRetryTest()
         {
-            _processor = new RequestRetryProcessor<Object>(new Dictionary<int, float>()
+            _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
                 {1, 0.5f}
             },
@@ -59,14 +59,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.True(rCalls.Count>0);            
             
-            Assert.True(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
-            Assert.AreEqual(1, _messageHeaderFirstFile1.MetaData.GetMeta<int>(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
+            Assert.True(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor.RETRY_METADATA_KEY));
+            Assert.AreEqual(1, _messageHeaderFirstFile1.MetaData.GetMeta<int>(RequestRetryProcessor.RETRY_METADATA_KEY));
         }
 
         [UnityTest]
         public IEnumerator SuccessSecondRetryTest()
         {
-            _processor = new RequestRetryProcessor<Object>(new Dictionary<int, float>()
+            _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
                 {2, 0.5f}
             }, 
@@ -78,7 +78,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             _processor.RetryOutput.LinkTo(inputOutNode);
 
             var metaData = new MetaData();
-            metaData.SetMeta(RequestRetryProcessor<Object>.RETRY_METADATA_KEY, 1);
+            metaData.SetMeta(RequestRetryProcessor.RETRY_METADATA_KEY, 1);
 
             //var loadingRequest = new UnityAssetLoadingRequest("1", metaData, _taskSource, CancellationToken.None, null);
             _messageHeaderFirstFile1 = new MessageHeader(metaData, CancellationToken.None);
@@ -92,15 +92,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.True(rCalls.Count > 0);
 
-            Assert.True(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
-            Assert.AreEqual(2, _messageHeaderFirstFile1.MetaData.GetMeta<int>(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
+            Assert.True(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor.RETRY_METADATA_KEY));
+            Assert.AreEqual(2, _messageHeaderFirstFile1.MetaData.GetMeta<int>(RequestRetryProcessor.RETRY_METADATA_KEY));
 
         }
 
         [UnityTest]
         public IEnumerator GetAllRetryFallTest()
         {
-            _processor = new RequestRetryProcessor<Object>(new Dictionary<int, float>()
+            _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
                 {1, 0.5f}
             },
@@ -111,14 +111,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var inputRetryNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
             _processor.RetryOutput.LinkTo(inputRetryNode);
 
-            var inputOutNode = Substitute.For<IInputNode<AssetLoadingRequest<Object>>>();
+            var inputOutNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
             _processor.DefaultOutput.LinkTo(inputOutNode);
             
             var inputRetryExceptionNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
             _processor.AllRetrysFailedOutput.LinkTo(inputRetryExceptionNode);
 
             var metaData = new MetaData();
-            metaData.SetMeta(RequestRetryProcessor<Object>.RETRY_METADATA_KEY, 1);
+            metaData.SetMeta(RequestRetryProcessor.RETRY_METADATA_KEY, 1);
 
             _messageHeaderFirstFile1 = new MessageHeader(metaData, CancellationToken.None);
 
@@ -137,8 +137,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             //Debug.Log($"Calls = {rCalls.Count}");            
             Assert.AreEqual( 1, rCallsOut.Count );
 
-            Assert.True(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
-            Assert.AreEqual(1, _messageHeaderFirstFile1.MetaData.GetMeta<int>(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
+            Assert.True(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor.RETRY_METADATA_KEY));
+            Assert.AreEqual(1, _messageHeaderFirstFile1.MetaData.GetMeta<int>(RequestRetryProcessor.RETRY_METADATA_KEY));
             Assert.True(_messageHeaderFirstFile1.Exceptions != null);
             Assert.True(_messageHeaderFirstFile1.Exceptions.InnerException is AllRequestRetrysFallException);
             
@@ -150,7 +150,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [UnityTest]
         public IEnumerator OperationCancelTest()
         {
-            _processor = new RequestRetryProcessor<Object>(new Dictionary<int, float>()
+            _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
                 {1, 0.1f}
             },
@@ -161,7 +161,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             var inputRetryNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
             _processor.RetryOutput.LinkTo(inputRetryNode);
 
-            var inputOutNode = Substitute.For<IInputNode<AssetLoadingRequest<Object>>>();
+            var inputOutNode = Substitute.For<IInputNode<UrlLoadingRequest>>();
             _processor.DefaultOutput.LinkTo(inputOutNode);
             //var metaData = new MetaData();
 
@@ -185,7 +185,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.True(rCallsOut.Count == 0);
 
             Assert.True(_messageHeaderFirstFile1.CancellationToken.IsCancellationRequested);
-            Assert.False(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor<Object>.RETRY_METADATA_KEY));
+            Assert.False(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor.RETRY_METADATA_KEY));
         }
         
         private IEnumerator WaitResults(float timeToWait = 0.6f)
