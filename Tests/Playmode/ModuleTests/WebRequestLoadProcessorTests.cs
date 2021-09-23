@@ -6,10 +6,12 @@ using Object = UnityEngine.Object;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using CrazyPanda.UnityCore.AssetsSystem.Tests;
 using NSubstitute;
 using NUnit.Framework;
 using CrazyPanda.UnityCore.MessagesFlow;
+using CrazyPanda.UnityCore.PandaTasks;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -99,6 +101,51 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.Null( _workProcessor.Exception );
         }
 
+        [ AsyncTest ]
+        public async Task RetryUrlRequestShouldSucceed()
+        {
+            const uint maxRetriesCount = 5;
+            uint retriesCount = 0;
+
+            var retriesConfig = new Dictionary< int, float >();
+
+            for( int i = 1; i <= maxRetriesCount; i++ )
+            {
+                retriesConfig[ i ] = 0.5f;
+            }
+
+            RequestRetryProcessor retryProcessor = new RequestRetryProcessor( retriesConfig, ( _, __ ) => true );
+
+            TaskCompletionSource< object > taskCompletionSource = new TaskCompletionSource< object >();
+
+            var retryConnection = Substitute.For< IInputNode< UrlLoadingRequest > >();
+
+            retryConnection.When( node => node.ProcessMessage( Arg.Any< MessageHeader >(), Arg.Any< UrlLoadingRequest >() ) )
+                               .Do( callInfo =>
+                               {
+                                   retriesCount++;
+                                   _workProcessor.DefaultInput.ProcessMessage( ( MessageHeader )callInfo[0], ( UrlLoadingRequest )callInfo[1] );
+                               });
+
+            var finishConnection = Substitute.For< IInputNode< UrlLoadingRequest > >();
+            finishConnection.When(  node => node.ProcessMessage( Arg.Any<MessageHeader>(), Arg.Any<UrlLoadingRequest>() ))
+                            .Do( _ =>
+                            {
+                                taskCompletionSource.SetResult( default );
+                            } );
+            
+            _workProcessor.ExceptionOutput.LinkTo( retryProcessor );
+            retryProcessor.RetryOutput.LinkTo( retryConnection );
+            retryProcessor.AllRetrysFailedOutput.LinkTo( finishConnection );
+
+            var requestBody = new UrlLoadingRequest( ResourceStorageTestUtils.ConstructTestUrl( "notExistFile.jpg" ), typeof( Texture ), new ProgressTracker< float >() );
+            _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.OWNER_REFERENCE_RESERVED_KEY ), CancellationToken.None ), requestBody );
+
+            await taskCompletionSource.Task;
+            
+            Assert.That( maxRetriesCount , Is.EqualTo( retriesCount ) );
+        }
+        
         [ UnityTest ]
         public IEnumerator FailWithAssetCreatorNotFound()
         {

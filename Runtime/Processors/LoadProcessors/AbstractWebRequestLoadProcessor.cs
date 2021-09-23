@@ -95,8 +95,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 			if( webRequest.isError )
 #endif
             {
-                header.AddException( new WebRequestException( webRequest, this, header, body ) );
-                SendException( header, body );
+                Exception = new WebRequestException( webRequest, this, header, body );
                 return false;
             }
             return true;
