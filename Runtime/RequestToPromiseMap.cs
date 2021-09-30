@@ -5,16 +5,16 @@ namespace CrazyPanda.UnityCore.AssetsSystem
 {
     public class RequestToPromiseMap
     {
-        protected Dictionary< string, PandaTaskCompletionSource< object > > _map = new Dictionary< string, PandaTaskCompletionSource< object > >();
+        protected Dictionary< string, UnsafeCompletionSource< object > > _map = new Dictionary< string, UnsafeCompletionSource< object > >();
 
-        public void Add( string id, PandaTaskCompletionSource< object > promise )
+        public void Add( string id, UnsafeCompletionSource< object > promise )
         {
             _map.Add( id, promise );
         }
 
         public bool Has( string id ) => _map.ContainsKey( id );
 
-        public PandaTaskCompletionSource< object > Get( string id )
+        public UnsafeCompletionSource < object > Get( string id )
         {
             var task = _map[ id ];
 

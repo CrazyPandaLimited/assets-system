@@ -143,8 +143,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             var header = new MessageHeader( metaData, tocken );
             var body = new UrlLoadingRequest( url, typeof( AssetType ), tracker == null ? new ProgressTracker< float >() : tracker );
 
-            var resultTask = new PandaTaskCompletionSource< AssetType >();
-            var internalTask = new PandaTaskCompletionSource< object >();            
+            var resultTask = UnsafeCompletionSource< AssetType >.Create();
+            var internalTask = UnsafeCompletionSource< object >.Create();            
             
             _requestToPromiseMap.Add( header.Id, internalTask );
 
@@ -204,7 +204,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             return resultTask.ResultTask;
         }
 
-        private void SetCastedResult<TAssetType>(object o, PandaTaskCompletionSource<TAssetType> resultTask )
+        private void SetCastedResult<TAssetType>(object o, UnsafeCompletionSource<TAssetType> resultTask )
         {
             TAssetType res;
             try

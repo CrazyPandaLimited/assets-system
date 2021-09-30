@@ -19,7 +19,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
     public class RetryProcessorTests
     {
         private RequestRetryProcessor _processor;
-        PandaTaskCompletionSource<Object> _taskSource;
+        UnsafeCompletionSource<Object> _taskSource;
 
         private AssetLoadingRequest<Object> _messageBodyFirstFile1;        
 
@@ -28,7 +28,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [SetUp]
         public void Setup()
         {   
-            _taskSource = new PandaTaskCompletionSource<Object>();
+            _taskSource = UnsafeCompletionSource<Object>.Create();
 
             _messageBodyFirstFile1 = new AssetLoadingRequest<Object>("1", typeof(UnityEngine.Object), new ProgressTracker<float>(), null);
             _messageHeaderFirstFile1 = new MessageHeader(new MetaData(), CancellationToken.None);
