@@ -166,7 +166,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 case PandaTaskStatus.Resolved:
                 {
                     //если загрузили синхронно, то не подписываемся
-                    SetCastedResult( internalTask.ResultTask.Result, resultTask );
+                    SetCastedResult( internalTask.ResultTask.Result, in resultTask );
                     break;
                 }
                 case PandaTaskStatus.Rejected:
@@ -179,7 +179,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
                 {
                     //если загрузка идет не синхронно - подписываемся и ждем окончания
                     internalTask.ResultTask
-                       .Done( o => SetCastedResult( o, resultTask ) )
+                       .Done( o => SetCastedResult( o, in resultTask ) )
                        .Fail( resultTask.SetError );
 
                     if( tocken.CanBeCanceled )
@@ -204,7 +204,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem
             return resultTask.ResultTask;
         }
 
-        private void SetCastedResult<TAssetType>(object o, UnsafeCompletionSource<TAssetType> resultTask )
+        private void SetCastedResult<TAssetType>(object o, in UnsafeCompletionSource<TAssetType> resultTask )
         {
             TAssetType res;
             try
