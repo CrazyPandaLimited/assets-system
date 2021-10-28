@@ -78,8 +78,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             _combinerProcessor.DefaultInput.ProcessMessage( new MessageHeader( sourceMeta, CancellationToken.None ), _requestFirstFile1 );
             
             Assert.AreNotSame( _requestFirstFile1, sendedBody );
-            Assert.IsTrue( sendedHeader.MetaData.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) );
-            Assert.IsFalse( sourceMeta.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) );
+            Assert.IsTrue( sendedHeader.MetaData.HasFlag( sendedBody.Url ) );
+            Assert.IsFalse( sourceMeta.HasFlag( sendedBody.Url ) );
         }
 
         [ Test ]

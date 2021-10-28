@@ -15,7 +15,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected override void InternalProcessMessage( MessageHeader header, AssetLoadingRequest< T > body )
         {
-            if( !header.MetaData.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) )
+            if( !header.MetaData.HasFlag( body.Url ) )
             {
                 SendOutput( header, body );
                 return;
@@ -68,7 +68,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
-            if( !header.MetaData.HasFlag( RequestsCombinerProcessor.IS_COMBINED_REQUEST_METADATA_FLAG ) )
+            if( !header.MetaData.HasFlag( body.Url ) )
             {
                 SendOutput( header, body );
             }
