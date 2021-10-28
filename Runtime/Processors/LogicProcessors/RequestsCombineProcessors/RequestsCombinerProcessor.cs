@@ -8,6 +8,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 {
     public class RequestsCombinerProcessor : AbstractRequestInputOutputProcessor< UrlLoadingRequest, UrlLoadingRequest >
     {
+        public const string COMBINE_BASE_URL = "base_request_combined_url";
+        
         private Dictionary< string, CombinedRequest > _combinedRequests;
         private List<string> _keysToDelete = new List<string>();
 
@@ -37,13 +39,13 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             var cancelTocken = new CancellationTokenSource();
             var progressTracker = new ProgressTracker< float >();
-            var metaData = new MetaData( body.Url );
-            metaData.SetFlag( body.Url );
+
+            var metaData = new MetaData( );
+            metaData.SetMeta( COMBINE_BASE_URL, body.Url );
             
-            var combinedHeader = new MessageHeader( new MetaData( body.Url ), cancelTocken.Token );
+            var combinedHeader = new MessageHeader( metaData, cancelTocken.Token );
             var combinedBody = new UrlLoadingRequest( body.Url, body.AssetType, progressTracker );
-
-
+            
             var combinedRequest = new CombinedRequest( combinedHeader, combinedBody, cancelTocken );
             combinedRequest.AddRequest( header, body );
             _combinedRequests.Add( body.Url, combinedRequest );

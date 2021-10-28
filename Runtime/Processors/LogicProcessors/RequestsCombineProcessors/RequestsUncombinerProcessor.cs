@@ -15,7 +15,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected override void InternalProcessMessage( MessageHeader header, AssetLoadingRequest< T > body )
         {
-            if( !header.MetaData.HasFlag( body.Url ) )
+            if( !header.MetaData.IsMetaExist( RequestsCombinerProcessor.COMBINE_BASE_URL ) )
             {
                 SendOutput( header, body );
                 return;
@@ -23,8 +23,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             ClearCancelledRequests();
 
-            var combinedRequest = _combinedRequests[ body.Url ];
-            _combinedRequests.Remove( body.Url );
+            var sourceUrl = header.MetaData.GetMeta< string >( RequestsCombinerProcessor.COMBINE_BASE_URL );
+            var combinedRequest = _combinedRequests[ sourceUrl ];
+            _combinedRequests.Remove( sourceUrl );
 
             foreach( var request in combinedRequest.SourceRequests )
             {
@@ -68,15 +69,16 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
         protected override void InternalProcessMessage( MessageHeader header, UrlLoadingRequest body )
         {
-            if( !header.MetaData.HasFlag( body.Url ) )
+            if( !header.MetaData.IsMetaExist( RequestsCombinerProcessor.COMBINE_BASE_URL ) )
             {
                 SendOutput( header, body );
             }
 
             ClearCancelledRequests();
 
-            var combinedRequest = _combinedRequests[ body.Url ];
-            _combinedRequests.Remove( body.Url );
+            var sourceUrl = header.MetaData.GetMeta< string >( RequestsCombinerProcessor.COMBINE_BASE_URL );
+            var combinedRequest = _combinedRequests[ sourceUrl ];
+            _combinedRequests.Remove( sourceUrl );
 
             foreach( var request in combinedRequest.SourceRequests )
             {
