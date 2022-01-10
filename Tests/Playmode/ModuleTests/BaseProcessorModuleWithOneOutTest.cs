@@ -12,7 +12,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         where TInputNodeBodyType : IMessageBody
         where TOutNodeBodyType : IMessageBody
     {
-        protected const float RemoteLoadingTimeoutSec = 5f;
+        protected const float RemoteLoadingTimeoutSec = 1f;
         protected TProcessorType _workProcessor;
         protected IInputNode< TOutNodeBodyType > outProcessor;
 
