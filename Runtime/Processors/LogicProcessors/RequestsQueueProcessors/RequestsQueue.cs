@@ -20,7 +20,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
         public void Add( RequestQueueEntry entry )
         {
             _waitingRequests.AddLast( entry );
-            entry.Header.CancellationToken.Register( () => { TryStartNextRequest(); } );
+
+            if( entry.Header.CancellationToken.CanBeCanceled )
+            {
+                entry.Header.CancellationToken.Register( () => { TryStartNextRequest(); } );
+            }
 
             TryStartNextRequest();
         }
