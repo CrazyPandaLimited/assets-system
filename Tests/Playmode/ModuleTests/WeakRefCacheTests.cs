@@ -10,7 +10,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     public sealed class WeakRefCacheTests : BaseCacheTests< WeakCache >
     {
-        private const int TestsTimeoutSeconds = 30;
+        private const int TestsTimeoutSeconds = 60;
 
         [ Test ]
         public override void GetNotExistedElementTest()
