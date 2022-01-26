@@ -10,8 +10,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     public sealed class WeakRefCacheTests : BaseCacheTests< WeakCache >
     {
-        private const int TestsTimeoutSeconds = 60;
-
         [ Test ]
         public override void GetNotExistedElementTest()
         {
@@ -25,12 +23,25 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.Throws< ArgumentException >( AddValueToCache );
         }
 
-        [ AsyncTest( TestsTimeoutSeconds ) ]
+        [ AsyncTest ]
         public async Task Contains_Should_Return_False_After_Full_GC_Collect()
         {
-            _memoryCache.Add( testObjectName, new object() );
+            bool wasDestroyed = false;
+            
+            _memoryCache.Add( testObjectName, new TestWeakRefClass()
+            {
+                OnClassWasDestroyed = () => wasDestroyed = true
+            } );
             CheckThatCacheContainsTestValue();
-            await RunFullGCCollectAsync();
+            
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            
+            while( !wasDestroyed )
+            {
+                await Task.Yield();
+            }
+
             Assert.False( _memoryCache.Contains( testObjectName ) );
         }
 
@@ -59,12 +70,25 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             }
         }
 
-        [ AsyncTest( TestsTimeoutSeconds ) ]
+        [ AsyncTest ]
         public async Task Add_Should_Succeed_Add_Same_Key_Twice_After_Full_GC_Collect()
         {
-            _memoryCache.Add( testObjectName, new object() );
-            await RunFullGCCollectAsync();
-            Assert.DoesNotThrow( () => _memoryCache.Add( testObjectName, new object() ) );
+            bool wasDestroyed = false;
+            
+            _memoryCache.Add( testObjectName, new TestWeakRefClass()
+            {
+                OnClassWasDestroyed = () => wasDestroyed = true
+            } );
+            
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            
+            while( !wasDestroyed )
+            {
+                await Task.Yield();
+            }
+            
+            Assert.DoesNotThrow( () => _memoryCache.Add( testObjectName, new TestWeakRefClass() ) ); 
             CheckThatCacheContainsTestValue();
         }
 
@@ -77,25 +101,41 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.Throws< KeyNotFoundException >( () => _memoryCache.Get( testObjectName ) );
         }
         
-        [ AsyncTest (TestsTimeoutSeconds)]
+        [ AsyncTest ]
         public async Task Get_Should_Throw_KeyNotFoundException_After_Full_GC_Collect()
         {
-            _memoryCache.Add( testObjectName, new object() );
+            bool wasDestroyed = false;
+            
+            _memoryCache.Add( testObjectName, new TestWeakRefClass()
+            {
+               OnClassWasDestroyed = () => wasDestroyed = true
+            } );
             CheckThatCacheContainsTestValue();
-
             Assert.That( _memoryCache.Get( testObjectName ), Is.Not.Null );
-            await RunFullGCCollectAsync();
+            
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            
+            while( !wasDestroyed )
+            {
+                await Task.Yield();
+            }
+            
             Assert.Throws<KeyNotFoundException>( ()=> _memoryCache.Get( testObjectName ) );
         }
 
-        [ AsyncTest( TestsTimeoutSeconds ) ]
-        public async Task Type_With_Strong_Reference_Should_Succeed_Keep_Alive_In_Cache()
+        [ Test ]
+        public void Type_With_Strong_Reference_Should_Succeed_Keep_Alive_In_Cache()
         {
-            var strongReference = new object();
+            var strongReference = new TestWeakRefClass();
             _memoryCache.Add( testObjectName, strongReference );
             CheckThatCacheContainsTestValue();
-            await RunFullGCCollectAsync();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            
             CheckThatCacheContainsTestValue();
+            strongReference = null;
         }
 
         [ Test ]
@@ -116,20 +156,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.That( _memoryCache.GetAllAssetsNames(), Is.Empty );
         }
         
-        private async Task RunFullGCCollectAsync()
-        {
-            WeakReference weakReference = new WeakReference( new object() );
-            
-            GC.Collect();
-
-            while( weakReference.Target != null )
-            {
-                await Task.Yield();
-            }
-        }
-        
         private void CheckThatCacheContainsTestValue() => Assert.True( _memoryCache.Contains( testObjectName ) );
         
         private void AddValueToCache() => _memoryCache.Add( testObjectName, testObject1 );
+        
+        private sealed class TestWeakRefClass
+        {
+            public Action OnClassWasDestroyed;
+            
+            ~TestWeakRefClass() => OnClassWasDestroyed?.Invoke();
+        }
     }
 }
