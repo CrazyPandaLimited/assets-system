@@ -10,7 +10,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     public sealed class WeakRefCacheTests : BaseCacheTests< WeakCache >
     {
-        private const int TestsTimeoutSeconds = 30;
+        private const int TestsTimeoutSeconds = 60;
 
         [ Test ]
         public override void GetNotExistedElementTest()
@@ -118,9 +118,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         
         private async Task RunFullGCCollectAsync()
         {
-            var lastGcCount = GC.CollectionCount( 2 );
+            WeakReference weakReference = new WeakReference( new object() );
+            
             GC.Collect();
-            while( lastGcCount == GC.CollectionCount( 2 ) )
+
+            while( weakReference.Target != null )
             {
                 await Task.Yield();
             }
