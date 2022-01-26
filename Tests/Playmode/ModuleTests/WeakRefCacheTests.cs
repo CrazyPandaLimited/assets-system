@@ -23,24 +23,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.Throws< ArgumentException >( AddValueToCache );
         }
 
-        [ UnityTest ]
-        public IEnumerator Contains_Should_Return_False_After_Full_GC_Collect()
-        {
-            WeakReference weakReference = new WeakReference( new object() );
-
-            _memoryCache.Add( testObjectName, weakReference.Target );
-            CheckThatCacheContainsTestValue();
-            
-            GC.Collect();
-
-            while( weakReference.Target != null )
-            {
-                yield return null;
-            }
-
-            Assert.False( _memoryCache.Contains( testObjectName ) );
-        }
-
         [Test]
         public void Add_Should_Failed_ToAdd_UnityObjectType_Twice_When_ObjectInstance_Exists()
         {
@@ -66,23 +48,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             }
         }
 
-        [ UnityTest ]
-        public IEnumerator Add_Should_Succeed_Add_Same_Key_Twice_After_Full_GC_Collect()
-        {
-            WeakReference weakReference = new WeakReference( new object() );
-            _memoryCache.Add( testObjectName, weakReference.Target);
-            
-            GC.Collect();
-            
-            while( weakReference.Target!=null )
-            {
-                yield return null;
-            }
-            
-            Assert.DoesNotThrow( () => _memoryCache.Add( testObjectName, new object() ) ); 
-            CheckThatCacheContainsTestValue();
-        }
-
         [ Test ]
         public void Get_Should_Throw_KeyNotFoundException_When_Unity_Object_Was_Destroyed()
         {
@@ -92,24 +57,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.Throws< KeyNotFoundException >( () => _memoryCache.Get( testObjectName ) );
         }
         
-        [ UnityTest ]
-        public IEnumerator Get_Should_Throw_KeyNotFoundException_After_Full_GC_Collect()
-        {
-            WeakReference weakReference = new WeakReference( new object() );
-            _memoryCache.Add( testObjectName, weakReference.Target);
-            CheckThatCacheContainsTestValue();
-            Assert.That( _memoryCache.Get( testObjectName ), Is.Not.Null );
-
-            GC.Collect();
-            
-            while( weakReference.Target!=null )
-            {
-                yield return null;
-            }
-            
-            Assert.Throws<KeyNotFoundException>( ()=> _memoryCache.Get( testObjectName ) );
-        }
-
         [ Test ]
         public void Type_With_Strong_Reference_Should_Succeed_Keep_Alive_In_Cache()
         {
