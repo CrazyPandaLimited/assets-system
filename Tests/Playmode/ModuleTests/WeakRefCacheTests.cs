@@ -10,6 +10,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     public sealed class WeakRefCacheTests : BaseCacheTests< WeakCache >
     {
+        private const int TestsTimeoutSeconds = 30; 
+        
         [ Test ]
         public override void GetNotExistedElementTest()
         {
@@ -23,7 +25,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.Throws< ArgumentException >( AddValueToCache );
         }
 
-        [ AsyncTest ]
+        [ AsyncTest (TestsTimeoutSeconds) ]
         public async Task Contains_Should_Return_False_After_Full_GC_Collect()
         {
             bool wasDestroyed = false;
@@ -34,7 +36,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             } );
             CheckThatCacheContainsTestValue();
             
-            GC.Collect();
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
             GC.WaitForPendingFinalizers();
             
             while( !wasDestroyed )
@@ -70,7 +72,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             }
         }
 
-        [ AsyncTest ]
+        [ AsyncTest (TestsTimeoutSeconds) ]
         public async Task Add_Should_Succeed_Add_Same_Key_Twice_After_Full_GC_Collect()
         {
             bool wasDestroyed = false;
@@ -80,7 +82,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
                 OnClassWasDestroyed = () => wasDestroyed = true
             } );
             
-            GC.Collect();
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
             GC.WaitForPendingFinalizers();
             
             while( !wasDestroyed )
@@ -101,7 +103,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.Throws< KeyNotFoundException >( () => _memoryCache.Get( testObjectName ) );
         }
         
-        [ AsyncTest ]
+        [ AsyncTest (TestsTimeoutSeconds) ]
         public async Task Get_Should_Throw_KeyNotFoundException_After_Full_GC_Collect()
         {
             bool wasDestroyed = false;
@@ -113,7 +115,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             CheckThatCacheContainsTestValue();
             Assert.That( _memoryCache.Get( testObjectName ), Is.Not.Null );
             
-            GC.Collect();
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
             GC.WaitForPendingFinalizers();
             
             while( !wasDestroyed )
@@ -132,7 +134,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             CheckThatCacheContainsTestValue();
 
             GC.Collect();
-            GC.WaitForPendingFinalizers();
             
             CheckThatCacheContainsTestValue();
             strongReference = null;
