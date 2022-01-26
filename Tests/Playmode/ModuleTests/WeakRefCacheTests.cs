@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -101,7 +100,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             CheckThatCacheContainsTestValue();
             Assert.That( _memoryCache.Get( testObjectName ), Is.Not.Null );
 
-            GC.Collect(0);
+            GC.Collect();
             
             while( weakReference.Target!=null )
             {
