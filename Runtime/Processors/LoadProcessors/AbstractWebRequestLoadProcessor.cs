@@ -75,7 +75,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Processors
 
             if( webRequestSettings.Method != WebRequestMethod.NotSet )
             {
-                webRequest.method = webRequestSettings.Method.ToString().ToUpper();
+                webRequest.method = webRequestSettings.Method.ToString().ToUpperInvariant();
             }
 
             webRequest.timeout = Mathf.RoundToInt( webRequestSettings.Timeout );
