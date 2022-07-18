@@ -100,7 +100,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             CheckThatCacheContainsTestValue();
             Assert.That( _memoryCache.Get( testObjectName ), Is.Not.Null );
 
-            GC.Collect();
+            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+            GC.WaitForPendingFinalizers();
+            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
             
             while( weakReference.Target!=null )
             {
