@@ -90,7 +90,5 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         private void CheckThatCacheContainsTestValue() => Assert.True( _memoryCache.Contains( testObjectName ) );
         
         private void AddValueToCache() => _memoryCache.Add( testObjectName, testObject1 );
-
-        private static bool fileReleased = false;
     }
 }
