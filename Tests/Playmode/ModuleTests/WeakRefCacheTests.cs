@@ -95,7 +95,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [ UnityTest ]
         public IEnumerator Get_Should_Throw_KeyNotFoundException_After_Full_GC_Collect()
         {
-            WeakReference weakReference = new WeakReference( new object() );
+            fileReleased = false;
+            
+            WeakReference weakReference = new WeakReference( new TestClass() );
             _memoryCache.Add( testObjectName, weakReference.Target);
             CheckThatCacheContainsTestValue();
             Assert.That( _memoryCache.Get( testObjectName ), Is.Not.Null );
@@ -104,7 +106,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             GC.WaitForPendingFinalizers();
             GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
             
-            while( weakReference.Target!=null )
+            while( !fileReleased )
             {
                 yield return null;
             }
@@ -145,5 +147,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         private void CheckThatCacheContainsTestValue() => Assert.True( _memoryCache.Contains( testObjectName ) );
         
         private void AddValueToCache() => _memoryCache.Add( testObjectName, testObject1 );
+
+        private static bool fileReleased = false;
+        
+        private sealed class TestClass
+        {
+            ~TestClass()
+            {
+                fileReleased = true;
+            }
+        }
     }
 }
