@@ -111,7 +111,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             for( int i = 1; i <= maxRetriesCount; i++ )
             {
-                retriesConfig[ i ] = 0.5f;
+                retriesConfig[ i ] = 0.001f;
             }
 
             RequestRetryProcessor retryProcessor = new RequestRetryProcessor( retriesConfig, ( _, __ ) => true );
