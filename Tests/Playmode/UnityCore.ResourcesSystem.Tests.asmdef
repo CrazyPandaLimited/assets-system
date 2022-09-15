@@ -7,7 +7,8 @@
         "UnityCore.NewtonsoftJSON",
         "UnityCore.OrderedNotifySet",
         "UnityCore.ResourcesSystem.JsonSupport",
-        "UnityCore.Promises.AsyncTestsSupport"
+        "UnityCore.Promises.AsyncTestsSupport",
+        "UnityEngine.TestRunner"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -16,13 +17,12 @@
     "precompiledReferences": [
         "nunit.framework.dll",
         "Newtonsoft.Json.dll",
-        "NSubstitute.dll",
-        "System.Threading.Tasks.Extensions.dll"
+        "NSubstitute.dll"
     ],
     "autoReferenced": true,
-	"defineConstraints": [
+    "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
-    ],	
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }
