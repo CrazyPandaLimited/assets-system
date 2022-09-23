@@ -58,7 +58,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         }
         
         [ Test ]
-        [Ignore("temporary ignore see https://jira.crazypanda.ru/browse/REQUESTS-191")]
         public void Type_With_Strong_Reference_Should_Succeed_Keep_Alive_In_Cache()
         {
             var strongReference = new object();
@@ -68,6 +67,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             GC.Collect();
             
             CheckThatCacheContainsTestValue();
+            strongReference.ToString();
         }
 
         [ Test ]
