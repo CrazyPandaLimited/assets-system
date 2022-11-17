@@ -47,7 +47,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             _manifest.AssetInfos.Add( prefabAssetName, new AssetInBundleInfo( prefabAssetName ) );
             _manifest.RecalculateCache();
 
-            var bundleLoader = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/Systems/ResourcesSystem/Tests/Bundle", _manifest );
+            var bundleLoader = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/ResourcesSystem/Tests/Bundle", _manifest );
 
             nodesBuilder.AssetsStorage.LinkTo( bundleLoader.DefaultInput );
             bundleLoader.DefaultOutput.LinkTo( nodesBuilder.GetNewAssetLoadingRequestEndpoint< AssetBundle >() );
