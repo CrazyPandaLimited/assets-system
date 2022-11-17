@@ -32,7 +32,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
                     AssetInfos = new List<string> {"assets/assetbundlesexperiments/stuff/aliceslots/images/gem_alice.png"}
                 });
             
-            _workProcessor = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/ResourcesSystem/Tests/Bundle",_manifest );
+            _workProcessor = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/Systems/ResourcesSystem/Tests/Bundle",_manifest );
         }
         
         [UnityTest]
