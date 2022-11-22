@@ -14,6 +14,9 @@ using CrazyPanda.UnityCore.Serialization;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 {
+#if !UNITY_EDITOR
+    [Ignore("")]
+#endif
     [NUnit.Framework.Category("IntegrationTests")]
     [NUnit.Framework.Category("LocalTests")]
     public class DefaultBuilderTests

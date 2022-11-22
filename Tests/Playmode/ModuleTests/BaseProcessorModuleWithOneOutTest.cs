@@ -7,6 +7,9 @@ using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
+#if !UNITY_EDITOR
+    [Ignore("")]
+#endif
     public abstract class BaseProcessorModuleWithOneOutTest< TProcessorType, TInputNodeBodyType, TOutNodeBodyType >
         where TProcessorType : AbstractRequestInputOutputProcessor< TInputNodeBodyType, TOutNodeBodyType >
         where TInputNodeBodyType : IMessageBody
