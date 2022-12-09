@@ -8,9 +8,6 @@ using UnityEngine;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
-#if !UNITY_EDITOR
-    [Ignore("")]
-#endif
     [NUnit.Framework.Category("ModuleTests")]
     [NUnit.Framework.Category("LocalTests")]
     public class BundlesCacheWithRefcountCacheControllerTests

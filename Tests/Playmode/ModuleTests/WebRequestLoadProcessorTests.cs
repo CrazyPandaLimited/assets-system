@@ -17,9 +17,6 @@ using UnityEngine.TestTools;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
-#if !UNITY_EDITOR
-    [Ignore("")]
-#endif
     [NUnit.Framework.Category("ModuleTests")]
     [NUnit.Framework.Category("ServerTests")]
     public sealed class WebRequestLoadProcessorTests : BaseProcessorModuleWithOneOutTest< WebRequestLoadProcessor< Object >, UrlLoadingRequest, AssetLoadingRequest< Object > >
