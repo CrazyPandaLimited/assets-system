@@ -1,0 +1,22 @@
+{
+    "name": "Resources.BundlesProvider.Editor",
+    "rootNamespace": "",
+    "references": [
+        "UnityCore.DeveloperInterface.TestsEditor",
+        "Resources.BundlesProvider",
+        "UnityCore.DeveloperInterface.Tests"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -47,8 +47,11 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             _manifest.AssetInfos.Add( prefabAssetName, new AssetInBundleInfo( prefabAssetName ) );
             _manifest.RecalculateCache();
 
-            var bundleLoader = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/ResourcesSystem/Tests/Bundle", _manifest );
-
+#if UNITY_EDITOR 
+            var bundleLoader = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/ResourcesSystem/Tests/Bundle/Editor", _manifest );
+#else            
+            var bundleLoader = new BundlesFromLocalFolderLoadProcessor( Application.persistentDataPath, _manifest );
+#endif
             nodesBuilder.AssetsStorage.LinkTo( bundleLoader.DefaultInput );
             bundleLoader.DefaultOutput.LinkTo( nodesBuilder.GetNewAssetLoadingRequestEndpoint< AssetBundle >() );
 
@@ -174,12 +177,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             };
 
             _assetBundleLoaderProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData( MetaDataReservedKeys.SYNC_REQUEST_FLAG ), CancellationToken.None ), requestBody );
-
-            var loadedBundles = AssetBundle.GetAllLoadedAssetBundles();
-            Assert.NotNull( loadedBundles.First( c => c.name == bundleName.Replace( ".bundle", "" ) ) );
-            Assert.NotNull( loadedBundles.First( c => c.name == bundleName2.Replace( ".bundle", "" ) ) );
-            Assert.NotNull( loadedBundles.First( c => c.name == bundleName3.Replace( ".bundle", "" ) ) );
-
 
             Assert.NotNull( sendedBody );
             Assert.NotNull( sendedBody.Asset );

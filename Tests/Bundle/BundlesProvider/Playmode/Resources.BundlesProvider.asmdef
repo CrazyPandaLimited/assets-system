@@ -1,0 +1,18 @@
+{
+    "name": "Resources.BundlesProvider",
+    "rootNamespace": "",
+    "references": [
+        "UnityCore.DeveloperInterface.Tests"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -33,10 +33,14 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             _cacheController = new BundlesCacheWithRefcountCacheController();
             AssetBundle.UnloadAllAssetBundles(false);
 
-            var bundlePath = $"{Application.dataPath}/UnityCoreSystems/ResourcesSystem/Tests/Bundle/";
-            AssetBundle.UnloadAllAssetBundles(false);
+#if UNITY_EDITOR            
+            var bundlePath = $"{Application.dataPath}/UnityCoreSystems/ResourcesSystem/Tests/Bundle/Editor/";
+#else
+            var bundlePath = $"{Application.streamingAssetsPath}/";
+#endif
             _assetBundle2 = AssetBundle.LoadFromFile(bundlePath + bundleName2);
             _assetBundle3 = AssetBundle.LoadFromFile(bundlePath + bundleName3);
+            
         }
 
         [Test]

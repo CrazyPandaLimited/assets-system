@@ -22,7 +22,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
     public class ResourceStorageRemoteBundleTests : BaseProcessorModuleWithOneOutTest< BundlesFromWebRequestLoadProcessor, UrlLoadingRequest, AssetLoadingRequest< AssetBundle > >
     {
         private const string BaseManifestName = "custom_manifest.json";
-        private const string BundleName = "blue.bundle3d";
+        private const string BundleName = "blue";
 
         private AssetBundleManifest _manifest;
 

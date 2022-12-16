@@ -118,7 +118,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             Assert.True( _builder.OtherAssetsCache.Contains( url ) );
 
             _builder.OtherAssetsCache.ReleaseAllAssetReferences( owner );
-            _builder.OtherAssetsCache.RemoveUnusedAssets();
+            _builder.OtherAssetsCache.RemoveUnusedAssets( destroy: false);
 
             Assert.False( _builder.OtherAssetsCache.Contains( url ) );
         }
@@ -158,8 +158,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
         public IEnumerator SuccessLoadAssetFromRemoteBundleAndCheckGetFromCache()
         {
             string BaseManifestName = "custom_manifest.json";
-            string BundleName = "blue.bundle3d";
-            string assetName = "blue.png";
+            string BundleName = "blue";
+            string assetName = "Assets/blue.png";
 
             string manifestUrl = ResourceStorageTestUtils.ConstructTestBundlesUrl( BaseManifestName );
 
@@ -189,7 +189,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             var jsonSerializer = new NewtonsoftJsonSerializer( new JsonSerializerSettings { Formatting = Formatting.Indented }, Encoding.UTF8 );
             var manifest = jsonSerializer.Deserialize<AssetBundleManifest>( manifestPromise.Result );
             _builder.AssetBundleManifest.AddManifestPart( manifest );
-
 
             //load asset
             var assetPromise = _builder.AssetsStorage.LoadAssetAsync< Texture >( assetName, MetaDataExtended.CreateMetaDataWithOwner( owner ) );

@@ -4,19 +4,21 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Tests
 {
     static class ResourceStorageTestUtils
     {
+        private const string TestUrl = "https://unitycore.dev.crazypanda.ru/s/remote-asset-bundles";
+        
         public static string ConstructTestBundlesUrl(string filename = null)
         {
             if (string.IsNullOrEmpty(filename))
             {
-                return "https://crazypandalimited.github.io/assets-system/files-for-testing/bundles";
+                return $"{TestUrl}/{GetPlatformPrefix()}";
             }
 
-            return string.Format("https://crazypandalimited.github.io/assets-system/files-for-testing/bundles/{0}", filename);
+            return $"{TestUrl}/{GetPlatformPrefix()}/{filename}";
         }
 
         public static string ConstructTestUrl(string filename)
         {
-            return string.Format("https://crazypandalimited.github.io/assets-system/files-for-testing/{0}", filename);
+            return $"{TestUrl}/{filename}";
         }
 
         public static bool IsBundleLoaded(string bundleName)
@@ -29,5 +31,21 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Tests
 
             return false;
         }
+
+        private static string GetPlatformPrefix()
+        {
+#if UNITY_EDITOR            
+            return "Editor";
+#elif UNITY_STANDALONE_WIN
+            return "StandaloneWindows";
+#elif UNITY_ANDROID
+            return "Android";
+#elif UNITY_IOS
+            return "iOS";
+#elif UNITY_WEBGL        
+            return "WebGL";
+#endif
+            return "Editor";
+        }        
     }
 }

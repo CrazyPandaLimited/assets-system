@@ -1,11 +1,13 @@
-﻿using System.Linq;
-using CrazyPanda.UnityCore.PandaTasks.Progress;
+﻿using CrazyPanda.UnityCore.PandaTasks.Progress;
 using CrazyPanda.UnityCore.MessagesFlow;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using CrazyPanda.UnityCore.PandaTasks;
 using NSubstitute;
 using NUnit.Framework;
 using UnityEngine;
@@ -15,28 +17,41 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
     [NUnit.Framework.Category("ModuleTests")]
     [NUnit.Framework.Category("LocalTests")]
-    public class ResourceStorageLocalBundleTests : BaseProcessorModuleWithOneOutTest<BundlesFromLocalFolderLoadProcessor,UrlLoadingRequest, AssetLoadingRequest< AssetBundle >>
+    public class ResourceStorageLocalBundleTests
     {   
         private AssetBundleManifest _manifest;
         
         string bundleName = "experiment_aliceslots.bundle";
         
-        protected override void InternalSetup()
+        protected IInputNode< AssetLoadingRequest< AssetBundle > > outProcessor;
+        protected BundlesFromLocalFolderLoadProcessor _workProcessor;
+
+        [ UnitySetUp ]
+        public IEnumerator Setup()
         {
             AssetBundle.UnloadAllAssetBundles(true);
             
             _manifest = new AssetBundleManifest();
             _manifest.BundleInfos.Add(bundleName,
-                new BundleInfo(new GameAssetType("Image"), bundleName)
-                {
-                    AssetInfos = new List<string> {"assets/assetbundlesexperiments/stuff/aliceslots/images/gem_alice.png"}
-                });
+                                      new BundleInfo(new GameAssetType("Image"), bundleName)
+                                      {
+                                          AssetInfos = new List<string> {"assets/assetbundlesexperiments/stuff/aliceslots/images/gem_alice.png"}
+                                      });
+
+#if !UNITY_EDITOR
+            _workProcessor = new BundlesFromLocalFolderLoadProcessor( Application.persistentDataPath,_manifest );
+#else            
+            _workProcessor = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/ResourcesSystem/Tests/Bundle/Editor",_manifest );
+#endif            
+            outProcessor = Substitute.For< IInputNode< AssetLoadingRequest< AssetBundle > > >();
+            _workProcessor.DefaultOutput.LinkTo( outProcessor );
             
-            _workProcessor = new BundlesFromLocalFolderLoadProcessor( $"{Application.dataPath}/UnityCoreSystems/ResourcesSystem/Tests/Bundle",_manifest );
+            yield break;
         }
-        
-        [UnityTest]
-        public IEnumerator SuccessLoadBundleAsync()
+
+
+        [ AsyncTest ]
+        public async IPandaTask SuccessLoadBundleAsync()
         {   
             var requestBody = new UrlLoadingRequest( bundleName, typeof( AssetBundle ), new ProgressTracker< float >() );
 
@@ -50,9 +65,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             };
 
             _workProcessor.DefaultInput.ProcessMessage( new MessageHeader( new MetaData(), CancellationToken.None ), requestBody );
-            
-            yield return base.WaitForTimeOut(sendedBody);
 
+            await PandaTasksUtilities.WaitWhile( () => sendedBody == null ).OrTimeout( TimeSpan.FromSeconds( 1 ) );
+            
             Assert.Null( _workProcessor.Exception );
 
             Assert.NotNull( sendedBody );
@@ -81,10 +96,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.NotNull( sendedBody.Asset );
         }
         
-        [UnityTest]
-        public IEnumerator SuccessCancel()
+        [AsyncTest]
+        public async IPandaTask SuccessCancel()
         {
-            
             var cancelTocken = new CancellationTokenSource();
             
             var requestBody = new UrlLoadingRequest( bundleName, typeof( AssetBundle ), new ProgressTracker< float >() );
@@ -96,7 +110,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             
             cancelTocken.Cancel();
 
-            yield return base.WaitForTimeOut();
+            await PandaTasksUtilities.Delay( TimeSpan.FromSeconds( 1 ) );
             Assert.Null( _workProcessor.Exception );
             Assert.IsFalse( outCalled );
         }
