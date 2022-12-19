@@ -34,9 +34,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.Tests
 
         private static string GetPlatformPrefix()
         {
-#if UNITY_EDITOR            
-            return "Editor";
-#elif UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN
             return "StandaloneWindows";
 #elif UNITY_ANDROID
             return "Android";
