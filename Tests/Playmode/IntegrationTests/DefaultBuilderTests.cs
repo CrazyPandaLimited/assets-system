@@ -215,8 +215,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             Assert.True( _builder.AssetsFromBundlesCache.Contains( assetName ) );
         }
 
-        [ UnityTest ]
-        public IEnumerator FailLoadAssetFromWebThenSuccess()
+        [ AsyncTest ]
+        public async PandaTask FailLoadAssetFromWebThenSuccess()
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
             
@@ -235,8 +235,15 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
 
             var promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             var promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner2 ) );
-            yield return WaitForPromiseEnging( promise );
 
+            try
+            {
+                await PandaTasksUtilities.WaitAll( promise, promise2 );
+            }
+            catch( Exception e )
+            {
+            }
+            
             Assert.AreEqual( PandaTaskStatus.Rejected, promise.Status );
             Assert.AreEqual( PandaTaskStatus.Rejected, promise2.Status );
             Assert.False( _builder.OtherAssetsCache.Contains( url ) );
@@ -244,7 +251,16 @@ namespace CrazyPanda.UnityCore.AssetsSystem.IntegrationTests
             url = ResourceStorageTestUtils.ConstructTestUrl( "logo_test.jpg" );
             promise = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner ) );
             promise2 = _builder.AssetsStorage.LoadAssetAsync< Texture >( url, MetaDataExtended.CreateMetaDataWithOwner( owner2 ) );
-            yield return WaitForPromiseEnging( promise );
+
+            try
+            {
+                await PandaTasksUtilities.WaitAll( promise, promise2 );
+
+            }
+            catch( Exception e )
+            {
+            }
+            
             Assert.AreEqual( PandaTaskStatus.Resolved, promise.Status );
             Assert.AreEqual( PandaTaskStatus.Resolved, promise2.Status );
             Assert.NotNull( promise.Result );
