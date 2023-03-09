@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using CrazyPanda.UnityCore.AssetsSystem.Processors;
 using CrazyPanda.UnityCore.PandaTasks;
@@ -35,8 +36,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         }
 
 
-        [UnityTest]
-        public IEnumerator SuccessFirstRetryTest()
+        [AsyncTest]
+        public async PandaTask SuccessFirstRetryTest()
         {
             _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
@@ -52,7 +53,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             
             _processor.DefaultInput.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
 
-            yield return WaitResults();
+            await PandaTasksUtilities.WaitWhile( () => !inputOutNode.ReceivedCalls().Any() );
             
             var rCalls = new List<ICall>(inputOutNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
@@ -63,8 +64,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             Assert.AreEqual(1, _messageHeaderFirstFile1.MetaData.GetMeta<int>(RequestRetryProcessor.RETRY_METADATA_KEY));
         }
 
-        [UnityTest]
-        public IEnumerator SuccessSecondRetryTest()
+        [AsyncTest]
+        public async PandaTask SuccessSecondRetryTest()
         {
             _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
@@ -85,7 +86,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             _processor.DefaultInput.ProcessMessage(_messageHeaderFirstFile1, _messageBodyFirstFile1);
 
-            yield return WaitResults();
+            await PandaTasksUtilities.WaitWhile( () => !inputOutNode.ReceivedCalls().Any() );
             
             var rCalls = new List<ICall>(inputOutNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
@@ -97,8 +98,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
         }
 
-        [UnityTest]
-        public IEnumerator GetAllRetryFallTest()
+        [AsyncTest]
+        public async PandaTask GetAllRetryFallTest()
         {
             _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
@@ -127,7 +128,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             //_processor.ProcessRequest<Object>(loadingRequest);
 
-            yield return WaitResults();
+            await PandaTasksUtilities.Delay( 1000 );
             
             var rCallsRetry = new List<ICall>(inputRetryNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
@@ -147,8 +148,8 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
             //Assert.AreEqual(typeof(AllRequestRetrysFallException), _taskSource.ResultTask.Error.GetBaseException().GetType());
         }
 
-        [UnityTest]
-        public IEnumerator OperationCancelTest()
+        [AsyncTest]
+        public async PandaTask OperationCancelTest()
         {
             _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
@@ -174,7 +175,7 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             tokenSource.Cancel();
 
-            yield return WaitResults();
+            await PandaTasksUtilities.Delay( 1000 );
             
             var rCallsRetry = new List<ICall>(inputRetryNode.ReceivedCalls());
             //Debug.Log($"Calls = {rCalls.Count}");            
@@ -186,15 +187,6 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 
             Assert.True(_messageHeaderFirstFile1.CancellationToken.IsCancellationRequested);
             Assert.False(_messageHeaderFirstFile1.MetaData.IsMetaExist(RequestRetryProcessor.RETRY_METADATA_KEY));
-        }
-        
-        private IEnumerator WaitResults(float timeToWait = 0.6f)
-        {
-            var waitTime = DateTime.Now.AddSeconds(timeToWait);
-            while (DateTime.Now < waitTime)
-            {
-                yield return null;
-            }
         }
     }
 }
