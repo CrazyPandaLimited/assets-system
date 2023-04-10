@@ -4,8 +4,6 @@ using NUnit.Framework;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
-    [NUnit.Framework.Category("ModuleTests")]
-    [NUnit.Framework.Category("LocalTests")]
     public abstract class BaseCacheTests< TCache > where TCache : ICache, new()
     {
         protected TCache _memoryCache { get; private set; }

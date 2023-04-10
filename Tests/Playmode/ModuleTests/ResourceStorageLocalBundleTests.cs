@@ -15,8 +15,6 @@ using UnityEngine.TestTools;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
-    [NUnit.Framework.Category("ModuleTests")]
-    [NUnit.Framework.Category("LocalTests")]
     public class ResourceStorageLocalBundleTests
     {   
         private AssetBundleManifest _manifest;

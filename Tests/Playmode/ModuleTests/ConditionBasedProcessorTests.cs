@@ -8,8 +8,6 @@ using CrazyPanda.UnityCore.MessagesFlow;
 
 namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
 {
-    [NUnit.Framework.Category("ModuleTests")]
-    [NUnit.Framework.Category("LocalTests")]
     public class ConditionBasedProcessorTests
     {
         private MessageHeader _header;
