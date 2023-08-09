@@ -1,9 +1,11 @@
 {
     "name": "UnityCore.ResourcesSystem",
+    "rootNamespace": "",
     "references": [
         "UnityCore.Promises",
         "UnityCore.MessagesFlow",
-        "UnityCore.OrderedNotifySet"
+        "UnityCore.OrderedNotifySet",
+        "UnityCore.UtilsCollectionSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
