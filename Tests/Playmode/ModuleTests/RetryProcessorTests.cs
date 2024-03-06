@@ -37,6 +37,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [AsyncTest]
         public async PandaTask SuccessFirstRetryTest()
         {
+#if UNITY_WEBGL
+            DelayPandaTask.Reset();
+#endif            
+            
             _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
                 {1, 0.5f}
@@ -65,6 +69,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [AsyncTest]
         public async PandaTask SuccessSecondRetryTest()
         {
+#if UNITY_WEBGL
+            DelayPandaTask.Reset();
+#endif            
+            
             _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
                 {2, 0.5f}
@@ -99,6 +107,9 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [AsyncTest]
         public async PandaTask GetAllRetryFallTest()
         {
+#if UNITY_WEBGL
+            DelayPandaTask.Reset();
+#endif            
             _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
                 {1, 0.5f}
@@ -149,6 +160,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [AsyncTest]
         public async PandaTask OperationCancelTest()
         {
+#if UNITY_WEBGL
+            DelayPandaTask.Reset();
+#endif            
+            
             _processor = new RequestRetryProcessor(new Dictionary<int, float>()
             {
                 {1, 0.1f}

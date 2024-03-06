@@ -102,6 +102,10 @@ namespace CrazyPanda.UnityCore.AssetsSystem.ModuleTests
         [ AsyncTest ]
         public async Task RetryUrlRequestShouldSucceed()
         {
+#if UNITY_WEBGL
+            DelayPandaTask.Reset();
+#endif            
+            
             const uint maxRetriesCount = 5;
             uint retriesCount = 0;
 
